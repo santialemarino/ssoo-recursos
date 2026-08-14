@@ -35,7 +35,7 @@ and those commits are worth filtering separately from behaviour changes.
 
 ```
 feat: add instruction cycle simulator with examples 1 to 4
-copy: reword the operand fetch stage narration
+copy: reword the fetch operands stage narration
 fix: correct the SP shown when popping the PSW in example 4
 enh: add tooltip explaining why the pushed IP is the next instruction
 docs: document how to add a new example

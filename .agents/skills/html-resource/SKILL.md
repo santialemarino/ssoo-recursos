@@ -1,12 +1,12 @@
 ---
 name: html-resource
-description: How an HTML resource in this repo is built — single file, no build step, accessible, legible on a projector. Use when creating or editing any page under resources/.
+description: How an HTML resource in this repo is built — single file, no build step, accessible, legible on a projector. Use when creating or editing any resource page.
 ---
 
 # HTML resources (ssoo-recursos)
 
-Each resource is **one file** at `resources/<slug>/index.html`. It gets sent by
-link to students who open it alone, and it gets projected in class. Those two
+Each resource is **one file** at `<slug>/index.html`, in a folder at the repo
+root. It gets sent by link to students who open it alone, and it gets projected in class. Those two
 facts outrank any technical preference.
 
 ## Hard constraints

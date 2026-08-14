@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23b45309%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%229.5%22%20width%3D%2213%22%20height%3D%2213%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%2F%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M13%209.5V5M19%209.5V5M13%2027v-4.5M19%2027v-4.5M9.5%2013H5M9.5%2019H5M27%2013h-4.5M27%2019h-4.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<title>Recursos de Sistemas Operativos</title>
+<style>
+  :root {
+    --ink: #14181f;
+    --muted: #5b6472;
+    --line: #dfe3ea;
+    --surface: #f5f7fa;
+    --primary: #1c56d6;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 48px 20px 64px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.015em; }
+
+  .lead { color: var(--muted); margin: 0 0 32px; }
+
+  h2 {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  li + li { margin-top: 10px; }
+
+  a.card {
+    display: block;
+    padding: 16px 18px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 150ms ease-out, border-color 150ms ease-out;
+  }
+
+  a.card:hover, a.card:focus-visible { border-color: var(--primary); transform: translateY(-1px); }
+
+  a.card:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+  a.card .name { font-weight: 650; color: var(--primary); }
+
+  a.card .description { display: block; margin-top: 3px; color: var(--muted); font-size: 15.5px; }
+
+  footer { margin-top: 40px; font-size: 14px; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Recursos de Sistemas Operativos</h1>
+    <p class="lead">Material interactivo de la cátedra. Cada recurso es una página que se abre sola, sin instalar nada.</p>
+
+    <h2>Recursos</h2>
+    <ul>
+      <li>
+        <a class="card" href="instruction-cycle-interrupts/index.html">
+          <span class="name">Ciclo de instrucción e interrupciones</span>
+          <span class="description">Un procesador simplificado ejecutando programas cortos paso a paso: las cinco etapas del ciclo, los registros, la pila del sistema y cómo se atiende una interrupción.</span>
+        </a>
+      </li>
+    </ul>
+
+    <footer>Material de cátedra. Si algo está mal explicado o falta, avisá.</footer>
+  </div>
+</body>
+</html>

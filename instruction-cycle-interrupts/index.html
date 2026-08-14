@@ -1,0 +1,3255 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23b45309%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%229.5%22%20width%3D%2213%22%20height%3D%2213%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%2F%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M13%209.5V5M19%209.5V5M13%2027v-4.5M19%2027v-4.5M9.5%2013H5M9.5%2019H5M27%2013h-4.5M27%2019h-4.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<title>Ciclo de instrucción e interrupciones</title>
+<style>
+  :root {
+    --ink: #10151d;
+    --ink-soft: #35404f;
+    --muted: #66707f;
+    --faint: #8c95a3;
+    --line: #e3e7ee;
+    --line-strong: #c6ccd8;
+    --page: #edf0f6;
+    --card: #ffffff;
+
+    --user: #1d4ed8;
+    --user-soft: #e8eefc;
+    --handler: #0d7a52;
+    --handler-soft: #e2f3ec;
+    --data: #6d4aad;
+    --data-soft: #eee9f8;
+    --alert: #c0392f;
+    --alert-soft: #fbeae8;
+    --accent: #a85a06;
+    --accent-soft: #fdf0dc;
+    --stack: #6d4aad;
+    --stack-soft: #eee9f8;
+
+    --radius: 11px;
+    --shadow: 0 1px 2px rgba(16, 21, 29, 0.05), 0 1px 8px rgba(16, 21, 29, 0.04);
+    --fast: 160ms;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--page);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 10px 14px 12px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 640; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
+  }
+
+  button:hover:not([disabled]) { border-color: var(--faint); }
+  button:active:not([disabled]) { transform: translateY(1px); }
+
+  button:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  header { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+
+  .head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .head-row.secondary:empty { display: none; }
+
+  header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
+
+  .head-row .spacer { flex: 1; }
+
+  .context-holder { position: relative; }
+
+  #contextToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 12px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+  }
+
+  #contextToggle .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  #contextToggle[aria-expanded="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  #contextToggle[aria-expanded="true"] .count { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+  #contextToggle.fresh { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  #contextToggle.fresh .count { background: var(--accent); color: #fff; }
+
+  .context-drawer {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 7px);
+    z-index: 15;
+    width: min(400px, calc(100vw - 30px));
+    max-height: 60vh;
+    overflow: auto;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 26px rgba(16, 21, 29, 0.16);
+    padding: 12px 14px;
+  }
+
+  .toggle { display: flex; }
+
+  .toggle button {
+    padding: 5px 13px;
+    font-size: 13px;
+    border-radius: 0;
+    border-right-width: 0;
+  }
+
+  .toggle button:first-child { border-radius: 7px 0 0 7px; }
+  .toggle button:last-child { border-radius: 0 7px 7px 0; border-right-width: 1px; }
+
+  .toggle button[aria-pressed="true"] {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .toggle-label { font-size: 13px; color: var(--muted); }
+
+  .examples { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  .examples button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px 5px 6px;
+    font-size: 12.5px;
+    text-align: left;
+    box-shadow: var(--shadow);
+  }
+
+  .examples button .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .examples button[aria-current="true"] {
+    background: var(--user);
+    border-color: var(--user);
+    color: #fff;
+  }
+
+  .examples button[aria-current="true"] .num { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+  main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1.1fr 0.8fr 0.82fr 0.62fr;
+    gap: 9px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .panel > h2 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 9px 12px 8px;
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+
+  .panel > h2::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line-strong);
+    flex: 0 0 auto;
+  }
+
+  .panel.memory > h2::before { background: var(--user); }
+  .panel.stack > h2::before { background: var(--stack); }
+  .panel.cycle > h2::before { background: var(--accent); }
+  .panel.contexts > h2::before { background: var(--data); }
+
+  main.with-contexts { grid-template-columns: 0.95fr 0.66fr 0.68fr 0.85fr 0.6fr; }
+  main.no-stack { grid-template-columns: 1.15fr 0.9fr 0.7fr; }
+
+  .context-box {
+    border: 1.5px solid var(--data);
+    background: var(--data-soft);
+    border-radius: 8px;
+    padding: 6px 8px 7px;
+  }
+
+  .panel.contexts .panel-body { display: grid; grid-template-columns: 1fr; gap: 8px; align-content: start; }
+
+  .context-box h3 {
+    font-size: 10.5px;
+    letter-spacing: 0.03em;
+    color: var(--data);
+    margin-bottom: 3px;
+    line-height: 1.2;
+  }
+
+  .context-box.changed { box-shadow: 0 0 0 2px var(--accent); animation: flash var(--fast) ease-out; }
+
+  .context-box-empty { font-size: 11.5px; color: var(--muted); margin: 0; }
+
+  .context-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .context-field .name { color: var(--muted); font-size: 11px; font-weight: 650; letter-spacing: 0.04em; }
+  .context-field .val { font-weight: 700; }
+  .context-field.changed { background: var(--accent-soft); }
+  .context-field.changed .name, .context-field.changed .val { color: var(--accent); }
+
+  .panel-body {
+    padding: 10px 12px 12px;
+    overflow: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .region + .region { margin-top: 10px; }
+
+  .panel-body.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-width: 0;
+    gap: 10px 16px;
+    align-content: start;
+  }
+
+  .panel-body.two-columns .region { margin-top: 0; }
+
+  .region h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .region h3::before {
+    content: "";
+    width: 8px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+  }
+
+  .region.user h3 { color: var(--user); }
+  .region.handler h3 { color: var(--handler); }
+  .region.data h3 { color: var(--data); }
+
+  .cell {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 2px 7px;
+    border-left: 3px solid transparent;
+    border-radius: 4px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+
+  .cell .addr { color: var(--faint); min-width: 3ch; text-align: right; }
+  .cell .text { flex: 1; white-space: nowrap; }
+  .cell .value { font-weight: 650; color: var(--ink); min-width: 2ch; text-align: right; }
+  .cell .cell-label { flex: 1; font-size: 11.5px; color: var(--muted); }
+
+  .cell.executed { border-left-color: var(--line-strong); }
+  .cell.suspended { border-left: 3px dashed var(--accent); background: var(--accent-soft); }
+
+  .cell.current { color: var(--ink); font-weight: 600; }
+  .region.user .cell.current { background: var(--user-soft); border-left-color: var(--user); }
+  .region.handler .cell.current { background: var(--handler-soft); border-left-color: var(--handler); }
+  .region.data .cell.changed { background: var(--accent-soft); border-left-color: var(--accent); animation: flash var(--fast) ease-out; }
+
+  .cell .tip { border-bottom-color: var(--line-strong); }
+  .cell .tip:hover { border-bottom-color: currentColor; }
+
+
+  .reg-grid { display: grid; gap: 5px; }
+  .reg-grid.general { grid-template-columns: repeat(3, 1fr); }
+  .reg-grid.pointers { grid-template-columns: 1fr 1fr; margin-top: 5px; }
+  .reg-grid.general .reg { flex-direction: column; align-items: flex-start; gap: 0; }
+
+  .reg {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #fcfdff;
+  }
+
+  .reg .name { color: var(--faint); font-size: 11px; letter-spacing: 0.07em; font-weight: 650; }
+  .reg .val { font-weight: 700; font-size: 15px; }
+  .reg.pointer { border-color: var(--line-strong); background: var(--card); border-left: 3px solid var(--line-strong); }
+  .reg.pointer .name { color: var(--ink-soft); }
+  .reg.ip { border-left-color: var(--user); }
+  .reg.ip .name { color: var(--user); }
+  .reg.sp { border-left-color: var(--stack); }
+  .reg.sp .name { color: var(--stack); }
+  .reg.changed { background: var(--accent-soft); border-color: var(--accent); animation: flash var(--fast) ease-out; }
+  .reg.changed .name { color: var(--accent); }
+
+  .psw { margin-top: 7px; border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 9px; }
+  .psw h3 { font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); }
+  .psw-bits { display: flex; gap: 6px; margin-top: 6px; }
+
+  .bit {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 6px;
+    text-align: center;
+    background: #fcfdff;
+  }
+
+  .bit .name { display: block; font-size: 10px; letter-spacing: 0.08em; color: var(--faint); font-weight: 650; }
+  .bit .val { font-weight: 700; font-size: 14px; }
+  .bit.on { border-color: var(--handler); background: var(--handler-soft); }
+  .bit.on .val { color: var(--handler); }
+  .bit.off { border-color: var(--alert); background: var(--alert-soft); }
+  .bit.off .val { color: var(--alert); }
+  .bit.user { border-color: var(--user); background: var(--user-soft); }
+  .bit.user .val { color: var(--user); }
+  .bit.kernel { border-color: var(--handler); background: var(--handler-soft); }
+  .bit.kernel .val { color: var(--handler); }
+  .bit.changed { box-shadow: 0 0 0 2px var(--accent); animation: flash var(--fast) ease-out; }
+
+  .psw-note { font-size: 11px; color: var(--faint); margin: 6px 0 0; }
+
+  .panel.stack .panel-body { display: flex; flex-direction: column; justify-content: center; }
+
+  .stack-graphic { display: flex; flex-direction: column; padding: 0 6px; }
+
+  .stack-slot { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+  .stack-slot:last-child { margin-bottom: 0; }
+
+  .stack-graphic.dense .stack-slot { margin-bottom: 2px; }
+  .stack-graphic.dense .disc { padding: 10px 13px 5px; }
+  .stack-graphic.dense .disc.ghost,
+  .stack-graphic.dense .disc.base { padding: 8px 13px 4px; }
+  .stack-graphic.dense .shell.cap { height: 10px; }
+  .stack-graphic.dense .shell.body { top: 5px; bottom: 5px; }
+  .stack-graphic.dense .disc .label { font-size: 10px; line-height: 1.15; margin-top: 0; }
+  .stack-graphic.dense .disc .value { font-size: 12.5px; }
+  .stack-graphic.dense .disc .addr { font-size: 10.5px; }
+  .stack-graphic.dense .sp-marker { flex-basis: 32px; font-size: 11px; }
+
+  .sp-marker {
+    flex: 0 0 40px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--stack);
+    text-align: right;
+    letter-spacing: -0.01em;
+  }
+
+  .disc {
+    --fill: var(--card);
+    --fill-top: #fbfcfe;
+    --stroke: var(--line-strong);
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    padding: 19px 20px 12px;
+  }
+
+  .disc .shell {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border: 1.5px solid var(--stroke);
+  }
+
+  .disc .shell.body {
+    top: 7px;
+    bottom: 7px;
+    background: var(--fill);
+    border-top: 0;
+    border-bottom: 0;
+  }
+
+  .disc .shell.cap {
+    height: 14px;
+    border-radius: 50%;
+    background: var(--fill);
+  }
+
+  .disc .shell.cap.bottom { bottom: 0; }
+  .disc .shell.cap.top { top: 0; background: var(--fill-top); }
+
+  .disc .content { position: relative; }
+
+  .disc.user { --fill: var(--user-soft); --fill-top: #f1f5fd; --stroke: var(--user); }
+  .disc.handler { --fill: var(--handler-soft); --fill-top: #eef8f3; --stroke: var(--handler); }
+  .disc.hw { --fill: var(--alert-soft); --fill-top: #fdf1f0; --stroke: var(--alert); }
+  .disc.base { --fill: var(--stack-soft); --fill-top: #f5f1fc; --stroke: var(--stack); }
+  .disc.ghost { --fill: var(--page); --fill-top: #f1f4f9; --stroke: var(--line-strong); }
+
+  .disc.ghost .shell { border-style: dashed; }
+  .disc.ghost { padding: 17px 20px 10px; color: var(--faint); font-size: 11.5px; text-align: center; }
+
+  .disc.base { padding: 15px 20px 8px; color: var(--stack); font-size: 12px; font-weight: 650; text-align: center; }
+
+  .disc .content { text-align: center; }
+  .disc .top-row { display: flex; justify-content: center; gap: 10px; align-items: baseline; }
+  .disc .addr { color: var(--muted); font-size: 11.5px; }
+  .disc .value { font-weight: 700; font-size: 14px; }
+  .disc .label { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+
+  .disc.changed { --stroke: var(--accent); --fill-top: var(--accent-soft); animation: flash var(--fast) ease-out; }
+  .disc.changed .shell { border-width: 2px; }
+  .disc.empty .value { color: var(--faint); font-weight: 400; font-size: 11px; }
+
+  .stack-empty { font-size: 13px; color: var(--muted); margin: 14px 6px 0; text-align: center; }
+
+  .stack-legend { font-size: 11.5px; color: var(--faint); margin: 12px 0 0; }
+
+  .context-line { font-size: 13.5px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .context-line:first-child { padding-top: 0; }
+  .context-line:last-child { border-bottom: 0; padding-bottom: 0; }
+
+  .context-line .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-bottom: 5px;
+  }
+
+  .context-line.fresh { animation: flash var(--fast) ease-out; }
+
+  .context-empty { font-size: 13px; color: var(--faint); margin: 10px 0 0; }
+
+  .context-intro {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  footer { flex: 0 0 254px; display: block; min-height: 0; }
+
+  .cycle-body { flex: 1 1 auto; min-height: 0; overflow: auto; }
+
+  .narration-panel { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+
+  .narration-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 9px 12px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .narration-head .title { font-weight: 660; font-size: 14.5px; }
+  .narration-head .subtitle { font-size: 13px; color: var(--muted); flex: 1; min-width: 160px; }
+
+  .variants { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .variants button { padding: 4px 11px; font-size: 12.5px; }
+
+  .variants button[aria-pressed="true"] {
+    background: var(--data);
+    border-color: var(--data);
+    color: #fff;
+  }
+
+  .counter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 10px;
+    border: 1px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 6px;
+  }
+
+  .counter-label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--accent); white-space: nowrap; }
+  .counter-value { font-size: 16px; font-weight: 800; color: var(--accent); }
+
+  .kernel-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--handler);
+    background: var(--handler-soft);
+    border: 1px solid var(--handler);
+    border-radius: 5px;
+    padding: 2px 8px;
+  }
+
+  .narration-body {
+    padding: 9px 12px 3px;
+    flex: 1 1 auto;
+    min-height: 40px;
+    overflow-y: auto;
+  }
+
+  .instruction-help {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    margin: 0 0 8px;
+    padding: 5px 9px;
+    background: var(--page);
+    border-radius: 7px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .instruction-help .mnemonic {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--user);
+    flex: 0 0 auto;
+  }
+
+  .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
+  .narration-note { font-size: 14px; color: var(--muted); margin: 7px 0 0; }
+
+  .context-card {
+    padding: 7px 11px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 7px 7px 0;
+    font-size: 14px;
+    animation: flash var(--fast) ease-out;
+  }
+
+  .side-panel.callout-slot { display: block; padding-top: 7px; }
+  .side-panel.callout-slot > * + * { margin-top: 7px; }
+
+  .closing {
+    padding: 2px 0 0 11px;
+    border-left: 3px solid var(--data);
+  }
+
+  .closing .tag {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--data);
+    margin-bottom: 5px;
+  }
+
+  .closing { overflow-x: auto; }
+  .closing table { border-collapse: collapse; font-size: 12px; }
+  .closing th { text-align: left; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 14px 2px 0; }
+  .closing td { padding: 1px 14px 1px 0; }
+  .closing tr.current td { font-weight: 700; color: var(--data); }
+  .closing-footer { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+
+  .closing-card {
+    padding: 8px 11px;
+    background: var(--data-soft);
+    border: 1.5px solid var(--data);
+    border-radius: 8px;
+    font-size: 15px;
+    animation: flash var(--fast) ease-out;
+  }
+
+  .context-card .tag {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+
+  .step-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-right: 7px;
+    vertical-align: 2px;
+  }
+
+  .step-tag.hw { background: var(--alert-soft); color: var(--alert); }
+  .step-tag.sw { background: var(--handler-soft); color: var(--handler); }
+  .step-tag.so { background: var(--data-soft); color: var(--data); }
+
+  .stage.switch.lit { background: var(--data-soft); color: var(--data); }
+  .stage.switch.lit .num { border-color: var(--data); background: var(--data); }
+  .stage.dma.lit { background: var(--alert-soft); color: var(--alert); }
+  .stage.dma.lit .num { border-color: var(--alert); background: var(--alert); }
+
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 5px 12px 0; }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--user);
+    border-radius: 2px;
+    transition: transform var(--fast) ease-out;
+    transform-origin: left center;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 7px 12px 8px;
+  }
+
+  .controls .big { padding: 8px 17px; font-size: 15px; font-weight: 640; }
+
+  .controls .big.primary {
+    background: var(--user);
+    border-color: var(--user);
+    color: #fff;
+  }
+
+  .controls .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
+  .controls .small { padding: 7px 12px; font-size: 13px; }
+  .progress { font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+
+  .stages { padding: 9px 10px; }
+
+  .stage {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--faint);
+    position: relative;
+  }
+
+  .stage .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+    background: var(--card);
+    font-size: 11px;
+    font-weight: 700;
+    flex: 0 0 auto;
+    z-index: 1;
+  }
+
+  .stage-group.grouped {
+    border: 1.5px solid var(--line);
+    border-radius: 9px;
+    padding: 4px 4px 2px;
+    margin-bottom: 2px;
+  }
+
+  .stage-group.grouped.lit { border-color: var(--user); background: var(--user-soft); }
+  .stage-group.grouped.lit .stage { color: var(--user); font-weight: 640; }
+  .stage-group.grouped.lit .stage .num { border-color: var(--user); background: var(--user); color: #fff; }
+
+  .stage.lit { background: var(--user-soft); color: var(--user); font-weight: 640; }
+  .stage.lit .num { border-color: var(--user); background: var(--user); color: #fff; }
+
+  .stage.check.lit { background: var(--accent-soft); color: var(--accent); }
+  .stage.check.lit .num { border-color: var(--accent); background: var(--accent); }
+
+  .stage.service.lit { background: var(--alert-soft); color: var(--alert); }
+  .stage.service.lit .num { border-color: var(--alert); background: var(--alert); }
+
+  .stage.check { margin-top: 6px; }
+
+  .side-panel {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    align-items: start;
+    gap: 16px;
+    padding: 6px 12px 7px;
+    margin: 0 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .side-panel h3 {
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--faint);
+    max-width: 92px;
+    line-height: 1.3;
+  }
+
+  .side-item { font-size: 12.5px; color: var(--ink-soft); }
+
+  .side-item .side-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
+
+  .side-item.alert .side-label { color: var(--alert); }
+  .side-item.handler .side-label { color: var(--handler); }
+  .side-item.user .side-label { color: var(--user); }
+
+  .tip {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    border-bottom: 1px dotted var(--user);
+    cursor: help;
+    border-radius: 0;
+  }
+
+  .tip:hover { border-bottom-style: solid; }
+
+  #tooltip {
+    position: fixed;
+    z-index: 20;
+    max-width: 330px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.42;
+    box-shadow: 0 6px 20px rgba(16, 21, 29, 0.3);
+    display: none;
+  }
+
+  #tooltip.open { display: block; animation: flash var(--fast) ease-out; }
+  #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  .pending-banner {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 10px 0 0;
+    padding: 6px 9px;
+    font-size: 12.5px;
+    font-weight: 650;
+    color: var(--alert);
+    background: var(--alert-soft);
+    border-radius: 7px;
+  }
+
+  .pending-banner::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--alert);
+    flex: 0 0 auto;
+  }
+
+  @keyframes flash {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 1150px) {
+    .panel-body.two-columns { grid-template-columns: 1fr; }
+    main.with-contexts { grid-template-columns: 1fr 0.72fr 0.66fr 0.88fr 0.62fr; }
+  }
+
+  @media (max-width: 1000px) {
+    body { height: auto; overflow: auto; padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+    main, main.with-contexts, main.no-stack { grid-template-columns: 1fr; }
+    .counter-label { white-space: normal; }
+    .panel-body.two-columns { grid-template-columns: 1fr; }
+    footer { flex: 0 0 auto; max-height: none; }
+    .narration-body { min-height: 0; max-height: none; overflow: visible; }
+    .cycle-body { overflow: visible; }
+    .panel-body { overflow-x: auto; overflow-y: visible; }
+    .narration-head { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .narration-head .subtitle { min-width: 0; }
+    .progress-row { padding-top: 9px; }
+
+    .controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      background: var(--card);
+      border-top: 1px solid var(--line-strong);
+      box-shadow: 0 -2px 12px rgba(16, 21, 29, 0.08);
+      z-index: 10;
+    }
+
+    .controls .big, .controls .small { width: 100%; }
+    .counter-label { white-space: normal; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ciclo de instrucción e interrupciones</h1>
+  <div class="head-row">
+    <nav class="examples" id="exampleList" aria-label="Ejemplos"></nav>
+    <div class="toggle" role="group" aria-label="Detalle de los pasos">
+      <button type="button" id="granularityDetailed" aria-pressed="true" data-tip="detailedMode">Detallado</button>
+      <button type="button" id="granularityCompact" aria-pressed="false" data-tip="compactMode">Compacto</button>
+    </div>
+    <div class="context-holder">
+      <button type="button" id="contextToggle" aria-expanded="false" aria-controls="contextDrawer">
+        <span id="contextToggleLabel"></span>
+        <span class="count" id="contextCount">0</span>
+      </button>
+      <div class="context-drawer" id="contextDrawer" hidden></div>
+    </div>
+  </div>
+  <div class="head-row secondary">
+    <div class="variants" id="variantList" hidden role="group" aria-label="Mecanismo"></div>
+    <span class="counter" id="counter" hidden></span>
+  </div>
+</header>
+
+<main>
+  <section class="panel memory">
+    <h2>Memoria</h2>
+    <div class="panel-body" id="memoryPanel"></div>
+  </section>
+
+  <section class="panel registers">
+    <h2>Registros</h2>
+    <div class="panel-body" id="registerPanel"></div>
+  </section>
+
+  <section class="panel stack" id="stackSection">
+    <h2>Pila del sistema</h2>
+    <div class="panel-body" id="stackPanel"></div>
+  </section>
+
+  <section class="panel contexts" id="contextsSection" hidden>
+    <h2 id="contextsHeading"></h2>
+    <div class="panel-body" id="contextsPanel"></div>
+  </section>
+
+  <section class="panel cycle">
+    <h2>Ciclo</h2>
+    <div class="cycle-body">
+      <div class="stages" id="stagePanel"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <section class="panel narration-panel">
+    <div class="narration-head">
+      <span class="title" id="exampleTitle"></span>
+      <span class="subtitle" id="exampleSubtitle"></span>
+      <span class="kernel-badge" id="kernelBadge" hidden></span>
+    </div>
+    <div class="narration-body" id="narrationPanel" aria-live="polite"></div>
+    <div class="side-panel" id="sidePanel" hidden></div>
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="controls">
+      <button type="button" class="big" id="prevStep"></button>
+      <button type="button" class="big primary" id="nextStep"></button>
+      <button type="button" class="small" id="playPause"></button>
+      <button type="button" class="small" id="reset"></button>
+    </div>
+  </section>
+
+</footer>
+
+<div id="tooltip" role="tooltip"></div>
+
+<script id="data">
+const REGISTER_NAMES = ["AX", "BX", "CX"];
+
+const STACK_BASE = 900;
+
+const MODE_LABELS = { user: "usuario", kernel: "kernel" };
+
+const UI_TEXT = {
+  stages: [
+    { key: "fetch", num: "1", label: "Búsqueda de instrucción" },
+    { key: "decode", num: "2", label: "Decodificación" },
+    { key: "operands", num: "3", label: "Búsqueda de operandos" },
+    { key: "execute", num: "4", label: "Ejecución" },
+    { key: "writeback", num: "5", label: "Write back" },
+    { key: "check", num: "→", label: "Verificación de interrupciones" },
+    { key: "service", num: "!", label: "Atención de la interrupción" },
+    { key: "dma", num: "◇", label: "Transferencia del DMA" },
+    { key: "switch", num: "◆", label: "Cambio de contexto" }
+  ],
+  stackPointerMarker: "SP →",
+  stackBase: "900 · base",
+  kernelBadge: "modo kernel",
+  stackEmpty: "La pila está vacía. El SP apunta a la base.",
+  stackFreeSlot: "libre",
+  stackPendingValue: "se escribe en write back",
+  contextTitle: "Contexto",
+  contextIntro: "El contexto de un programa es todo lo que tiene guardado mientras corre: AX, BX, CX, el IP y el PSW. Si el programa se interrumpe y después sigue, necesita encontrar todo eso exactamente como lo dejó. Acá se junta una idea por ejemplo sobre cómo se logra eso.",
+  contextEmpty: "Todavía no llegaste a la primera. Seguí avanzando.",
+  contextTag: "Ejemplo {n}",
+  contextCardTag: "Anotá esto",
+  executedTitle: "Ya se ejecutó",
+  suspendedTitle: "Acá va a retomar cuando le devuelvan el control",
+  contextsTitle: "Contextos guardados",
+  contextBoxLabel: "Estructura del SO para {name}",
+  contextBoxEmpty: "Todavía vacía: el programa está corriendo, su contexto está en los registros.",
+  pswNote: "Un PSW real lleva más banderas.",
+  progress: "Paso {current} de {total}",
+  play: "Reproducir",
+  pause: "Pausar",
+  prevStep: "Paso anterior",
+  nextStep: "Paso siguiente",
+  reset: "Reiniciar",
+  pendingBanner: "Interrupción pendiente: {names}",
+  registerLabels: { AX: "AX", BX: "BX", CX: "CX", IP: "IP", SP: "SP" },
+  pswBits: { IF: "IF", ZF: "ZF", MODE: "MODE" }
+};
+
+const TOOLTIPS = {
+  detailedMode: {
+    title: "Modo detallado",
+    body: "Cada etapa del ciclo es un paso: cinco pasos por instrucción. Sirve para ver por dentro cómo se ejecuta una instrucción."
+  },
+  compactMode: {
+    title: "Modo compacto",
+    body: "Cada instrucción entera es un paso. Conviene cuando el ciclo ya se entiende y querés avanzar más rápido. La atención de una interrupción se sigue mostrando paso por paso en los dos modos."
+  },
+  ip: {
+    title: "IP (instruction pointer)",
+    body: "Guarda la dirección de la próxima instrucción a ejecutar. Se incrementa durante la búsqueda de instrucción, así que mientras una instrucción se ejecuta el IP ya apunta a la que sigue."
+  },
+  sp: {
+    title: "SP (stack pointer)",
+    body: "Guarda la dirección de la última celda ocupada de la pila. Acá la pila arranca en 900 y crece hacia direcciones más chicas: apilar baja el SP, desapilar lo sube."
+  },
+  zf: {
+    title: "ZF (zero flag)",
+    body: "Bit del PSW que queda en 1 cuando una comparación da igual. JZ es la única instrucción que lo mira para decidir si salta."
+  },
+  ifbit: {
+    title: "IF (interrupt flag)",
+    body: "Bit del PSW que dice si se atienden interrupciones. Con IF en 0 las interrupciones quedan deshabilitadas: si llega una, espera y no se atiende hasta que IF vuelva a 1."
+  },
+  psw: {
+    title: "PSW (program status word)",
+    body: "Registro con el estado del procesador. Acá muestra tres bits: IF, ZF y MODE. Es la mitad del contexto mínimo que hay que guardar para poder retomar un programa exactamente donde estaba."
+  },
+  pushedIp: {
+    title: "¿Por qué se apila la instrucción siguiente?",
+    body: "Porque el IP se incrementó durante la búsqueda de instrucción, antes de que la instrucción se ejecutara. Cuando la interrupción se atiende, el IP ya apunta a la que sigue, y esa es exactamente la dirección donde hay que retomar."
+  },
+  privileged: {
+    title: "Instrucción privilegiada",
+    short: "Privilegiada",
+    body: "Solo se puede ejecutar en modo kernel. Un programa de usuario que la intente no puede: para eso están los syscalls, que le piden al kernel lo que el programa no puede hacer por su cuenta."
+  },
+  mode: {
+    title: "MODE (modo de ejecución)",
+    body: "Bit del PSW que dice si el procesador está en modo usuario o en modo kernel. Los programas corren en modo usuario; las rutinas del sistema operativo, en modo kernel."
+  }
+};
+
+const INSTRUCTION_HELP = {
+  MOV: { title: "MOV", body: "Copia un valor a un registro o a una celda de memoria. No hace ninguna cuenta: solo mueve el dato de un lado al otro." },
+  ADD: { title: "ADD", body: "Suma el segundo operando al primero y deja el resultado en el primero." },
+  SUB: { title: "SUB", body: "Resta el segundo operando al primero y deja el resultado en el primero." },
+  CMP: { title: "CMP", body: "Compara dos valores y no guarda el resultado en ningún registro. Lo único que deja es el bit ZF en 1 si son iguales, y en 0 si no." },
+  JMP: { title: "JMP", body: "Salta siempre: escribe la dirección indicada en el IP, sin mirar ninguna condición." },
+  JZ: { title: "JZ", body: "Salta a la dirección indicada solo si ZF vale 1. Si vale 0, sigue con la instrucción siguiente." },
+  PUSH: { title: "PUSH", body: "Apila el contenido de un registro: baja el SP en uno y escribe el valor en esa celda de la pila." },
+  POP: { title: "POP", body: "Desapila: lee el valor del tope de la pila, lo pone en un registro y sube el SP en uno." },
+  STI: { title: "STI", body: "Habilita las interrupciones: pone el bit IF en 1. Es una instrucción privilegiada, así que solo puede ejecutarla el kernel." },
+  CLI: { title: "CLI", body: "Deshabilita las interrupciones: pone el bit IF en 0. Es una instrucción privilegiada, así que solo puede ejecutarla el kernel." },
+  SYSCALL: { title: "SYSCALL", body: "El programa le pide al kernel un servicio que no puede hacer por su cuenta, porque corre en modo usuario." },
+  IRET: { title: "IRET", body: "Vuelve de una rutina de atención: desapila el IP y el PSW, y el programa interrumpido sigue exactamente donde estaba." },
+  HALT: { title: "HALT", body: "Detiene la máquina. No hay instrucción siguiente." }
+};
+
+const INTERRUPTS = {
+  disk: { name: "Fin de I/O del disco", priority: 2, priorityLabel: "media", handler: 540 },
+  keyboard: { name: "Teclado", priority: 1, priorityLabel: "baja", handler: 520 }
+};
+
+const SYSCALLS = {
+  3: { name: "Leer del disco", routine: 700 },
+  4: { name: "Escribir por pantalla", routine: 600 }
+};
+
+const STACK_LABELS = {
+  psw: "PSW {owner}",
+  ip: "IP {owner}",
+  register: "{reg} {owner}"
+};
+
+const NARRATION = {
+  fetch: "Etapa 1. Se trae la instrucción de la celda {addr}: {instr}. El [[ip:IP]] pasa a {ipAfter}.",
+
+  decode: {
+    MOV_IMM: "Etapa 2. Es un MOV con un valor inmediato: hay que poner {value} en {dest}. El valor viene en la instrucción misma.",
+    MOV_LOAD: "Etapa 2. Es un MOV que lee de memoria: hay que traer lo que haya en la celda {src} y ponerlo en {dest}.",
+    MOV_STORE: "Etapa 2. Es un MOV que escribe en memoria: hay que guardar {src} en la celda {dest}.",
+    ADD_REG: "Etapa 2. Es una suma entre registros: {a} más {b}, y el resultado queda en {a}.",
+    ADD_IMM: "Etapa 2. Es una suma con un valor inmediato: {a} más {value}, y el resultado queda en {a}.",
+    ADD_LOAD: "Etapa 2. Es una suma con un dato de memoria: {a} más lo que haya en la celda {src}.",
+    SUB_REG: "Etapa 2. Es una resta entre registros: {a} menos {b}, y el resultado queda en {a}.",
+    SUB_IMM: "Etapa 2. Es una resta con un valor inmediato: {a} menos {value}.",
+    CMP_REG: "Etapa 2. Es una comparación entre {a} y {b}. No guarda el resultado en ningún registro.",
+    CMP_IMM: "Etapa 2. Es una comparación entre {a} y {value}. No guarda el resultado en ningún registro.",
+    JMP: "Etapa 2. Es un salto incondicional a la celda {target}.",
+    JZ: "Etapa 2. Es un salto condicional: salta a {target} solo si [[zf:ZF]] vale 1.",
+    PUSH: "Etapa 2. Es un PUSH: hay que apilar {reg} en la pila del sistema.",
+    POP: "Etapa 2. Es un POP: hay que sacar el valor del tope de la pila y ponerlo en {reg}.",
+    STI: "Etapa 2. Es un STI: habilita las interrupciones. Es una [[privileged:instrucción privilegiada]].",
+    CLI: "Etapa 2. Es un CLI: deshabilita las interrupciones. Es una [[privileged:instrucción privilegiada]].",
+    SYSCALL: "Etapa 2. Es un SYSCALL: el programa le pide al kernel el servicio {n}, {service}.",
+    IRET: "Etapa 2. Es un IRET: hay que volver al punto exacto donde el programa se interrumpió.",
+    HALT: "Etapa 2. Es un HALT: la máquina se detiene."
+  },
+
+  operands: {
+    immediate: "Etapa 3. No hay nada que buscar: el valor viene en la instrucción misma.",
+    register: "Etapa 3. No hay nada que buscar: los operandos ya están en registros.",
+    load: "Etapa 3. Se busca el operando en la celda {src}: vale {value}.",
+    store: "Etapa 3. No hay nada que buscar: el operando está en {src}. La escritura en memoria pasa en write back.",
+    stack: "Etapa 3. No hay nada que buscar en memoria: el valor sale de la pila durante la ejecución.",
+    none: "Etapa 3. No hay nada que buscar: esta instrucción no toma operandos."
+  },
+
+  execute: {
+    MOV_IMM: "Etapa 4. No hay cuenta que hacer: {value} ya está listo para escribirse.",
+    MOV_LOAD: "Etapa 4. No hay cuenta que hacer: {value} ya está listo para escribirse.",
+    MOV_STORE: "Etapa 4. No hay cuenta que hacer: {value} ya está listo para escribirse en memoria.",
+    ADD: "Etapa 4. Se hace la cuenta: {left} más {right} da {result}.",
+    SUB: "Etapa 4. Se hace la cuenta: {left} menos {right} da {result}.",
+    CMP_EQUAL: "Etapa 4. {left} y {right} son iguales, así que [[zf:ZF]] queda en 1.",
+    CMP_DIFFERENT: "Etapa 4. {left} y {right} son distintos, así que [[zf:ZF]] queda en 0.",
+    JMP: "Etapa 4. No hay condición que evaluar: el salto se toma siempre.",
+    JZ_TAKEN: "Etapa 4. [[zf:ZF]] vale 1, así que el salto se toma.",
+    JZ_NOT_TAKEN: "Etapa 4. [[zf:ZF]] vale 0, así que el salto no se toma.",
+    PUSH: "Etapa 4. El [[sp:SP]] baja de {spBefore} a {spAfter}: la pila crece hacia direcciones más chicas.",
+    POP: "Etapa 4. Se lee el tope de la pila, que vale {value}, y el [[sp:SP]] sube a {spAfter}.",
+    STI: "Etapa 4. Se prepara el nuevo valor del bit [[ifbit:IF]]: 1.",
+    CLI: "Etapa 4. Se prepara el nuevo valor del bit [[ifbit:IF]]: 0.",
+    IRET: "Etapa 4. Se desapila el IP guardado, que vale {ip}, y después el PSW guardado. El [[sp:SP]] sube a {spAfter}.",
+    SYSCALL: "Etapa 4. El procesador acepta el pedido. El programa corre en modo usuario, así que no puede hacerlo por su cuenta: tiene que pasar al kernel.",
+    REFUSED: "Etapa 4. Acá se corta. El [[mode:MODE]] dice usuario, y en modo usuario el procesador no ejecuta una [[privileged:instrucción privilegiada]].",
+    HALT: "Etapa 4. La máquina se detiene acá."
+  },
+
+  writeback: {
+    REGISTER: "Etapa 5. Se escribe en {dest}: ahora vale {value}.",
+    MEMORY: "Etapa 5. Se escribe {value} en la celda {dest}.",
+    CMP: "Etapa 5. No escribe nada. CMP no deja resultado en ningún registro: lo único que dejó fue el bit [[zf:ZF]].",
+    JUMP_TAKEN: "Etapa 5. Se escribe la dirección de salto en el [[ip:IP]]: pasa de {ipBefore} a {ipAfter}.",
+    JUMP_NOT_TAKEN: "Etapa 5. No hay nada que escribir: el IP ya apunta a la instrucción siguiente.",
+    PUSH: "Etapa 5. Se escribe {value} en la celda {addr} de la pila.",
+    FLAG: "Etapa 5. El bit [[ifbit:IF]] queda en {value}.",
+    IRET: "Etapa 5. Se restauran el [[ip:IP]], que vuelve a {ip}, y el [[psw:PSW]]: el modo vuelve a {mode} y las interrupciones quedan {ifState}.",
+    SYSCALL: "Etapa 5. La instrucción no escribe nada en ningún registro. Lo que sigue es el pasaje al kernel.",
+    REFUSED: "Etapa 5. No se escribió nada: el bit [[ifbit:IF]] quedó igual que antes. El programa no puede seguir.",
+    HALT: "Etapa 5. No hay nada que escribir. La máquina quedó detenida."
+  },
+
+  compact: {
+    MOV_IMM: "{instr} — se carga {value} en {dest}.",
+    MOV_LOAD: "{instr} — se trae {value} de la celda {src} y queda en {dest}.",
+    MOV_STORE: "{instr} — se guarda {value} en la celda {dest}.",
+    ADD: "{instr} — {dest} pasa de {before} a {after}.",
+    SUB: "{instr} — {dest} pasa de {before} a {after}.",
+    CMP: "{instr} — no cambia ningún registro: solo deja [[zf:ZF]] en {zf}.",
+    JMP: "{instr} — el [[ip:IP]] salta a {target}.",
+    JZ_TAKEN: "{instr} — [[zf:ZF]] vale 1, así que el [[ip:IP]] salta a {target}.",
+    JZ_NOT_TAKEN: "{instr} — [[zf:ZF]] vale 0, así que no salta y sigue en {ipAfter}.",
+    PUSH: "{instr} — se apila {value} en la celda {addr}. El [[sp:SP]] baja a {spAfter}.",
+    POP: "{instr} — se desapila {value} y queda en {dest}. El [[sp:SP]] sube a {spAfter}.",
+    STI: "{instr} — el bit [[ifbit:IF]] queda en 1: desde acá se vuelven a atender interrupciones.",
+    CLI: "{instr} — el bit [[ifbit:IF]] queda en 0: desde acá no se atiende ninguna interrupción.",
+    IRET: "{instr} — se desapilan el [[ip:IP]], que vuelve a {ip}, y el [[psw:PSW]]. El modo vuelve a ser {mode} y las interrupciones quedan {ifState}.",
+    SYSCALL: "{instr} — el programa pide el servicio {n}, {service}. No escribe nada: lo que sigue es el pasaje al kernel.",
+    REFUSED: "{instr} — el procesador no la ejecuta: es una [[privileged:instrucción privilegiada]] y el programa corre en modo usuario. El programa no puede seguir.",
+    HALT: "{instr} — la máquina se detiene."
+  },
+
+  check: {
+    idleEnabled: "Verificación de interrupciones. [[ifbit:IF]] vale 1, pero no hay ninguna pendiente. Sigue la instrucción siguiente.",
+    idleDisabled: "Verificación de interrupciones. [[ifbit:IF]] vale 0 y no hay ninguna pendiente. Sigue la instrucción siguiente.",
+    pendingBlocked: "Verificación de interrupciones. Hay una pendiente ({name}), pero [[ifbit:IF]] vale 0: no se atiende. Queda esperando.",
+    service: "Verificación de interrupciones. [[ifbit:IF]] vale 1 y hay una pendiente: {name}. Recién ahora, con la instrucción {addr} terminada del todo, se la atiende.",
+    servicePriority: "Verificación de interrupciones. Hay más de una pendiente, así que se atiende la de mayor prioridad: {name}."
+  },
+
+  service: {
+    identify: "El procesador identifica qué provocó la interrupción: {name}. Esto lo hace el hardware solo, sin que ningún programa se lo pida.",
+    pushPsw: "El hardware apila el [[psw:PSW]] del programa interrumpido en la celda {addr}.",
+    pushIp: "El hardware apila el IP, que vale {ip}, en la celda {addr}. Ojo: {ip} es la instrucción [[pushedIp:siguiente]], no la que acaba de ejecutarse.",
+    switchMode: "El hardware pone el [[mode:modo]] en kernel, el bit [[ifbit:IF]] en 0, y carga {handler} en el IP: la dirección que la tabla de interrupciones del SO asocia a {name}."
+  },
+
+  syscallService: {
+    identify: "El procesador ve qué servicio se pidió: {name}. Lo que viene ahora es *el mismo mecanismo* que cuando llega una interrupción.",
+    pushPsw: "Se apila el [[psw:PSW]] del programa en la celda {addr}. Igual que con una interrupción.",
+    pushIp: "Se apila el IP, que vale {ip}: la instrucción [[pushedIp:siguiente]] a la que pidió el servicio. Igual que con una interrupción.",
+    switchMode: "Modo kernel, [[ifbit:IF]] en 0, e IP en {handler}: la rutina del servicio. Igual que con una interrupción. La diferencia entre los dos casos no está acá."
+  },
+
+  raised: " Mientras tanto llegó la interrupción de {name}.",
+
+  dma: {
+    transfer: "El controlador de DMA escribe la palabra {n} de {total} en la celda {cell}: vale {value}. La CPU no está ejecutando nada en este paso."
+  },
+
+  contextSwitch: {
+    save: "El SO copia el contexto entero de {name} en la estructura que le pertenece: los tres registros, el IP, el SP y el PSW. *No en la pila*: en una estructura propia de {name}.",
+    load: "El SO carga el contexto de {name} desde su estructura. El IP queda en {ip}, así que la próxima instrucción que se va a buscar es la de {name}."
+  }
+};
+
+const EXAMPLES = [
+  {
+    number: 1,
+    title: "Programa lineal",
+    short: "Lineal",
+    subtitle: "Las cinco etapas del ciclo, una instrucción por vez.",
+    defaultGranularity: "detallado",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+        "MOV AX, 5",
+        "MOV BX, 3",
+        "ADD AX, BX",
+        "HALT"
+      ] }
+    },
+    regions: [{ program: "P1" }],
+    initialData: {},
+    interrupts: [],
+    initialIF: 1,
+    notes: {
+      "100.fetch": "Mirá el [[ip:IP]]: ya vale 101 y la instrucción de la celda 100 todavía no se ejecutó. El IP apunta siempre a la instrucción *siguiente*, nunca a la que se está ejecutando. Esto va a importar mucho más adelante.",
+      "100.decode": "Acá cada celda de memoria guarda una instrucción o un dato. Es una simplificación para que se vea claro, y alcanza para todo lo que sigue.",
+      "102.execute": "Recién en esta etapa se hace la cuenta. Hasta acá el procesador estuvo averiguando qué tenía que hacer.",
+      "103.writeback": "AX quedó en 8 y BX en 3. El IP quedó en 104: apunta a la celda que seguiría si el programa no se hubiera detenido."
+    },
+    expectedFinalState: { AX: 8, BX: 3, IP: 104, SP: 900, halted: true }
+  },
+
+  {
+    number: 2,
+    title: "Salto condicional",
+    short: "Salto",
+    subtitle: "El IP no siempre avanza de a uno, y la ejecución escribe el PSW.",
+    defaultGranularity: "detallado",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+        "MOV AX, 4",
+        "CMP AX, 4",
+        "JZ 105",
+        "MOV CX, 99",
+        "HALT",
+        "MOV CX, 1",
+        "HALT"
+      ] }
+    },
+    regions: [{ program: "P1" }],
+    initialData: {},
+    interrupts: [],
+    initialIF: 1,
+    notes: {
+      "101.writeback": "Fijate que AX quedó exactamente igual que antes. Lo único que cambió en todo el ciclo fue un bit del PSW.",
+      "102.execute": "El salto se decide acá, mirando un bit que dejó escrito la instrucción anterior. Esa es toda la comunicación entre CMP y JZ.",
+      "102.writeback": "El JZ pisó el IP: en vez de 103, ahora vale 105. Las celdas 103 y 104 quedan sin ejecutarse.",
+      "106.writeback": "Mirá la memoria: 103 y 104 nunca se ejecutaron. Estaban ahí, pero el salto pasó por arriba. CX quedó en 1, no en 99."
+    },
+    expectedFinalState: { AX: 4, CX: 1, ZF: 1, IP: 107, SP: 900, halted: true, neverExecuted: [103, 104] }
+  },
+
+  {
+    number: 3,
+    title: "La pila a mano",
+    short: "Pila",
+    subtitle: "Guardar un valor, pisarlo y recuperarlo exactamente como estaba.",
+    defaultGranularity: "detallado",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+        "MOV AX, 7",
+        "PUSH AX",
+        "MOV AX, 0",
+        "POP AX",
+        "HALT"
+      ] }
+    },
+    regions: [{ program: "P1" }],
+    initialData: {},
+    interrupts: [],
+    initialIF: 1,
+    contextLine: { revealAfter: 103, text: "Guardaste AX en la pila, lo pisaste y lo recuperaste igual que estaba. Eso, en miniatura, es *guardar y restaurar contexto*." },
+    notes: {
+      "101.execute": "El [[sp:SP]] arrancó en 900 con la pila vacía. Apilar lo baja: la pila del sistema crece hacia direcciones más chicas.",
+      "102.writeback": "AX quedó en 0. Si el 7 no estuviera guardado en la pila, ya se habría perdido para siempre.",
+      "103.writeback": "AX volvió a valer 7, igual que antes de que lo pisaras, y el [[sp:SP]] volvió a 900 con la pila vacía. Acabás de guardar y restaurar contexto a mano; lo que sigue es lo mismo, pero hecho por el procesador.",
+      "104.writeback": "Acá guardamos una sola cosa. Cuando haya dos guardadas a la vez, el orden en que salen va a importar: eso es el ejemplo 8."
+    },
+    expectedFinalState: { AX: 7, IP: 105, SP: 900, halted: true }
+  },
+
+  {
+    number: 4,
+    title: "Instrucción privilegiada",
+    subtitle: "Un programa de usuario intenta algo que no tiene permitido hacer.",
+    defaultGranularity: "detallado",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+        "MOV AX, 1",
+        "CLI",
+        "ADD AX, 1",
+        "HALT"
+      ] }
+    },
+    regions: [{ program: "P1" }],
+    initialData: {},
+    interrupts: [],
+    initialIF: 1,
+    notes: {
+      "100.fetch": "Mirá el bit [[mode:MODE]] del PSW: dice usuario. Los programas corren siempre así. Las rutinas del sistema operativo corren en modo kernel.",
+      "101.decode": "CLI apaga el bit [[ifbit:IF]], que es el que decide si se atienden interrupciones. Dejar que cualquier programa apague eso sería dejarlo bloquear la máquina entera.",
+      "101.execute": "No es que la instrucción esté mal escrita. Está prohibida *para este programa*. La misma instrucción, dentro de una rutina del kernel, se ejecuta sin problema.",
+      "101.writeback": "El programa quedó cortado en 101: las celdas 102 y 103 no se ejecutan. Y entonces, ¿cómo hace un programa para conseguir algo del sistema que no puede hacer por su cuenta? Se lo pide al kernel. Eso es un syscall, y es el ejemplo 6."
+    },
+    expectedFinalState: { AX: 1, IP: 102, SP: 900, IF: 1, MODE: "user", halted: true, neverExecuted: [102, 103] }
+  },
+
+  {
+    number: 5,
+    title: "Interrupción de teclado",
+    short: "Interrupción",
+    subtitle: "Alguien aprieta una tecla mientras el programa corre. Qué guarda el hardware y qué guarda la rutina.",
+    defaultGranularity: "compacto",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "P1", stackName: "de P1", kind: "user", origin: 100, lines: [
+        "MOV AX, 1",
+        "ADD AX, 1",
+        "ADD AX, 1",
+        "HALT"
+      ] },
+      KEYBOARD: { label: "Rutina de atención del teclado", shortName: "la rutina del teclado", stackName: "del teclado", kind: "handler", origin: 520, lines: [
+        "PUSH AX",
+        "MOV AX, 0",
+        "POP AX",
+        "IRET"
+      ] }
+    },
+    regions: [{ program: "P1" }, { program: "KEYBOARD" }],
+    initialData: {},
+    interrupts: [{ id: "keyboard", atAddress: 101, atStage: "execute" }],
+    initialIF: 1,
+    tags: { 520: "SW", 522: "SW" },
+    contextLine: { revealAfter: 523, text: "El contexto mínimo para retomar exactamente donde estabas es *PSW e IP*. El hardware lo guarda solo. La rutina guarda el resto, por software, y solo los registros que está por pisar." },
+    granularityNote: "De acá en adelante el ciclo se muestra comprimido: cada paso es una instrucción entera. Ya sabés que por dentro pasa por las cinco etapas. Si querés verlas de a una, cambiá a modo detallado arriba.",
+    notes: {
+      "101.compact": "Alguien apretó una tecla justo mientras corría esta instrucción. El programa no pidió nada: la interrupción vino de afuera y en cualquier momento. La 101 igual terminó completa.",
+      "101.execute": "Alguien apretó una tecla justo ahora. El programa no pidió nada: vino de afuera. La 101 va a terminar completa igual.",
+      "101.check": "Este es el punto central del ejemplo. La interrupción se atiende *entre dos instrucciones*, nunca en el medio de una.",
+      "service.pushIp": "El programa se va a retomar en 102, que es justo lo que hace falta: la 101 ya se ejecutó del todo.",
+      "service.switchMode": "Con [[ifbit:IF]] en 0, mientras la rutina trabaja no se atiende ninguna otra interrupción.",
+      "520.compact": "La rutina ya corre en modo kernel. Este PUSH lo hace ella, por software, porque está por pisar AX y necesita devolverlo igual que estaba.",
+      "520.decode": "Este PUSH lo hace la rutina, por software, porque está por pisar AX y necesita devolverlo igual que estaba.",
+      "522.compact": "La rutina devuelve AX como estaba antes de tocarlo. Lo único que el hardware guardó solo fueron el PSW y el IP.",
+      "523.compact": "Para P1 no pasó nada: vuelve a 102 con AX, el modo y las banderas exactamente como los dejó.",
+      "523.writeback": "Para P1 no pasó nada: vuelve a 102 con AX, el modo y las banderas exactamente como los dejó.",
+      "102.compact": "AX sigue valiendo 2, como si la rutina nunca hubiera corrido. Ahora suma 1 y queda en 3.",
+      "103.compact": "AX terminó en 3, que es lo mismo que habría dado si nadie hubiera tocado el teclado."
+    },
+    expectedFinalState: { AX: 3, IP: 104, SP: 900, MODE: "user", IF: 1, halted: true }
+  },
+
+  {
+    number: 6,
+    title: "Syscall",
+    short: "Syscall",
+    subtitle: "El programa le pide al kernel algo que no puede hacer solo. Mismo mecanismo que una interrupción, origen distinto.",
+    defaultGranularity: "compacto",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+        "MOV AX, 10",
+        "SYSCALL 4",
+        "ADD AX, 1",
+        "HALT"
+      ] },
+      SCREEN: { label: "Rutina del syscall 4", shortName: "la rutina del syscall", stackName: "del syscall", kind: "handler", origin: 600, lines: [
+        "PUSH BX",
+        "MOV BX, 10",
+        "POP BX",
+        "IRET"
+      ] }
+    },
+    regions: [{ program: "P1" }, { program: "SCREEN" }],
+    initialData: {},
+    interrupts: [],
+    initialIF: 1,
+    tags: { 600: "SW", 602: "SW" },
+    forceCheck: [101],
+    sidePanel: {
+      title: "Interrupción ≠ syscall",
+      items: [
+        { label: "Interrupción", tone: "alert", text: "Viene de afuera, en cualquier momento. La provoca el hardware. El programa no la pidió y no se entera." },
+        { label: "Syscall", tone: "handler", text: "La pide el programa, en la instrucción exacta donde está escrita. Es por software y es sincrónica." }
+      ]
+    },
+    contextLine: { revealAfter: 603, text: "Un syscall guarda el mismo contexto mínimo que una interrupción, aunque no lo haya causado nada externo." },
+    notes: {
+      "101.compact": "Acordate del ejemplo 4: el programa quería tocar un bit del sistema y el procesador no lo dejó. Esta es la salida. En vez de hacerlo por su cuenta, se lo pide al kernel.",
+      "101.decode": "Acordate del ejemplo 4: el programa quería tocar un bit del sistema y el procesador no lo dejó. Un syscall es la forma de pedirle al kernel lo que el programa no puede hacer en modo usuario.",
+      "syscall.switchMode": "Mirá la pila y el PSW: quedaron igual que en el ejemplo 5. Lo único distinto es *quién arrancó todo*.",
+      "101.check": "Y acá está la diferencia. La verificación de interrupciones no tuvo nada que ver: no había ninguna pendiente y no llegó nada de afuera. Al kernel se entró porque la instrucción 101 lo pidió.",
+      "600.compact": "La rutina guarda BX por software antes de pisarlo, igual que la rutina del teclado guardaba AX.",
+      "603.compact": "El IRET es el mismo del ejemplo 5, y el programa retoma en 102 sin enterarse de nada. Lo único distinto entre los dos ejemplos fue el origen.",
+      "103.compact": "AX terminó en 11. El syscall no lo tocó: la rutina solo usó BX, y lo devolvió como estaba."
+    },
+    expectedFinalState: { AX: 11, BX: 0, IP: 104, SP: 900, MODE: "user", IF: 1, halted: true }
+  },
+
+  {
+    number: 7,
+    title: "Leer del disco",
+    short: "Disco",
+    subtitle: "El mismo programa, tres formas de traer los datos.",
+    defaultGranularity: "compacto",
+    counter: { label: "Instrucciones de CPU para la transferencia" },
+    dataLabels: {
+      200: "dato leído (1)",
+      201: "dato leído (2)",
+      250: "estado del disco",
+      251: "palabra 1 que entrega el disco",
+      252: "palabra 2 que entrega el disco",
+      253: "orden para el controlador de DMA"
+    },
+    closing: {
+      title: "Los tres mecanismos",
+      headers: ["Mecanismo", "¿Espera?", "¿Copia?", "Instrucciones"]
+    },
+    variants: [
+      {
+        variantLabel: "I/O programada",
+        answers: { waits: "sí", copies: "sí" },
+        programs: {
+          P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+            "MOV AX, 0",
+            "SYSCALL 3",
+            "MOV AX, [200]",
+            "ADD AX, [201]",
+            "HALT"
+          ] },
+          DISK: { label: "Rutina del syscall 3 (leer del disco)", shortName: "la rutina del disco", stackName: "del disco", kind: "handler", origin: 700, lines: [
+            "PUSH AX",
+            "MOV AX, [250]",
+            "CMP AX, 1",
+            "JZ 705",
+            "JMP 701",
+            "MOV AX, [251]",
+            "MOV [200], AX",
+            "MOV AX, [252]",
+            "MOV [201], AX",
+            "POP AX",
+            "IRET"
+          ] }
+        },
+        regions: [{ program: "P1" }, { program: "DISK" }],
+        initialData: { 200: 0, 201: 0, 250: 0, 251: 7, 252: 5 },
+        interrupts: [],
+        disk: { statusCell: 250, readyAfterReads: 3 },
+        initialIF: 1,
+        notes: {
+          "101.compact": "El syscall le pide al disco que empiece a buscar los datos. El disco tarda: no los tiene listos en el momento.",
+          "701.compact": "La rutina lee la celda 250, que es donde el disco dice si ya terminó. Todavía dice 0.",
+          "704.compact": "El salto vuelve para atrás y la rutina pregunta de nuevo. Esto es *esperar*: la CPU está ocupada preguntando y no puede hacer otra cosa.",
+          "705.compact": "Recién ahora el disco dice que está listo. Lo que sigue es la CPU copiando los datos a memoria, palabra por palabra.",
+          "710.compact": "Mirá el contador: todas esas instrucciones las ejecutó la CPU para traer dos palabras. La CPU esperó *y* copió."
+        },
+        expectedFinalState: { AX: 12, IP: 105, SP: 900, MODE: "user", IF: 1, halted: true }
+      },
+      {
+        variantLabel: "I/O por interrupciones",
+        answers: { waits: "no", copies: "sí" },
+        programs: {
+          P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+            "MOV AX, 0",
+            "SYSCALL 3",
+            "MOV AX, [200]",
+            "ADD AX, [201]",
+            "HALT"
+          ] },
+          DISK: { label: "Rutina del syscall 3 (leer del disco)", shortName: "la rutina del disco", stackName: "del disco", kind: "handler", origin: 700, lines: [
+            "IRET"
+          ] },
+          DISKEND: { label: "Rutina de atención del fin de I/O", shortName: "la rutina del fin de I/O", stackName: "del fin de I/O", kind: "handler", origin: 540, lines: [
+            "PUSH AX",
+            "MOV AX, [251]",
+            "MOV [200], AX",
+            "MOV AX, [252]",
+            "MOV [201], AX",
+            "POP AX",
+            "IRET"
+          ] }
+        },
+        regions: [{ program: "P1" }, { program: "DISK" }, { program: "DISKEND" }],
+        initialData: { 200: 0, 201: 0, 251: 7, 252: 5 },
+        interrupts: [{ id: "disk", atAddress: 700, atStage: "execute" }],
+        initialIF: 1,
+        notes: {
+          "101.compact": "El syscall le pide al disco que empiece a buscar los datos, igual que antes.",
+          "700.compact": "Y la rutina no hace nada más: devuelve el control enseguida. No se queda preguntando. El disco va a avisar cuando termine.",
+          "700.check": "El disco avisó con una interrupción: terminó de buscar. Recién acá la CPU se ocupa del asunto.",
+          "541.compact": "Esto sí lo hace la CPU: copiar las palabras a memoria, una por una.",
+          "546.compact": "Mirá el contador: mucho menos que con I/O programada, porque la CPU no esperó. Pero copió igual.",
+          "104.compact": "Una cosa: acá la CPU quedó libre mientras el disco trabajaba, pero no había otro programa para correr, así que no hizo nada con esa libertad. Eso es exactamente el ejemplo 9."
+        },
+        expectedFinalState: { AX: 12, IP: 105, SP: 900, MODE: "user", IF: 1, halted: true }
+      },
+      {
+        variantLabel: "I/O con DMA",
+        answers: { waits: "no", copies: "no" },
+        programs: {
+          P1: { label: "Programa de usuario", shortName: "el programa", stackName: "del programa", kind: "user", origin: 100, lines: [
+            "MOV AX, 0",
+            "SYSCALL 3",
+            "MOV AX, [200]",
+            "ADD AX, [201]",
+            "HALT"
+          ] },
+          DISK: { label: "Rutina del syscall 3 (leer del disco)", shortName: "la rutina del disco", stackName: "del disco", kind: "handler", origin: 700, lines: [
+            "PUSH AX",
+            "MOV AX, 2",
+            "MOV [253], AX",
+            "POP AX",
+            "IRET"
+          ] },
+          DISKEND: { label: "Rutina de atención del fin de I/O", shortName: "la rutina del fin de I/O", stackName: "del fin de I/O", kind: "handler", origin: 540, lines: [
+            "IRET"
+          ] }
+        },
+        regions: [{ program: "P1" }, { program: "DISK" }, { program: "DISKEND" }],
+        initialData: { 200: 0, 201: 0, 253: 0 },
+        interrupts: [],
+        dma: { afterAddress: 704, raise: "disk", writes: [{ cell: 200, value: 7 }, { cell: 201, value: 5 }] },
+        initialIF: 1,
+        notes: {
+          "702.compact": "La rutina le dice al controlador de DMA cuántas palabras traer y a partir de qué celda escribirlas. Eso es todo lo que hace la CPU.",
+          "704.compact": "La rutina devuelve el control. A partir de acá el DMA trabaja solo.",
+          "dma.1": "Fijate en la celda 200 y en el contador: la celda se llenó y el contador no se movió. La CPU no ejecutó ninguna instrucción para esto.",
+          "dma.2": "La segunda palabra, igual. El DMA escribe directo en memoria.",
+          "540.compact": "La rutina del fin de I/O no tiene nada que copiar: los datos ya están en memoria. Solo devuelve el control.",
+          "104.compact": "Pensá qué pasaría con 100 palabras en vez de 2: en los dos primeros mecanismos el número crece con cada palabra. Acá no cambia."
+        },
+        expectedFinalState: { AX: 12, IP: 105, SP: 900, MODE: "user", IF: 1, halted: true }
+      }
+    ]
+  },
+
+  {
+    number: 8,
+    title: "Interrupciones anidadas",
+    short: "Anidadas",
+    subtitle: "Llega una interrupción mientras se está atendiendo otra. Dos contextos guardados a la vez.",
+    defaultGranularity: "compacto",
+    programs: {
+      P1: { label: "Programa de usuario", shortName: "P1", stackName: "de P1", kind: "user", origin: 100, lines: [
+        "MOV AX, 1",
+        "ADD AX, 1",
+        "HALT"
+      ] },
+      KEYBOARD: { label: "Rutina de atención del teclado", shortName: "la rutina del teclado", stackName: "del teclado", kind: "handler", origin: 520, lines: [
+        "PUSH AX",
+        "STI",
+        "MOV AX, 0",
+        "POP AX",
+        "IRET"
+      ] },
+      DISKEND: { label: "Rutina de atención del fin de I/O", shortName: "la rutina del fin de I/O", stackName: "del fin de I/O", kind: "handler", origin: 540, lines: [
+        "PUSH BX",
+        "MOV BX, 1",
+        "POP BX",
+        "IRET"
+      ] }
+    },
+    regions: [{ program: "P1" }, { program: "KEYBOARD" }, { program: "DISKEND" }],
+    initialData: {},
+    interrupts: [
+      { id: "keyboard", atAddress: 100, atStage: "execute" },
+      { id: "disk", atAddress: 522, atStage: "execute" }
+    ],
+    initialIF: 1,
+    tags: { 520: "SW", 523: "SW", 540: "SW", 542: "SW" },
+    sidePanel: {
+      title: "Prioridades",
+      items: [
+        { label: "Fin de I/O del disco · media", tone: "alert", text: "Puede interrumpir a la rutina del teclado, porque tiene más prioridad." },
+        { label: "Teclado · baja", tone: "handler", text: "No podría interrumpir a la del disco. Al revés no pasa." }
+      ]
+    },
+    contextLine: { revealAfter: 524, text: "*Se pueden guardar dos contextos a la vez.* La pila los devuelve en orden inverso: por eso el anidamiento funciona." },
+    notes: {
+      "100.compact": "Alguien apretó una tecla mientras corría la instrucción 100.",
+      "521.compact": "Acá está la clave del ejemplo. Hasta esta instrucción el bit [[ifbit:IF]] valía 0, así que ninguna otra interrupción se iba a atender. `STI` lo pone en 1 y abre la puerta. Y es [[privileged:privilegiada]]: un programa de usuario no podría ejecutarla, como viste en el ejemplo 4. Acá se puede porque la rutina corre en modo kernel.",
+      "522.compact": "El disco terminó de leer y avisó justo mientras corría esta instrucción de la rutina del teclado.",
+      "522.check": "Se atiende porque el fin de I/O del disco tiene *más prioridad* que el teclado. Al revés no pasaría: una interrupción de menos prioridad no interrumpe a la rutina de una de más.",
+      "service.pushIp.2": "Se apila 523: la rutina del teclado va a retomar ahí. Fijate que quedó cortada al medio, con 523 y 524 sin ejecutar.",
+      "540.compact": "Mirá la pila: seis cosas guardadas. De abajo hacia arriba, el PSW y el IP de P1, el AX que guardó la rutina del teclado, el PSW y el IP de la rutina del teclado, y ahora el BX que guarda esta rutina. Ese dibujo es todo el ejemplo.",
+      "543.compact": "La rutina del disco termina y devuelve el control a 523: la rutina del teclado retoma justo donde la cortaron. Todavía no vuelve P1.",
+      "524.compact": "Recién ahora, cuando termina la rutina del teclado, vuelve P1 a la instrucción 101. Salieron en orden inverso al que entraron: la última que llegó fue la primera en terminar.",
+      "102.compact": "AX terminó en 2, como si nada de todo esto hubiera pasado."
+    },
+    expectedFinalState: { AX: 2, BX: 0, IP: 103, SP: 900, MODE: "user", IF: 1, halted: true }
+  },
+
+  {
+    number: 9,
+    title: "Cambio de contexto",
+    short: "Contexto",
+    subtitle: "P1 espera al disco, así que el SO corre P2 mientras tanto. Y después vuelve.",
+    defaultGranularity: "compacto",
+    programs: {
+      P1: { label: "Programa P1", shortName: "P1", stackName: "de P1", kind: "user", origin: 100, lines: [
+        "MOV AX, 5",
+        "SYSCALL 3",
+        "MOV BX, [200]",
+        "HALT"
+      ] },
+      P2: { label: "Programa P2", shortName: "P2", stackName: "de P2", kind: "user", origin: 300, lines: [
+        "MOV CX, 1",
+        "ADD CX, 1",
+        "ADD CX, 1",
+        "HALT"
+      ] },
+      DISK: { label: "Rutina del syscall 3", shortName: "la rutina del disco", stackName: "del disco", kind: "handler", origin: 700, lines: [
+        "IRET"
+      ] },
+      DISKEND: { label: "Rutina de atención del fin de I/O", shortName: "la rutina del fin de I/O", stackName: "del fin de I/O", kind: "handler", origin: 540, lines: [
+        "PUSH AX",
+        "MOV AX, 7",
+        "MOV [200], AX",
+        "POP AX",
+        "IRET"
+      ] }
+    },
+    regions: [{ program: "P1" }, { program: "P2" }, { program: "DISK" }, { program: "DISKEND" }],
+    initialData: { 200: 0 },
+    dataLabels: { 200: "dato que trae el disco" },
+    interrupts: [{ id: "disk", atAddress: 302, atStage: "execute" }],
+    initialIF: 1,
+    tags: { 540: "SW", 543: "SW" },
+    contextNames: { P1: "P1", P2: "P2" },
+    initialContexts: { P2: { AX: 0, BX: 0, CX: 0, IP: 300, SP: 900, IF: 1, ZF: 0, MODE: "user" } },
+    switches: [
+      { afterAddress: 700, save: "P1", load: "P2",
+        decide: "El disco va a tardar, y P1 no puede seguir hasta que el dato esté. Así que el SO decide correr P2 mientras tanto. Por qué P2 y no otro: eso lo decide el SO, y es tema de otra clase." },
+      { afterAddress: 544, save: "P2", load: "P1",
+        decide: "El dato ya está en la celda 200, así que el SO decide devolverle la CPU a P1." }
+    ],
+    contextLine: { revealAfter: 102, text: "Cuando lo que se retoma es *otro programa*, la pila no alcanza: el contexto entero tiene que ir a una estructura que le pertenece a ese programa, y hay que cargar el del otro. Eso es un *cambio de contexto*." },
+    closingCard: "Acabás de ver un *cambio de contexto*. La estructura donde el SO guardó todo lo de P1 tiene nombre, y los programas que el SO administra así también. Eso es la clase que viene.",
+    notes: {
+      "101.compact": "P1 le pide al SO que lea del disco, igual que en el ejemplo 7.",
+      "700.compact": "La rutina arranca la lectura y devuelve el control enseguida, como en I/O por interrupciones.",
+      "switch.save.P1": "Fijate dónde va: a una caja propia de P1, no a la pila. La pila te devuelve al *mismo* flujo. Acá va a correr otro programa, con su propio IP, y P1 tiene que poder retomar mucho después. Su contexto tiene que vivir en un lugar que le pertenezca.",
+      "switch.load.P2": "Los registros ahora son los de P2. Lo de P1 no se perdió: está guardado en su estructura.",
+      "300.compact": "Desde acá corre P2. P1 está detenido en 102 y no se entera de nada de esto.",
+      "302.compact": "El disco terminó justo mientras corría esta instrucción de P2.",
+      "544.compact": "La rutina copió el dato en la celda 200 y devuelve el control a P2, en 303.",
+      "switch.save.P2": "Ahora le toca a P2: su contexto entero va a su propia estructura, con el IP en 303. Ahí queda suspendido. Si el SO le diera la CPU otra vez, retomaría exactamente en 303.",
+      "switch.load.P1": "Y se carga de vuelta el contexto de P1: AX vuelve a valer 5 y el IP vuelve a 102, exactamente donde había quedado.",
+      "102.compact": "P1 retoma en 102 con AX en 5, como si nunca lo hubieran parado. Nunca se enteró de que P2 corrió en el medio."
+    },
+    expectedFinalState: { AX: 5, BX: 7, CX: 0, IP: 104, SP: 900, MODE: "user", IF: 1, halted: true },
+    expectedContexts: { P2: { CX: 3, IP: 303 }, P1: { AX: 5, IP: 102 } }
+  }
+];
+</script>
+
+<script id="engine">
+const REGISTER_PATTERN = /^(AX|BX|CX)$/;
+const MEMORY_PATTERN = /^\[(\d+)\]$/;
+const MINIMUM_STACK_SLOTS = 3;
+
+function parseOperand(raw) {
+  const text = raw.trim();
+  const memory = text.match(MEMORY_PATTERN);
+  if (memory) return { type: "memory", address: Number(memory[1]) };
+  if (REGISTER_PATTERN.test(text.toUpperCase())) return { type: "register", name: text.toUpperCase() };
+  return { type: "immediate", value: Number(text) };
+}
+
+function parseInstruction(address, text) {
+  const normalized = text.trim().replace(/\s+/g, " ");
+  const space = normalized.indexOf(" ");
+  const op = (space === -1 ? normalized : normalized.slice(0, space)).toUpperCase();
+  const rest = space === -1 ? "" : normalized.slice(space + 1);
+  const operands = rest === "" ? [] : rest.split(",").map(parseOperand);
+  const base = { address, text: normalized, op };
+
+  if (op === "MOV") {
+    const [target, source] = operands;
+    if (target.type === "memory") return { ...base, form: "MOV_STORE", target, source };
+    if (source.type === "memory") return { ...base, form: "MOV_LOAD", target, source };
+    return { ...base, form: "MOV_IMM", target, source };
+  }
+  if (op === "ADD" || op === "SUB" || op === "CMP") {
+    const [target, source] = operands;
+    const suffix = source.type === "memory" ? "LOAD" : source.type === "register" ? "REG" : "IMM";
+    return { ...base, form: op + "_" + suffix, target, source };
+  }
+  if (op === "JMP" || op === "JZ") return { ...base, form: op, target: operands[0].value };
+  if (op === "PUSH" || op === "POP") return { ...base, form: op, target: operands[0] };
+  if (op === "SYSCALL") return { ...base, form: "SYSCALL", service: operands[0].value };
+  return { ...base, form: op };
+}
+
+function buildPrograms(example) {
+  const programs = {};
+  const byAddress = {};
+  Object.keys(example.programs).forEach(function (key) {
+    const source = example.programs[key];
+    const instructions = source.lines.map(function (line, index) {
+      return parseInstruction(source.origin + index, line);
+    });
+    programs[key] = { ...source, key, instructions };
+    instructions.forEach(function (instruction) {
+      byAddress[instruction.address] = { instruction, programKey: key };
+    });
+  });
+  return { programs, byAddress };
+}
+
+function fill(template, values) {
+  return String(template).replace(/\{(\w+)\}/g, function (match, key) {
+    return values[key] === undefined ? match : String(values[key]);
+  });
+}
+
+function createState(example) {
+  const data = {};
+  Object.keys(example.initialData || {}).forEach(function (address) {
+    data[address] = example.initialData[address];
+  });
+  return {
+    AX: 0, BX: 0, CX: 0,
+    IP: example.programs.P1.origin,
+    SP: STACK_BASE,
+    IF: example.initialIF,
+    ZF: 0,
+    MODE: "user",
+    data: data,
+    stack: [],
+    visited: {},
+    pending: [],
+    halted: false,
+    diskReads: 0,
+    kernelInstructions: 0,
+    contexts: JSON.parse(JSON.stringify(example.initialContexts || {}))
+  };
+}
+
+function captureContext(state) {
+  return {
+    AX: state.AX, BX: state.BX, CX: state.CX,
+    IP: state.IP, SP: state.SP,
+    IF: state.IF, ZF: state.ZF, MODE: state.MODE
+  };
+}
+
+function cloneState(state) {
+  return {
+    AX: state.AX, BX: state.BX, CX: state.CX,
+    IP: state.IP, SP: state.SP,
+    IF: state.IF, ZF: state.ZF, MODE: state.MODE,
+    data: { ...state.data },
+    stack: state.stack.map(function (cell) { return { ...cell }; }),
+    visited: { ...state.visited },
+    pending: state.pending.slice(),
+    halted: state.halted,
+    diskReads: state.diskReads,
+    kernelInstructions: state.kernelInstructions,
+    contexts: JSON.parse(JSON.stringify(state.contexts))
+  };
+}
+
+function pswSummary(state) {
+  return "IF=" + state.IF + " · ZF=" + state.ZF + " · " + MODE_LABELS[state.MODE];
+}
+
+function readOperand(state, operand) {
+  if (operand.type === "register") return state[operand.name];
+  if (operand.type === "memory") return state.data[operand.address] || 0;
+  return operand.value;
+}
+
+function operandLabel(operand) {
+  if (operand === undefined || operand === null) return "";
+  if (typeof operand === "number") return String(operand);
+  if (operand.type === "register") return operand.name;
+  if (operand.type === "memory") return String(operand.address);
+  return String(operand.value);
+}
+
+function operandVariant(instruction) {
+  const form = instruction.form;
+  if (form === "MOV_LOAD" || form === "ADD_LOAD" || form === "SUB_LOAD" || form === "CMP_LOAD") return "load";
+  if (form === "MOV_STORE") return "store";
+  if (form === "POP" || form === "IRET") return "stack";
+  if (form === "PUSH" || form === "ADD_REG" || form === "SUB_REG" || form === "CMP_REG") return "register";
+  if (form === "MOV_IMM" || form === "ADD_IMM" || form === "SUB_IMM" || form === "CMP_IMM") return "immediate";
+  return "none";
+}
+
+function highestPriority(pending) {
+  return pending.slice().sort(function (a, b) {
+    return INTERRUPTS[b].priority - INTERRUPTS[a].priority;
+  })[0];
+}
+
+function buildTrace(example) {
+  const built = buildPrograms(example);
+  const state = createState(example);
+  const steps = [];
+  let group = 0;
+
+  function programKeyAt(address) {
+    const entry = built.byAddress[address];
+    return entry ? entry.programKey : null;
+  }
+
+  function emit(step) {
+    steps.push({
+      kind: step.kind,
+      stage: step.stage || null,
+      serviceStep: step.serviceStep || null,
+      group: step.group === undefined ? null : step.group,
+      narration: step.narration,
+      note: step.note || null,
+      tag: step.tag || null,
+      compactNarration: step.compactNarration || null,
+      compactNote: step.compactNote || null,
+      compactTag: step.compactTag || null,
+      silent: step.silent === true,
+      highlight: step.highlight || null,
+      state: cloneState(state)
+    });
+  }
+
+  function noteFor(key) {
+    return (example.notes && example.notes[key]) || null;
+  }
+
+  function raiseInterruptsAt(address, stage) {
+    const raised = [];
+    (example.interrupts || []).forEach(function (entry) {
+      if (entry.atAddress === address && entry.atStage === stage && state.pending.indexOf(entry.id) === -1) {
+        state.pending.push(entry.id);
+        raised.push(entry.id);
+      }
+    });
+    return raised.map(function (id) {
+      return fill(NARRATION.raised, { name: INTERRUPTS[id].name });
+    }).join("");
+  }
+
+  function enterKernel(options) {
+    const texts = options.texts;
+    serviceCount += 1;
+    const prefix = options.noteKey;
+    const occurrence = serviceCount;
+
+    function serviceNote(step) {
+      return noteFor(prefix + "." + step + "." + occurrence) || noteFor(prefix + "." + step);
+    }
+
+    emit({
+      kind: "service", serviceStep: "identify", highlight: options.highlight, tag: "HW",
+      narration: fill(texts.identify, { name: options.name }),
+      note: serviceNote("identify"),
+      compactNarration: fill(texts.identify, { name: options.name }),
+      compactNote: serviceNote("identify"), compactTag: "HW"
+    });
+
+    const savedPsw = { IF: state.IF, ZF: state.ZF, MODE: state.MODE };
+    state.SP = state.SP - 1;
+    state.stack.push({
+      address: state.SP,
+      value: pswSummary(state),
+      label: fill(STACK_LABELS.psw, { owner: options.owner }),
+      saved: savedPsw,
+      tone: "hw"
+    });
+    emit({
+      kind: "service", serviceStep: "pushPsw", highlight: options.highlight, tag: "HW",
+      narration: fill(texts.pushPsw, { addr: state.SP }),
+      note: serviceNote("pushPsw"),
+      compactNarration: fill(texts.pushPsw, { addr: state.SP }),
+      compactNote: serviceNote("pushPsw"), compactTag: "HW"
+    });
+
+    const savedIp = state.IP;
+    state.SP = state.SP - 1;
+    state.stack.push({
+      address: state.SP,
+      value: savedIp,
+      label: fill(STACK_LABELS.ip, { owner: options.owner }),
+      tone: "hw",
+      kind: "ip"
+    });
+    emit({
+      kind: "service", serviceStep: "pushIp", highlight: options.highlight, tag: "HW",
+      narration: fill(texts.pushIp, { ip: savedIp, addr: state.SP }),
+      note: serviceNote("pushIp"),
+      compactNarration: fill(texts.pushIp, { ip: savedIp, addr: state.SP }),
+      compactNote: serviceNote("pushIp"), compactTag: "HW"
+    });
+
+    state.MODE = "kernel";
+    state.IF = 0;
+    state.IP = options.handler;
+    const switchValues = { handler: options.handler, name: options.name };
+    emit({
+      kind: "service", serviceStep: "switchMode",
+      highlight: { address: options.handler, programKey: programKeyAt(options.handler) },
+      tag: "HW",
+      narration: fill(texts.switchMode, switchValues),
+      note: serviceNote("switchMode"),
+      compactNarration: fill(texts.switchMode, switchValues),
+      compactNote: serviceNote("switchMode"), compactTag: "HW"
+    });
+  }
+
+  let serviceCount = 0;
+  let guard = 0;
+  while (!state.halted && guard < 2000) {
+    guard += 1;
+    group += 1;
+
+    const address = state.IP;
+    const entry = built.byAddress[address];
+    if (!entry) break;
+
+    const instruction = entry.instruction;
+    const programKey = entry.programKey;
+    const highlight = { address: address, programKey: programKey };
+    const tag = (example.tags && example.tags[address]) || null;
+    const ipBefore = state.IP;
+
+    let raisedDuringInstruction = "";
+
+    state.visited[address] = true;
+    if (state.MODE === "kernel") state.kernelInstructions += 1;
+    state.IP = address + 1;
+    const raisedAtFetch = raiseInterruptsAt(address, "fetch");
+    raisedDuringInstruction += raisedAtFetch;
+    emit({
+      kind: "stage", stage: "fetch", group: group, highlight: highlight, tag: tag,
+      narration: fill(NARRATION.fetch, { addr: address, instr: instruction.text, ipAfter: state.IP }) + raisedAtFetch,
+      note: noteFor(address + ".fetch")
+    });
+
+    const decodeValues = {
+      value: operandLabel(instruction.source),
+      dest: operandLabel(instruction.target),
+      src: operandLabel(instruction.source),
+      a: operandLabel(instruction.target),
+      b: operandLabel(instruction.source),
+      reg: operandLabel(instruction.target),
+      target: instruction.target,
+      n: instruction.service,
+      service: instruction.service === undefined ? "" : SYSCALLS[instruction.service].name.toLowerCase()
+    };
+
+    const raisedAtDecode = raiseInterruptsAt(address, "decode");
+    raisedDuringInstruction += raisedAtDecode;
+    emit({
+      kind: "stage", stage: "decode", group: group, highlight: highlight, tag: tag,
+      narration: fill(NARRATION.decode[instruction.form], decodeValues) + raisedAtDecode,
+      note: noteFor(address + ".decode")
+    });
+
+    const disk = example.disk;
+    if (disk && instruction.source && instruction.source.type === "memory" &&
+        instruction.source.address === disk.statusCell) {
+      state.diskReads += 1;
+      state.data[disk.statusCell] = state.diskReads >= disk.readyAfterReads ? 1 : 0;
+    }
+
+    const variant = operandVariant(instruction);
+    const operandValues = {
+      src: instruction.source ? operandLabel(instruction.source) : "",
+      value: instruction.source && instruction.source.type === "memory" ? readOperand(state, instruction.source) : ""
+    };
+    const raisedAtOperands = raiseInterruptsAt(address, "operands");
+    raisedDuringInstruction += raisedAtOperands;
+    emit({
+      kind: "stage", stage: "operands", group: group, highlight: highlight, tag: tag,
+      narration: fill(NARRATION.operands[variant], operandValues) + raisedAtOperands,
+      note: noteFor(address + ".operands")
+    });
+
+    const pendingWrite = { form: instruction.form };
+    let executeNarration = "";
+    let writebackNarration = "";
+    let compactNarration = "";
+
+    if (instruction.form === "MOV_IMM" || instruction.form === "MOV_LOAD") {
+      const value = readOperand(state, instruction.source);
+      pendingWrite.register = instruction.target.name;
+      pendingWrite.value = value;
+      executeNarration = fill(NARRATION.execute[instruction.form], { value: value });
+      writebackNarration = fill(NARRATION.writeback.REGISTER, { dest: instruction.target.name, value: value });
+      compactNarration = fill(NARRATION.compact[instruction.form], {
+        instr: instruction.text, value: value, dest: instruction.target.name,
+        src: instruction.source.type === "memory" ? instruction.source.address : ""
+      });
+    } else if (instruction.form === "MOV_STORE") {
+      const value = readOperand(state, instruction.source);
+      pendingWrite.memory = instruction.target.address;
+      pendingWrite.value = value;
+      executeNarration = fill(NARRATION.execute.MOV_STORE, { value: value });
+      writebackNarration = fill(NARRATION.writeback.MEMORY, { dest: instruction.target.address, value: value });
+      compactNarration = fill(NARRATION.compact.MOV_STORE, { instr: instruction.text, value: value, dest: instruction.target.address });
+    } else if (instruction.form.indexOf("ADD_") === 0 || instruction.form.indexOf("SUB_") === 0) {
+      const left = state[instruction.target.name];
+      const right = readOperand(state, instruction.source);
+      const isAdd = instruction.form.indexOf("ADD_") === 0;
+      const result = isAdd ? left + right : left - right;
+      pendingWrite.register = instruction.target.name;
+      pendingWrite.value = result;
+      executeNarration = fill(NARRATION.execute[isAdd ? "ADD" : "SUB"], { left: left, right: right, result: result });
+      writebackNarration = fill(NARRATION.writeback.REGISTER, { dest: instruction.target.name, value: result });
+      compactNarration = fill(NARRATION.compact[isAdd ? "ADD" : "SUB"], {
+        instr: instruction.text, dest: instruction.target.name, before: left, after: result
+      });
+    } else if (instruction.form.indexOf("CMP_") === 0) {
+      const left = state[instruction.target.name];
+      const right = readOperand(state, instruction.source);
+      const equal = left === right;
+      pendingWrite.zf = equal ? 1 : 0;
+      state.ZF = equal ? 1 : 0;
+      executeNarration = fill(NARRATION.execute[equal ? "CMP_EQUAL" : "CMP_DIFFERENT"], { left: left, right: right });
+      writebackNarration = NARRATION.writeback.CMP;
+      compactNarration = fill(NARRATION.compact.CMP, { instr: instruction.text, zf: equal ? 1 : 0 });
+    } else if (instruction.form === "JMP" || instruction.form === "JZ") {
+      const taken = instruction.form === "JMP" || state.ZF === 1;
+      pendingWrite.jump = taken ? instruction.target : null;
+      executeNarration = instruction.form === "JMP"
+        ? NARRATION.execute.JMP
+        : NARRATION.execute[taken ? "JZ_TAKEN" : "JZ_NOT_TAKEN"];
+      writebackNarration = taken
+        ? fill(NARRATION.writeback.JUMP_TAKEN, { ipBefore: state.IP, ipAfter: instruction.target })
+        : NARRATION.writeback.JUMP_NOT_TAKEN;
+      compactNarration = instruction.form === "JMP"
+        ? fill(NARRATION.compact.JMP, { instr: instruction.text, target: instruction.target })
+        : fill(NARRATION.compact[taken ? "JZ_TAKEN" : "JZ_NOT_TAKEN"], {
+            instr: instruction.text, target: instruction.target, ipAfter: state.IP
+          });
+    } else if (instruction.form === "PUSH") {
+      const value = state[instruction.target.name];
+      const owner = built.programs[programKey].stackName || built.programs[programKey].shortName;
+      const label = (example.stackLabels && example.stackLabels[address])
+        || fill(STACK_LABELS.register, { reg: instruction.target.name, owner: owner });
+      const spBefore = state.SP;
+      state.SP = state.SP - 1;
+      state.stack.push({ address: state.SP, value: null, label: label, tone: built.programs[programKey].kind });
+      pendingWrite.stackValue = value;
+      executeNarration = fill(NARRATION.execute.PUSH, { spBefore: spBefore, spAfter: state.SP });
+      writebackNarration = fill(NARRATION.writeback.PUSH, { value: value, addr: state.SP });
+      compactNarration = fill(NARRATION.compact.PUSH, { instr: instruction.text, value: value, addr: state.SP, spAfter: state.SP });
+    } else if (instruction.form === "POP") {
+      const cell = state.stack[state.stack.length - 1];
+      const value = cell.value;
+      const spBefore = state.SP;
+      state.stack.pop();
+      state.SP = state.SP + 1;
+      pendingWrite.register = instruction.target.name;
+      pendingWrite.value = value;
+      executeNarration = fill(NARRATION.execute.POP, { value: value, spBefore: spBefore, spAfter: state.SP });
+      writebackNarration = fill(NARRATION.writeback.REGISTER, { dest: instruction.target.name, value: value });
+      compactNarration = fill(NARRATION.compact.POP, { instr: instruction.text, value: value, dest: instruction.target.name, spAfter: state.SP });
+    } else if (instruction.form === "STI" || instruction.form === "CLI") {
+      if (state.MODE === "user") {
+        pendingWrite.halt = true;
+        executeNarration = NARRATION.execute.REFUSED;
+        writebackNarration = NARRATION.writeback.REFUSED;
+        compactNarration = fill(NARRATION.compact.REFUSED, { instr: instruction.text });
+      } else {
+        pendingWrite.flag = instruction.form === "STI" ? 1 : 0;
+        executeNarration = NARRATION.execute[instruction.form];
+        writebackNarration = fill(NARRATION.writeback.FLAG, { value: pendingWrite.flag });
+        compactNarration = fill(NARRATION.compact[instruction.form], { instr: instruction.text });
+      }
+    } else if (instruction.form === "SYSCALL") {
+      const requested = SYSCALLS[instruction.service];
+      pendingWrite.syscall = instruction.service;
+      executeNarration = NARRATION.execute.SYSCALL;
+      writebackNarration = NARRATION.writeback.SYSCALL;
+      compactNarration = fill(NARRATION.compact.SYSCALL, {
+        instr: instruction.text, n: instruction.service, service: requested.name.toLowerCase()
+      });
+    } else if (instruction.form === "IRET") {
+      const spBefore = state.SP;
+      const ipCell = state.stack.pop();
+      const pswCell = state.stack.pop();
+      state.SP = state.SP + 2;
+      pendingWrite.iret = { ip: ipCell.value, psw: pswCell.saved };
+      executeNarration = fill(NARRATION.execute.IRET, { ip: ipCell.value, spBefore: spBefore, spAfter: state.SP });
+      const modeLabel = MODE_LABELS[pswCell.saved.MODE];
+      const ifState = pswCell.saved.IF === 1 ? "habilitadas" : "deshabilitadas";
+      writebackNarration = fill(NARRATION.writeback.IRET, { ip: ipCell.value, mode: modeLabel, ifState: ifState });
+      compactNarration = fill(NARRATION.compact.IRET, { instr: instruction.text, ip: ipCell.value, mode: modeLabel, ifState: ifState });
+    } else if (instruction.form === "HALT") {
+      pendingWrite.halt = true;
+      executeNarration = NARRATION.execute.HALT;
+      writebackNarration = NARRATION.writeback.HALT;
+      compactNarration = fill(NARRATION.compact.HALT, { instr: instruction.text });
+    } else {
+      throw new Error("Unsupported instruction form: " + instruction.form);
+    }
+
+    const raisedAtExecute = raiseInterruptsAt(address, "execute");
+    raisedDuringInstruction += raisedAtExecute;
+    emit({
+      kind: "stage", stage: "execute", group: group, highlight: highlight, tag: tag,
+      narration: executeNarration + raisedAtExecute,
+      note: noteFor(address + ".execute")
+    });
+
+    if (pendingWrite.register !== undefined) state[pendingWrite.register] = pendingWrite.value;
+    if (pendingWrite.memory !== undefined) state.data[pendingWrite.memory] = pendingWrite.value;
+    if (pendingWrite.stackValue !== undefined) state.stack[state.stack.length - 1].value = pendingWrite.stackValue;
+    if (pendingWrite.jump) state.IP = pendingWrite.jump;
+    if (pendingWrite.flag !== undefined) state.IF = pendingWrite.flag;
+    if (pendingWrite.iret) {
+      state.IP = pendingWrite.iret.ip;
+      state.IF = pendingWrite.iret.psw.IF;
+      state.ZF = pendingWrite.iret.psw.ZF;
+      state.MODE = pendingWrite.iret.psw.MODE;
+    }
+    if (pendingWrite.halt) state.halted = true;
+
+    const raisedAtWriteback = raiseInterruptsAt(address, "writeback");
+    raisedDuringInstruction += raisedAtWriteback;
+    emit({
+      kind: "stage", stage: "writeback", group: group, highlight: highlight, tag: tag,
+      narration: writebackNarration + raisedAtWriteback,
+      note: noteFor(address + ".writeback"),
+      compactNarration: compactNarration + raisedDuringInstruction,
+      compactNote: noteFor(address + ".compact"),
+      compactTag: tag
+    });
+
+    if (state.halted) break;
+
+    const dma = example.dma;
+    if (dma && dma.afterAddress === address) {
+      dma.writes.forEach(function (write, index) {
+        state.data[write.cell] = write.value;
+        emit({
+          kind: "dma", highlight: null, tag: "HW",
+          narration: fill(NARRATION.dma.transfer, { cell: write.cell, value: write.value, n: index + 1, total: dma.writes.length }),
+          note: noteFor("dma." + (index + 1)),
+          compactNarration: fill(NARRATION.dma.transfer, { cell: write.cell, value: write.value, n: index + 1, total: dma.writes.length }),
+          compactNote: noteFor("dma." + (index + 1)), compactTag: "HW"
+        });
+      });
+      state.pending.push(dma.raise);
+    }
+
+    if (pendingWrite.syscall !== undefined) {
+      const requested = SYSCALLS[pendingWrite.syscall];
+      enterKernel({
+        texts: NARRATION.syscallService,
+        noteKey: "syscall",
+        name: requested.name,
+        handler: requested.routine,
+        owner: built.programs[programKey].stackName || built.programs[programKey].shortName,
+        highlight: highlight
+      });
+    }
+
+    let checkNarration;
+    let serviced = null;
+    if (state.pending.length === 0) {
+      checkNarration = NARRATION.check[state.IF === 1 ? "idleEnabled" : "idleDisabled"];
+    } else if (state.IF === 0) {
+      checkNarration = fill(NARRATION.check.pendingBlocked, { name: INTERRUPTS[highestPriority(state.pending)].name });
+    } else {
+      serviced = highestPriority(state.pending);
+      checkNarration = state.pending.length > 1
+        ? fill(NARRATION.check.servicePriority, { name: INTERRUPTS[serviced].name })
+        : fill(NARRATION.check.service, { name: INTERRUPTS[serviced].name, addr: address });
+    }
+
+    const forced = (example.forceCheck || []).indexOf(address) !== -1;
+    emit({
+      kind: "check", stage: "check", highlight: highlight,
+      narration: checkNarration,
+      note: noteFor(address + ".check"),
+      compactNarration: checkNarration,
+      compactNote: noteFor(address + ".check"),
+      silent: !serviced && state.pending.length === 0 && !forced
+    });
+
+    if (serviced) {
+      const interrupt = INTERRUPTS[serviced];
+      state.pending = state.pending.filter(function (id) { return id !== serviced; });
+      enterKernel({
+        texts: NARRATION.service,
+        noteKey: "service",
+        name: interrupt.name,
+        handler: interrupt.handler,
+        owner: built.programs[programKey].stackName || built.programs[programKey].shortName,
+        highlight: highlight
+      });
+    }
+
+    (example.switches || []).forEach(function (change) {
+      if (change.afterAddress !== address) return;
+      const labels = example.contextNames || {};
+      const savedName = labels[change.save] || change.save;
+      const loadedName = labels[change.load] || change.load;
+
+      emit({
+        kind: "switch", tag: "SO", highlight: highlight,
+        narration: change.decide,
+        compactNarration: change.decide, compactTag: "SO"
+      });
+
+      state.contexts[change.save] = captureContext(state);
+      emit({
+        kind: "switch", tag: "SO", highlight: highlight,
+        narration: fill(NARRATION.contextSwitch.save, { name: savedName }),
+        note: noteFor("switch.save." + change.save),
+        compactNarration: fill(NARRATION.contextSwitch.save, { name: savedName }),
+        compactNote: noteFor("switch.save." + change.save), compactTag: "SO"
+      });
+
+      const loaded = state.contexts[change.load];
+      state.AX = loaded.AX; state.BX = loaded.BX; state.CX = loaded.CX;
+      state.IP = loaded.IP; state.SP = loaded.SP;
+      state.IF = loaded.IF; state.ZF = loaded.ZF; state.MODE = loaded.MODE;
+      emit({
+        kind: "switch", tag: "SO",
+        highlight: { address: loaded.IP, programKey: programKeyAt(loaded.IP) },
+        narration: fill(NARRATION.contextSwitch.load, { name: loadedName, ip: loaded.IP }),
+        note: noteFor("switch.load." + change.load),
+        compactNarration: fill(NARRATION.contextSwitch.load, { name: loadedName, ip: loaded.IP }),
+        compactNote: noteFor("switch.load." + change.load), compactTag: "SO"
+      });
+    });
+  }
+
+  return { steps: steps, programs: built.programs, byAddress: built.byAddress };
+}
+
+function stageKeysFor(step) {
+  if (step.kind === "stage") return [step.stage];
+  if (step.kind === "check") return ["check"];
+  if (step.kind === "dma") return ["dma"];
+  if (step.kind === "switch") return ["switch"];
+  return ["service"];
+}
+
+function stageSnapshot(step, index) {
+  return {
+    kind: step.kind,
+    stage: step.stage,
+    serviceStep: step.serviceStep,
+    stagesLit: stageKeysFor(step),
+    narration: step.narration,
+    note: step.note,
+    tag: step.tag,
+    highlight: step.highlight,
+    state: step.state,
+    sourceIndex: index
+  };
+}
+
+function compactSnapshot(step, index) {
+  return {
+    kind: step.kind,
+    stage: step.kind === "stage" ? "writeback" : step.stage,
+    serviceStep: step.serviceStep,
+    stagesLit: step.kind === "stage"
+      ? ["fetch", "decode", "operands", "execute", "writeback"]
+      : stageKeysFor(step),
+    narration: step.compactNarration || step.narration,
+    note: step.compactNote || null,
+    tag: step.compactTag || step.tag,
+    highlight: step.highlight,
+    state: step.state,
+    sourceIndex: index
+  };
+}
+
+function markChanges(snapshots) {
+  snapshots.forEach(function (snapshot, index) {
+    const previous = index === 0 ? null : snapshots[index - 1].state;
+    const current = snapshot.state;
+    const changed = { registers: [], psw: [], memory: [], stack: [] };
+    if (previous) {
+      ["AX", "BX", "CX", "IP", "SP"].forEach(function (name) {
+        if (previous[name] !== current[name]) changed.registers.push(name);
+      });
+      ["IF", "ZF", "MODE"].forEach(function (name) {
+        if (previous[name] !== current[name]) changed.psw.push(name);
+      });
+      Object.keys(current.data).forEach(function (address) {
+        if (previous.data[address] !== current.data[address]) changed.memory.push(Number(address));
+      });
+      current.stack.forEach(function (cell) {
+        const before = previous.stack.filter(function (other) { return other.address === cell.address; })[0];
+        if (!before || before.value !== cell.value) changed.stack.push(cell.address);
+      });
+    }
+    snapshot.changed = changed;
+  });
+  return snapshots;
+}
+
+function buildVariant(example) {
+  const trace = buildTrace(example);
+  const detailed = markChanges(trace.steps.map(stageSnapshot));
+  const compact = markChanges(trace.steps
+    .filter(function (step, index) {
+      if (step.kind === "check") return !step.silent;
+      if (step.kind !== "stage") return true;
+      const next = trace.steps[index + 1];
+      return !next || next.group !== step.group;
+    })
+    .map(function (step) { return compactSnapshot(step, trace.steps.indexOf(step)); }));
+  const maxStackDepth = detailed.reduce(function (deepest, snapshot) {
+    return Math.max(deepest, snapshot.state.stack.length);
+  }, 0);
+  const usedKinds = {};
+  detailed.forEach(function (snapshot) {
+    snapshot.stagesLit.forEach(function (key) { usedKinds[key] = true; });
+  });
+
+  return {
+    example: example,
+    label: example.variantLabel || null,
+    usedKinds: usedKinds,
+    programs: trace.programs,
+    detailed: detailed,
+    compact: compact,
+    usesStack: maxStackDepth > 0,
+    stackSlots: Math.max(maxStackDepth, MINIMUM_STACK_SLOTS)
+  };
+}
+
+function buildExample(example) {
+  const variants = (example.variants || [{}]).map(function (variant) {
+    return buildVariant(Object.assign({}, example, variant));
+  });
+  return { example: example, variants: variants };
+}
+
+function verifyVariant(built) {
+  const expected = built.example.expectedFinalState;
+  if (!expected) return;
+  const last = built.detailed[built.detailed.length - 1].state;
+  const problems = [];
+  Object.keys(expected).forEach(function (key) {
+    if (key === "neverExecuted") {
+      expected.neverExecuted.forEach(function (address) {
+        if (last.visited[address]) problems.push("la celda " + address + " se ejecutó y no debía");
+      });
+      return;
+    }
+    if (last[key] !== expected[key]) {
+      problems.push(key + " es " + last[key] + " y se esperaba " + expected[key]);
+    }
+  });
+  const expectedContexts = built.example.expectedContexts || {};
+  Object.keys(expectedContexts).forEach(function (key) {
+    const saved = last.contexts[key];
+    if (!saved) {
+      problems.push("la estructura de " + key + " quedó vacía");
+      return;
+    }
+    Object.keys(expectedContexts[key]).forEach(function (field) {
+      if (saved[field] !== expectedContexts[key][field]) {
+        problems.push(key + "." + field + " es " + saved[field] + " y se esperaba " + expectedContexts[key][field]);
+      }
+    });
+  });
+
+  const compactLast = built.compact[built.compact.length - 1].state;
+  ["AX", "BX", "CX", "IP", "SP", "IF", "ZF", "MODE"].forEach(function (key) {
+    if (compactLast[key] !== last[key]) {
+      problems.push("compacto y detallado difieren en " + key);
+    }
+  });
+  if (problems.length > 0) {
+    console.error("Ejemplo " + built.example.number + (built.label ? " (" + built.label + ")" : "") +
+      ": " + problems.join("; "));
+  }
+}
+
+const BUILT_EXAMPLES = EXAMPLES.map(buildExample);
+BUILT_EXAMPLES.forEach(function (built) { built.variants.forEach(verifyVariant); });
+</script>
+
+<script id="ui">
+const dom = {
+  exampleList: document.getElementById("exampleList"),
+  memory: document.getElementById("memoryPanel"),
+  registers: document.getElementById("registerPanel"),
+  stack: document.getElementById("stackPanel"),
+  stackSection: document.getElementById("stackSection"),
+  contextsSection: document.getElementById("contextsSection"),
+  contextsHeading: document.getElementById("contextsHeading"),
+  contextsPanel: document.getElementById("contextsPanel"),
+  contextToggle: document.getElementById("contextToggle"),
+  contextLabel: document.getElementById("contextToggleLabel"),
+  contextCount: document.getElementById("contextCount"),
+  contextDrawer: document.getElementById("contextDrawer"),
+  narration: document.getElementById("narrationPanel"),
+  stages: document.getElementById("stagePanel"),
+  sidePanel: document.getElementById("sidePanel"),
+  title: document.getElementById("exampleTitle"),
+  subtitle: document.getElementById("exampleSubtitle"),
+  progress: document.getElementById("progress"),
+  progressFill: document.getElementById("progressFill"),
+  kernelBadge: document.getElementById("kernelBadge"),
+  variantList: document.getElementById("variantList"),
+  counter: document.getElementById("counter"),
+  prev: document.getElementById("prevStep"),
+  next: document.getElementById("nextStep"),
+  play: document.getElementById("playPause"),
+  reset: document.getElementById("reset"),
+  detailed: document.getElementById("granularityDetailed"),
+  compact: document.getElementById("granularityCompact"),
+  tooltip: document.getElementById("tooltip")
+};
+
+const AUTOPLAY_DELAY = 1600;
+const DENSE_STACK_SLOTS = 4;
+
+const view = {
+  exampleIndex: 0,
+  variantIndex: 0,
+  granularity: BUILT_EXAMPLES[0].example.defaultGranularity,
+  stepIndex: 0,
+  playing: false,
+  timer: null,
+  revealed: [],
+  freshContext: null
+};
+
+function currentBuilt() {
+  return BUILT_EXAMPLES[view.exampleIndex].variants[view.variantIndex];
+}
+
+function currentSnapshots() {
+  const built = currentBuilt();
+  return view.granularity === "compacto" ? built.compact : built.detailed;
+}
+
+function currentSnapshot() { return currentSnapshots()[view.stepIndex]; }
+
+function renderRich(target, text) {
+  target.textContent = "";
+  const pattern = /\[\[(\w+):([^\]]+)\]\]|\*([^*]+)\*/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+    if (match[1]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "tip";
+      button.textContent = match[2];
+      button.dataset.tip = match[1];
+      target.appendChild(button);
+    } else {
+      const strong = document.createElement("strong");
+      strong.textContent = match[3];
+      target.appendChild(strong);
+    }
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) target.appendChild(document.createTextNode(text.slice(cursor)));
+  return target;
+}
+
+function renderExampleList() {
+  dom.exampleList.textContent = "";
+  BUILT_EXAMPLES.forEach(function (built, index) {
+    const button = document.createElement("button");
+    button.type = "button";
+    const num = document.createElement("span");
+    num.className = "num";
+    num.textContent = built.example.number;
+    const label = document.createElement("span");
+    label.textContent = built.example.short || built.example.title;
+    button.title = built.example.subtitle;
+    button.appendChild(num);
+    button.appendChild(label);
+    button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
+    button.addEventListener("click", function () { selectExample(index); });
+    dom.exampleList.appendChild(button);
+  });
+}
+
+function renderMemory(snapshot) {
+  const built = currentBuilt();
+  dom.memory.textContent = "";
+  const regionCount = built.example.regions.length +
+    (Object.keys(snapshot.state.data).length > 0 ? 1 : 0);
+  dom.memory.classList.toggle("two-columns", regionCount > 2);
+  let currentRow = null;
+  let changedRow = null;
+  const suspended = snapshot.state.stack
+    .filter(function (cell) { return cell.kind === "ip"; })
+    .map(function (cell) { return cell.value; })
+    .concat(Object.keys(snapshot.state.contexts || {}).map(function (key) {
+      return snapshot.state.contexts[key] ? snapshot.state.contexts[key].IP : null;
+    }));
+  built.example.regions.forEach(function (region) {
+    const program = built.programs[region.program];
+    const box = document.createElement("div");
+    box.className = "region " + program.kind;
+    const heading = document.createElement("h3");
+    heading.textContent = program.label;
+    box.appendChild(heading);
+    program.instructions.forEach(function (instruction) {
+      const row = document.createElement("div");
+      row.className = "cell";
+      if (snapshot.state.visited[instruction.address]) {
+        row.classList.add("executed");
+        row.title = UI_TEXT.executedTitle;
+      }
+      if (suspended.indexOf(instruction.address) !== -1) {
+        row.classList.add("suspended");
+        row.title = UI_TEXT.suspendedTitle;
+      }
+      if (snapshot.highlight && snapshot.highlight.address === instruction.address) {
+        row.classList.add("current");
+        currentRow = row;
+      }
+      const addr = document.createElement("span");
+      addr.className = "addr mono";
+      addr.textContent = instruction.address;
+      const text = document.createElement("span");
+      text.className = "text mono";
+      const mnemonic = document.createElement("button");
+      mnemonic.type = "button";
+      mnemonic.className = "tip";
+      mnemonic.dataset.tip = "instr:" + instruction.op;
+      mnemonic.textContent = instruction.op;
+      text.appendChild(mnemonic);
+      text.appendChild(document.createTextNode(instruction.text.slice(instruction.op.length)));
+      row.appendChild(addr);
+      row.appendChild(text);
+      box.appendChild(row);
+    });
+    dom.memory.appendChild(box);
+  });
+
+  const dataAddresses = Object.keys(snapshot.state.data);
+  if (dataAddresses.length > 0) {
+    const box = document.createElement("div");
+    box.className = "region data";
+    const heading = document.createElement("h3");
+    heading.textContent = "Datos";
+    box.appendChild(heading);
+    const labels = built.example.dataLabels || {};
+    dataAddresses.sort().forEach(function (address) {
+      const row = document.createElement("div");
+      row.className = "cell";
+      if (snapshot.changed.memory.indexOf(Number(address)) !== -1) row.classList.add("changed");
+      const addr = document.createElement("span");
+      addr.className = "addr mono";
+      addr.textContent = address;
+      const value = document.createElement("span");
+      value.className = "value mono";
+      value.textContent = snapshot.state.data[address];
+      row.appendChild(addr);
+      row.appendChild(value);
+      if (labels[address]) {
+        const note = document.createElement("span");
+        note.className = "cell-label";
+        note.textContent = labels[address];
+        row.appendChild(note);
+      }
+      if (snapshot.changed.memory.indexOf(Number(address)) !== -1) changedRow = row;
+      box.appendChild(row);
+    });
+    dom.memory.appendChild(box);
+  }
+
+  const target = changedRow || currentRow;
+  if (target) target.scrollIntoView({ block: "nearest" });
+}
+
+function registerBox(name, value, changed, extraClass) {
+  const box = document.createElement("div");
+  box.className = "reg" + (extraClass ? " " + extraClass : "") + (changed ? " changed" : "");
+  const label = document.createElement("span");
+  label.className = "name";
+  label.textContent = UI_TEXT.registerLabels[name];
+  const val = document.createElement("span");
+  val.className = "val mono";
+  val.textContent = value;
+  box.appendChild(label);
+  box.appendChild(val);
+  return box;
+}
+
+function renderRegisters(snapshot) {
+  dom.registers.textContent = "";
+  const general = document.createElement("div");
+  general.className = "reg-grid general";
+  REGISTER_NAMES.forEach(function (name) {
+    general.appendChild(registerBox(name, snapshot.state[name], snapshot.changed.registers.indexOf(name) !== -1));
+  });
+  dom.registers.appendChild(general);
+
+  const pointers = document.createElement("div");
+  pointers.className = "reg-grid pointers";
+  pointers.appendChild(registerBox("IP", snapshot.state.IP, snapshot.changed.registers.indexOf("IP") !== -1, "pointer ip"));
+  pointers.appendChild(registerBox("SP", snapshot.state.SP, snapshot.changed.registers.indexOf("SP") !== -1, "pointer sp"));
+  dom.registers.appendChild(pointers);
+
+  const psw = document.createElement("div");
+  psw.className = "psw";
+  const heading = document.createElement("h3");
+  heading.textContent = "PSW";
+  psw.appendChild(heading);
+  const bits = document.createElement("div");
+  bits.className = "psw-bits";
+  [["IF", snapshot.state.IF], ["ZF", snapshot.state.ZF], ["MODE", MODE_LABELS[snapshot.state.MODE]]].forEach(function (pair) {
+    const bit = document.createElement("div");
+    bit.className = "bit" + (snapshot.changed.psw.indexOf(pair[0]) !== -1 ? " changed" : "");
+    if (pair[0] === "IF") bit.classList.add(snapshot.state.IF === 1 ? "on" : "off");
+    if (pair[0] === "MODE") bit.classList.add(snapshot.state.MODE === "kernel" ? "kernel" : "user");
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = UI_TEXT.pswBits[pair[0]];
+    const value = document.createElement("span");
+    value.className = "val mono";
+    value.textContent = pair[1];
+    bit.appendChild(name);
+    bit.appendChild(value);
+    bits.appendChild(bit);
+  });
+  psw.appendChild(bits);
+  const note = document.createElement("p");
+  note.className = "psw-note";
+  note.textContent = UI_TEXT.pswNote;
+  psw.appendChild(note);
+  dom.registers.appendChild(psw);
+
+  if (snapshot.state.pending.length > 0) {
+    const banner = document.createElement("p");
+    banner.className = "pending-banner";
+    banner.textContent = fill(UI_TEXT.pendingBanner, {
+      names: snapshot.state.pending.map(function (id) { return INTERRUPTS[id].name; }).join(", ")
+    });
+    dom.registers.appendChild(banner);
+  }
+}
+
+function stackSlot(markerText, disc) {
+  const slot = document.createElement("div");
+  slot.className = "stack-slot";
+  const marker = document.createElement("span");
+  marker.className = "sp-marker mono";
+  marker.textContent = markerText;
+  slot.appendChild(marker);
+  slot.appendChild(disc);
+  return slot;
+}
+
+function buildDisc(toneClasses) {
+  const disc = document.createElement("div");
+  disc.className = "disc " + toneClasses;
+  ["cap bottom", "body", "cap top"].forEach(function (layer) {
+    const shell = document.createElement("span");
+    shell.className = "shell " + layer;
+    disc.appendChild(shell);
+  });
+  const content = document.createElement("div");
+  content.className = "content";
+  disc.appendChild(content);
+  return { disc: disc, content: content };
+}
+
+function renderStack(snapshot) {
+  const shows = currentBuilt().usesStack;
+  dom.stackSection.hidden = !shows;
+  document.querySelector("main").classList.toggle("no-stack", !shows);
+  dom.stack.textContent = "";
+  if (!shows) return;
+  const cells = snapshot.state.stack.slice().sort(function (a, b) { return a.address - b.address; });
+  const slots = currentBuilt().stackSlots;
+  const graphic = document.createElement("div");
+  graphic.className = "stack-graphic" + (slots >= DENSE_STACK_SLOTS ? " dense" : "");
+
+  const freeSlots = Math.max(slots - cells.length, 0);
+  for (let offset = freeSlots; offset > 0; offset -= 1) {
+    const ghost = buildDisc("ghost");
+    ghost.content.textContent = UI_TEXT.stackFreeSlot;
+    graphic.appendChild(stackSlot("", ghost.disc));
+  }
+
+  cells.forEach(function (cell, index) {
+    const changed = snapshot.changed.stack.indexOf(cell.address) !== -1;
+    const built = buildDisc((cell.tone || "") + (changed ? " changed" : "") + (cell.value === null ? " empty" : ""));
+    const top = document.createElement("div");
+    top.className = "top-row";
+    const addr = document.createElement("span");
+    addr.className = "addr mono";
+    addr.textContent = cell.address;
+    const value = document.createElement("span");
+    value.className = "value mono";
+    value.textContent = cell.value === null ? UI_TEXT.stackPendingValue : cell.value;
+    top.appendChild(addr);
+    top.appendChild(value);
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = cell.label;
+    built.content.appendChild(top);
+    built.content.appendChild(label);
+    graphic.appendChild(stackSlot(index === 0 ? UI_TEXT.stackPointerMarker : "", built.disc));
+  });
+
+  const base = buildDisc("base");
+  base.content.className = "content mono";
+  base.content.textContent = UI_TEXT.stackBase;
+  graphic.appendChild(stackSlot(cells.length === 0 ? UI_TEXT.stackPointerMarker : "", base.disc));
+  dom.stack.appendChild(graphic);
+
+  if (cells.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "stack-empty";
+    empty.textContent = UI_TEXT.stackEmpty;
+    dom.stack.appendChild(empty);
+  }
+}
+
+const CONTEXT_FIELDS = ["AX", "BX", "CX", "IP", "SP"];
+
+function renderContexts(snapshot) {
+  const names = currentBuilt().example.contextNames;
+  dom.contextsSection.hidden = !names;
+  document.querySelector("main").classList.toggle("with-contexts", Boolean(names));
+  if (!names) return;
+  dom.contextsHeading.textContent = UI_TEXT.contextsTitle;
+  dom.contextsPanel.textContent = "";
+
+  const previous = view.stepIndex === 0 ? null : currentSnapshots()[view.stepIndex - 1].state.contexts;
+
+  Object.keys(names).forEach(function (key) {
+    const box = document.createElement("div");
+    box.className = "context-box";
+    const heading = document.createElement("h3");
+    heading.textContent = fill(UI_TEXT.contextBoxLabel, { name: names[key] });
+    box.appendChild(heading);
+
+    const saved = snapshot.state.contexts[key];
+    const before = previous ? previous[key] : null;
+    if (JSON.stringify(saved) !== JSON.stringify(before)) box.classList.add("changed");
+
+    if (!saved) {
+      const empty = document.createElement("p");
+      empty.className = "context-box-empty";
+      empty.textContent = UI_TEXT.contextBoxEmpty;
+      box.appendChild(empty);
+    } else {
+      CONTEXT_FIELDS.concat("PSW").forEach(function (field) {
+        const row = document.createElement("div");
+        row.className = "context-field";
+        const label = document.createElement("span");
+        label.className = "name";
+        label.textContent = field;
+        const value = document.createElement("span");
+        value.className = "val mono";
+        value.textContent = field === "PSW"
+          ? "IF=" + saved.IF + " · " + MODE_LABELS[saved.MODE]
+          : saved[field];
+        if (before && (field === "PSW"
+          ? (before.IF !== saved.IF || before.MODE !== saved.MODE)
+          : before[field] !== saved[field])) row.classList.add("changed");
+        row.appendChild(label);
+        row.appendChild(value);
+        box.appendChild(row);
+      });
+    }
+    dom.contextsPanel.appendChild(box);
+  });
+}
+
+function renderContext() {
+  dom.contextLabel.textContent = UI_TEXT.contextTitle;
+  dom.contextCount.textContent = view.revealed.length;
+  dom.contextToggle.classList.toggle("fresh", Boolean(view.freshContext));
+  dom.contextDrawer.textContent = "";
+  const intro = document.createElement("p");
+  intro.className = "context-intro";
+  intro.textContent = UI_TEXT.contextIntro;
+  dom.contextDrawer.appendChild(intro);
+  if (view.revealed.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "context-empty";
+    empty.textContent = UI_TEXT.contextEmpty;
+    dom.contextDrawer.appendChild(empty);
+    return;
+  }
+  view.revealed.forEach(function (entry) {
+    const line = document.createElement("div");
+    line.className = "context-line";
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = fill(UI_TEXT.contextTag, { n: entry.number });
+    line.appendChild(tag);
+    const body = document.createElement("div");
+    renderRich(body, entry.text);
+    line.appendChild(body);
+    dom.contextDrawer.appendChild(line);
+  });
+}
+
+const CYCLE_STAGE_KEYS = ["fetch", "decode", "operands", "execute", "writeback"];
+
+function renderStages(snapshot) {
+  dom.stages.textContent = "";
+  const grouped = view.granularity === "compacto";
+  const group = document.createElement("div");
+  group.className = "stage-group" + (grouped ? " grouped" : "");
+  if (grouped && snapshot.stagesLit.length > 1) group.classList.add("lit");
+  dom.stages.appendChild(group);
+
+  const used = currentBuilt().usedKinds;
+  UI_TEXT.stages.forEach(function (stage) {
+    const inCycle = CYCLE_STAGE_KEYS.indexOf(stage.key) !== -1;
+    if (!inCycle && !used[stage.key]) return;
+    const lit = snapshot.stagesLit.indexOf(stage.key) !== -1;
+    const row = document.createElement("div");
+    row.className = "stage " + stage.key + (lit && !(grouped && inCycle) ? " lit" : "");
+    const num = document.createElement("span");
+    num.className = "num mono";
+    num.textContent = stage.num;
+    const label = document.createElement("span");
+    label.textContent = stage.label;
+    row.appendChild(num);
+    row.appendChild(label);
+    (inCycle ? group : dom.stages).appendChild(row);
+  });
+
+}
+
+function instructionAt(address) {
+  const programs = currentBuilt().programs;
+  let found = null;
+  Object.keys(programs).forEach(function (key) {
+    programs[key].instructions.forEach(function (instruction) {
+      if (instruction.address === address) found = instruction;
+    });
+  });
+  return found;
+}
+
+function renderInstructionHelp(snapshot) {
+  const example = currentBuilt().example;
+  const atClosing = (example.closingCard || example.closing) &&
+    view.stepIndex === currentSnapshots().length - 1;
+  if (atClosing || snapshot.kind === "service" || !snapshot.highlight) return null;
+  const instruction = instructionAt(snapshot.highlight.address);
+  if (!instruction) return null;
+  const help = INSTRUCTION_HELP[instruction.op];
+  if (!help) return null;
+  const row = document.createElement("p");
+  row.className = "instruction-help";
+  const mnemonic = document.createElement("span");
+  mnemonic.className = "mnemonic mono";
+  mnemonic.textContent = help.title;
+  const body = document.createElement("span");
+  body.textContent = help.body;
+  row.appendChild(mnemonic);
+  row.appendChild(body);
+  return row;
+}
+
+function renderVariants() {
+  const variants = BUILT_EXAMPLES[view.exampleIndex].variants;
+  dom.variantList.hidden = variants.length < 2;
+  dom.variantList.textContent = "";
+  if (variants.length < 2) return;
+  variants.forEach(function (variant, index) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = variant.label;
+    button.setAttribute("aria-pressed", index === view.variantIndex ? "true" : "false");
+    button.addEventListener("click", function () { selectVariant(index); });
+    dom.variantList.appendChild(button);
+  });
+}
+
+function renderCounter(snapshot) {
+  const counter = currentBuilt().example.counter;
+  dom.counter.hidden = !counter;
+  if (!counter) return;
+  dom.counter.textContent = "";
+  const label = document.createElement("span");
+  label.className = "counter-label";
+  label.textContent = counter.label;
+  const value = document.createElement("span");
+  value.className = "counter-value mono";
+  value.textContent = snapshot.state.kernelInstructions;
+  dom.counter.appendChild(label);
+  dom.counter.appendChild(value);
+}
+
+function contextCard() {
+  const card = document.createElement("div");
+  card.className = "context-card";
+  const tag = document.createElement("span");
+  tag.className = "tag";
+  tag.textContent = UI_TEXT.contextCardTag;
+  card.appendChild(tag);
+  const body = document.createElement("div");
+  renderRich(body, view.freshContext);
+  card.appendChild(body);
+  return card;
+}
+
+function closingCardBlock(text) {
+  const card = document.createElement("div");
+  card.className = "closing-card";
+  renderRich(card, text);
+  return card;
+}
+
+function renderSidePanel() {
+  const example = currentBuilt().example;
+  const atEnd = view.stepIndex === currentSnapshots().length - 1;
+  dom.sidePanel.textContent = "";
+
+  const blocks = [];
+  if (view.freshContext) blocks.push(contextCard());
+  if (atEnd && example.closing) blocks.push(closingTable(example.closing));
+  if (atEnd && example.closingCard) blocks.push(closingCardBlock(example.closingCard));
+
+  if (blocks.length > 0) {
+    dom.sidePanel.hidden = false;
+    dom.sidePanel.className = "side-panel callout-slot";
+    blocks.forEach(function (block) { dom.sidePanel.appendChild(block); });
+    return;
+  }
+
+  const panel = example.sidePanel;
+  dom.sidePanel.className = "side-panel";
+  dom.sidePanel.hidden = !panel;
+  if (!panel) return;
+  const heading = document.createElement("h3");
+  heading.textContent = panel.title;
+  dom.sidePanel.appendChild(heading);
+  panel.items.forEach(function (item) {
+    const box = document.createElement("div");
+    box.className = "side-item " + item.tone;
+    const label = document.createElement("span");
+    label.className = "side-label";
+    label.textContent = item.label;
+    const text = document.createElement("span");
+    text.textContent = item.text;
+    box.appendChild(label);
+    box.appendChild(text);
+    dom.sidePanel.appendChild(box);
+  });
+}
+
+function closingTable(closing) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "closing";
+  const heading = document.createElement("span");
+  heading.className = "tag";
+  heading.textContent = closing.title;
+  wrapper.appendChild(heading);
+
+  const table = document.createElement("table");
+  const head = document.createElement("tr");
+  closing.headers.forEach(function (text) {
+    const cell = document.createElement("th");
+    cell.textContent = text;
+    head.appendChild(cell);
+  });
+  table.appendChild(head);
+
+  BUILT_EXAMPLES[view.exampleIndex].variants.forEach(function (variant, index) {
+    const row = document.createElement("tr");
+    if (index === view.variantIndex) row.className = "current";
+    const last = variant.detailed[variant.detailed.length - 1].state;
+    [variant.label, variant.example.answers.waits, variant.example.answers.copies, last.kernelInstructions]
+      .forEach(function (value) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+    table.appendChild(row);
+  });
+  wrapper.appendChild(table);
+  return wrapper;
+}
+
+function renderNarration(snapshot) {
+  dom.narration.textContent = "";
+  const help = renderInstructionHelp(snapshot);
+  if (help) dom.narration.appendChild(help);
+  const paragraph = document.createElement("p");
+  paragraph.className = "narration-text";
+  if (snapshot.tag) {
+    const tag = document.createElement("span");
+    tag.className = "step-tag " + snapshot.tag.toLowerCase();
+    tag.textContent = "[" + snapshot.tag + "]";
+    paragraph.appendChild(tag);
+  }
+  const body = document.createElement("span");
+  renderRich(body, snapshot.narration);
+  paragraph.appendChild(body);
+  dom.narration.appendChild(paragraph);
+
+  const granularityNote = currentBuilt().example.granularityNote;
+  if (granularityNote && view.granularity === "compacto" && view.stepIndex === 0) {
+    const note = document.createElement("p");
+    note.className = "narration-note";
+    renderRich(note, granularityNote);
+    dom.narration.appendChild(note);
+  }
+
+  if (snapshot.note) {
+    const note = document.createElement("p");
+    note.className = "narration-note";
+    renderRich(note, snapshot.note);
+    dom.narration.appendChild(note);
+  }
+
+}
+
+function contextRevealIndex() {
+  const line = currentBuilt().example.contextLine;
+  if (!line) return -1;
+  let index = -1;
+  currentSnapshots().forEach(function (snapshot, position) {
+    const matches = snapshot.stage === "writeback" && snapshot.highlight &&
+      snapshot.highlight.address === line.revealAfter;
+    if (matches && index === -1) index = position;
+  });
+  return index;
+}
+
+function updateRevealedContext() {
+  const built = currentBuilt();
+  const line = built.example.contextLine;
+  view.freshContext = null;
+  if (!line) return;
+  const index = contextRevealIndex();
+  if (index === -1 || view.stepIndex < index) return;
+  const already = view.revealed.some(function (entry) { return entry.number === built.example.number; });
+  if (!already) {
+    view.revealed.push({ number: built.example.number, text: line.text });
+    view.revealed.sort(function (a, b) { return a.number - b.number; });
+  }
+  if (view.stepIndex === index) view.freshContext = line.text;
+}
+
+function render() {
+  const snapshot = currentSnapshot();
+  const built = currentBuilt();
+  dom.title.textContent = built.example.number + ". " + built.example.title;
+  dom.subtitle.textContent = built.example.subtitle;
+  Array.prototype.forEach.call(dom.variantList.children, function (button, index) {
+    button.setAttribute("aria-pressed", index === view.variantIndex ? "true" : "false");
+  });
+  updateRevealedContext();
+  renderMemory(snapshot);
+  renderRegisters(snapshot);
+  renderStack(snapshot);
+  renderContexts(snapshot);
+  renderContext();
+  renderStages(snapshot);
+  renderVariants();
+  renderCounter(snapshot);
+  renderSidePanel();
+  renderNarration(snapshot);
+  const total = currentSnapshots().length;
+  dom.progress.textContent = fill(UI_TEXT.progress, { current: view.stepIndex + 1, total: total });
+  dom.progressFill.style.transform = "scaleX(" + ((view.stepIndex + 1) / total) + ")";
+  dom.kernelBadge.hidden = snapshot.state.MODE !== "kernel";
+  dom.kernelBadge.textContent = UI_TEXT.kernelBadge;
+  dom.prev.disabled = view.stepIndex === 0;
+  dom.next.disabled = view.stepIndex === currentSnapshots().length - 1;
+  dom.detailed.setAttribute("aria-pressed", view.granularity === "detallado" ? "true" : "false");
+  dom.compact.setAttribute("aria-pressed", view.granularity === "compacto" ? "true" : "false");
+  dom.play.textContent = view.playing ? UI_TEXT.pause : UI_TEXT.play;
+  dom.prev.textContent = UI_TEXT.prevStep;
+  dom.next.textContent = UI_TEXT.nextStep;
+  dom.reset.textContent = UI_TEXT.reset;
+  Array.prototype.forEach.call(dom.exampleList.children, function (button, index) {
+    button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
+  });
+}
+
+function goTo(index) {
+  const snapshots = currentSnapshots();
+  view.stepIndex = Math.max(0, Math.min(index, snapshots.length - 1));
+  render();
+  if (view.playing && view.stepIndex === snapshots.length - 1) stopPlaying();
+}
+
+function selectExample(index) {
+  stopPlaying();
+  view.exampleIndex = index;
+  view.variantIndex = 0;
+  view.granularity = BUILT_EXAMPLES[index].example.defaultGranularity;
+  view.stepIndex = 0;
+  render();
+}
+
+function selectVariant(index) {
+  stopPlaying();
+  view.variantIndex = index;
+  view.stepIndex = 0;
+  render();
+}
+
+function setGranularity(granularity) {
+  if (view.granularity === granularity) return;
+  const previous = currentSnapshot().sourceIndex;
+  view.granularity = granularity;
+  const snapshots = currentSnapshots();
+  let target = 0;
+  snapshots.forEach(function (snapshot, index) {
+    if (snapshot.sourceIndex <= previous) target = index;
+  });
+  view.stepIndex = target;
+  render();
+}
+
+function startPlaying() {
+  view.playing = true;
+  scheduleTick();
+  render();
+}
+
+function stopPlaying() {
+  view.playing = false;
+  if (view.timer) { clearTimeout(view.timer); view.timer = null; }
+  dom.play.textContent = UI_TEXT.play;
+}
+
+function scheduleTick() {
+  if (view.timer) clearTimeout(view.timer);
+  view.timer = setTimeout(function () {
+    if (!view.playing) return;
+    if (view.stepIndex >= currentSnapshots().length - 1) { stopPlaying(); render(); return; }
+    goTo(view.stepIndex + 1);
+    if (view.playing) scheduleTick();
+  }, AUTOPLAY_DELAY);
+}
+
+function lookupTooltip(key) {
+  if (key.indexOf("instr:") === 0) return INSTRUCTION_HELP[key.slice(6)];
+  return TOOLTIPS[key];
+}
+
+function showTooltip(trigger) {
+  const tip = lookupTooltip(trigger.dataset.tip);
+  if (!tip) return;
+  dom.tooltip.textContent = "";
+  const title = document.createElement("strong");
+  title.className = "tip-title";
+  title.textContent = tip.title;
+  dom.tooltip.appendChild(title);
+  dom.tooltip.appendChild(document.createTextNode(tip.body));
+  dom.tooltip.classList.add("open");
+  const box = trigger.getBoundingClientRect();
+  const width = dom.tooltip.offsetWidth;
+  const height = dom.tooltip.offsetHeight;
+  let left = box.left;
+  if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+  let top = box.top - height - 8;
+  if (top < 8) top = box.bottom + 8;
+  dom.tooltip.style.left = Math.max(8, left) + "px";
+  dom.tooltip.style.top = top + "px";
+}
+
+function hideTooltip() {
+  dom.tooltip.classList.remove("open");
+}
+
+dom.contextToggle.addEventListener("click", function () {
+  const open = dom.contextToggle.getAttribute("aria-expanded") === "true";
+  dom.contextToggle.setAttribute("aria-expanded", open ? "false" : "true");
+  dom.contextDrawer.hidden = open;
+});
+
+dom.next.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex + 1); });
+dom.prev.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex - 1); });
+dom.reset.addEventListener("click", function () { stopPlaying(); goTo(0); });
+dom.play.addEventListener("click", function () { view.playing ? (stopPlaying(), render()) : startPlaying(); });
+dom.detailed.addEventListener("click", function () { stopPlaying(); setGranularity("detallado"); });
+dom.compact.addEventListener("click", function () { stopPlaying(); setGranularity("compacto"); });
+
+function closestElement(target, selector) {
+  return target && typeof target.closest === "function" ? target.closest(selector) : null;
+}
+
+document.addEventListener("keydown", function (event) {
+  if (closestElement(event.target, "button") && event.key === " ") return;
+  if (event.key === "ArrowRight") { stopPlaying(); goTo(view.stepIndex + 1); event.preventDefault(); }
+  if (event.key === "ArrowLeft") { stopPlaying(); goTo(view.stepIndex - 1); event.preventDefault(); }
+  if (event.key === " ") { view.playing ? (stopPlaying(), render()) : startPlaying(); event.preventDefault(); }
+  if (event.key === "Escape") hideTooltip();
+});
+
+document.addEventListener("mouseover", function (event) {
+  const trigger = closestElement(event.target, "[data-tip]");
+  if (trigger) showTooltip(trigger);
+});
+
+document.addEventListener("mouseout", function (event) {
+  if (closestElement(event.target, "[data-tip]")) hideTooltip();
+});
+
+document.addEventListener("click", function (event) {
+  if (!closestElement(event.target, ".context-holder")) {
+    dom.contextToggle.setAttribute("aria-expanded", "false");
+    dom.contextDrawer.hidden = true;
+  }
+  const trigger = closestElement(event.target, "[data-tip]");
+  if (trigger) { showTooltip(trigger); return; }
+  hideTooltip();
+});
+
+document.addEventListener("focusin", function (event) {
+  const trigger = closestElement(event.target, "[data-tip]");
+  if (trigger) showTooltip(trigger);
+});
+
+renderExampleList();
+render();
+</script>
+
+</body>
+</html>

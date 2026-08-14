@@ -19,11 +19,11 @@ permitted difference is the title on the first line of `CLAUDE.md` /
 ## Layout
 
 ```
-index.html                   resource index (GitHub Pages landing page)
-resources/<slug>/index.html  one self-contained resource per folder
-resources/<slug>/README.md   maintenance notes, only when a resource needs them
-.claude/skills/              skills for Claude Code
-.agents/skills/              byte-equal mirror for Codex
+index.html           resource index (GitHub Pages landing page)
+<slug>/index.html    one self-contained resource per folder
+<slug>/README.md     the resource's own documentation
+.claude/skills/      skills for Claude Code
+.agents/skills/      byte-equal mirror for Codex
 ```
 
 ## Skills
@@ -31,7 +31,7 @@ resources/<slug>/README.md   maintenance notes, only when a resource needs them
 | Skill | When |
 |---|---|
 | `agent-workflow` | Always, first |
-| `html-resource` | Creating or editing any page under `resources/` |
+| `html-resource` | Creating or editing any resource page |
 | `commit` | Making a commit or opening a branch |
 
 That is the whole set. This repo stays small on purpose — do not add a skill for

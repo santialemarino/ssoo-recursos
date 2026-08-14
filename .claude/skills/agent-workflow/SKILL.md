@@ -22,16 +22,17 @@ something that happens once.
 ## 2. Repo layout
 
 ```
-index.html                   resource index (GitHub Pages landing page)
-resources/<slug>/index.html  one self-contained resource per folder
-resources/<slug>/README.md   maintenance notes, only when a resource needs them
-.claude/skills/              skills for Claude Code
-.agents/skills/              byte-equal mirror for Codex
-CLAUDE.md / AGENTS.md        repo context, byte-equal mirror except the title line
+index.html            resource index (GitHub Pages landing page)
+<slug>/index.html     one self-contained resource per folder
+<slug>/README.md      the resource's own documentation
+.claude/skills/       skills for Claude Code
+.agents/skills/       byte-equal mirror for Codex
+CLAUDE.md / AGENTS.md repo context, byte-equal mirror except the title line
 ```
 
-A new resource goes in `resources/<slug>/index.html` and is added by hand to the
-list in `index.html` and to the table in `README.md`.
+Resource folders sit at the repo root, one per resource, so the published URL is
+`.../ssoo-recursos/<slug>/`. A new one is added by hand to the list in
+`index.html` and to the table in `README.md`.
 
 ## 3. Language rule
 
@@ -78,8 +79,9 @@ There is no build and no test runner. Verification is manual and not optional:
 
 - `README.md` is in Spanish and written for teaching staff, not developers. Add a
   row when you add a resource.
-- A resource gets its own `resources/<slug>/README.md` only when it has rules a
-  future editor could not infer from the file itself.
+- Every resource has its own `<slug>/README.md` next to its `index.html`: what it
+  teaches, how to change a text, what must not be touched. That is where the
+  resource is documented — the root `README.md` only carries one line per resource.
 - `CLAUDE.md` / `AGENTS.md` describe how to work in the repo. They change when a
   convention changes, not when content is added.
 - Student-facing text is always reviewed by a member of the teaching staff before
