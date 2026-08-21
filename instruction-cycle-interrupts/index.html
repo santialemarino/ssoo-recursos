@@ -222,6 +222,9 @@
     flex: 0 0 auto;
   }
 
+  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; text-transform: inherit; font-size: inherit; font-weight: inherit; }
+  .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
+
   .panel > h2::before {
     content: "";
     width: 6px;
@@ -631,6 +634,16 @@
   .closing tr.current td { font-weight: 700; color: var(--data); }
   .closing-footer { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
 
+  .closing-card .tag {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--data);
+    margin-bottom: 3px;
+  }
+
   .closing-card {
     padding: 8px 11px;
     background: var(--data-soft);
@@ -920,27 +933,27 @@
 
 <main>
   <section class="panel memory">
-    <h2>Memoria</h2>
+    <h2><button type="button" class="tip" data-tip="panel:memory">Memoria</button></h2>
     <div class="panel-body" id="memoryPanel"></div>
   </section>
 
   <section class="panel registers">
-    <h2>Registros</h2>
+    <h2><button type="button" class="tip" data-tip="panel:registers">Registros</button></h2>
     <div class="panel-body" id="registerPanel"></div>
   </section>
 
   <section class="panel stack" id="stackSection">
-    <h2>Pila del sistema</h2>
+    <h2><button type="button" class="tip" data-tip="panel:stack">Pila del sistema</button></h2>
     <div class="panel-body" id="stackPanel"></div>
   </section>
 
   <section class="panel contexts" id="contextsSection" hidden>
-    <h2 id="contextsHeading"></h2>
+    <h2><button type="button" class="tip" id="contextsHeading" data-tip="panel:contexts"></button></h2>
     <div class="panel-body" id="contextsPanel"></div>
   </section>
 
   <section class="panel cycle">
-    <h2>Ciclo</h2>
+    <h2><button type="button" class="tip" data-tip="panel:cycle">Ciclo</button></h2>
     <div class="cycle-body">
       <div class="stages" id="stagePanel"></div>
     </div>
@@ -963,10 +976,11 @@
       <span class="progress" id="progress"></span>
     </div>
     <div class="controls">
+      <button type="button" class="small" id="firstStep"></button>
       <button type="button" class="big" id="prevStep"></button>
       <button type="button" class="big primary" id="nextStep"></button>
+      <button type="button" class="small" id="lastStep"></button>
       <button type="button" class="small" id="playPause"></button>
-      <button type="button" class="small" id="reset"></button>
     </div>
   </section>
 
@@ -1013,12 +1027,37 @@ const UI_TEXT = {
   progress: "Paso {current} de {total}",
   play: "Reproducir",
   pause: "Pausar",
-  prevStep: "Paso anterior",
-  nextStep: "Paso siguiente",
-  reset: "Reiniciar",
+  firstStep: "Primero",
+  prevStep: "Anterior",
+  nextStep: "Siguiente",
+  lastStep: "Último",
+  takeawayTag: "Para llevarse",
   pendingBanner: "Interrupción pendiente: {names}",
   registerLabels: { AX: "AX", BX: "BX", CX: "CX", IP: "IP", SP: "SP" },
   pswBits: { IF: "IF", ZF: "ZF", MODE: "MODE" }
+};
+
+const PANEL_TIPS = {
+  memory: {
+    title: "Memoria",
+    body: "Las celdas de memoria de este ejemplo: arriba las instrucciones de cada programa y abajo los datos. La celda resaltada es la que se está ejecutando."
+  },
+  registers: {
+    title: "Registros",
+    body: "Lo que el procesador tiene a mano mientras ejecuta: los registros generales, el IP, el SP y los bits del PSW. Es todo lo que hay que guardar para poder retomar un programa."
+  },
+  stack: {
+    title: "Pila del sistema",
+    body: "La pila donde se apilan y desapilan valores: la usan PUSH y POP, y también el hardware cuando atiende una interrupción. El SP marca el tope."
+  },
+  contexts: {
+    title: "Contextos guardados",
+    body: "Las estructuras donde el sistema operativo guarda el contexto de cada programa cuando lo saca del procesador. No están en la pila: son propias de cada programa."
+  },
+  cycle: {
+    title: "Ciclo",
+    body: "En qué etapa del ciclo de instrucción está el procesador en este paso. Las etapas se recorren siempre en el mismo orden."
+  }
 };
 
 const TOOLTIPS = {
@@ -1245,6 +1284,7 @@ const EXAMPLES = [
       "102.execute": "Recién en esta etapa se hace la cuenta. Hasta acá el procesador estuvo averiguando qué tenía que hacer.",
       "103.writeback": "AX quedó en 8 y BX en 3. El IP quedó en 104: apunta a la celda que seguiría si el programa no se hubiera detenido."
     },
+    closingCard: "El IP apunta siempre a la instrucción *siguiente*, nunca a la que se está ejecutando.",
     expectedFinalState: { AX: 8, BX: 3, IP: 104, SP: 900, halted: true }
   },
 
@@ -1275,6 +1315,7 @@ const EXAMPLES = [
       "102.writeback": "El JZ pisó el IP: en vez de 103, ahora vale 105. Las celdas 103 y 104 quedan sin ejecutarse.",
       "106.writeback": "Mirá la memoria: 103 y 104 nunca se ejecutaron. Estaban ahí, pero el salto pasó por arriba. CX quedó en 1, no en 99."
     },
+    closingCard: "Un solo bit del PSW decide si el salto se toma.",
     expectedFinalState: { AX: 4, CX: 1, ZF: 1, IP: 107, SP: 900, halted: true, neverExecuted: [103, 104] }
   },
 
@@ -1304,6 +1345,7 @@ const EXAMPLES = [
       "103.writeback": "AX volvió a valer 7, igual que antes de que lo pisaras, y el [[sp:SP]] volvió a 900 con la pila vacía. Acabás de guardar y restaurar contexto a mano; lo que sigue es lo mismo, pero hecho por el procesador.",
       "104.writeback": "Acá guardamos una sola cosa. Cuando haya dos guardadas a la vez, el orden en que salen va a importar: eso es el ejemplo 8."
     },
+    closingCard: "Guardar un valor, pisarlo y recuperarlo igual: eso es un contexto en miniatura.",
     expectedFinalState: { AX: 7, IP: 105, SP: 900, halted: true }
   },
 
@@ -1330,6 +1372,7 @@ const EXAMPLES = [
       "101.execute": "No es que la instrucción esté mal escrita. Está prohibida *para este programa*. La misma instrucción, dentro de una rutina del kernel, se ejecuta sin problema.",
       "101.writeback": "El programa quedó cortado en 101: las celdas 102 y 103 no se ejecutan. Y entonces, ¿cómo hace un programa para conseguir algo del sistema que no puede hacer por su cuenta? Se lo pide al kernel. Eso es un syscall, y es el ejemplo 6."
     },
+    closingCard: "No está mal escrita: está prohibida *para este programa*.",
     expectedFinalState: { AX: 1, IP: 102, SP: 900, IF: 1, MODE: "user", halted: true, neverExecuted: [102, 103] }
   },
 
@@ -1374,6 +1417,7 @@ const EXAMPLES = [
       "102.compact": "AX sigue valiendo 2, como si la rutina nunca hubiera corrido. Ahora suma 1 y queda en 3.",
       "103.compact": "AX terminó en 3, que es lo mismo que habría dado si nadie hubiera tocado el teclado."
     },
+    closingCard: "El hardware guarda lo mínimo para poder volver; el resto lo guarda la rutina.",
     expectedFinalState: { AX: 3, IP: 104, SP: 900, MODE: "user", IF: 1, halted: true }
   },
 
@@ -1420,6 +1464,7 @@ const EXAMPLES = [
       "603.compact": "El IRET es el mismo del ejemplo 5, y el programa retoma en 102 sin enterarse de nada. Lo único distinto entre los dos ejemplos fue el origen.",
       "103.compact": "AX terminó en 11. El syscall no lo tocó: la rutina solo usó BX, y lo devolvió como estaba."
     },
+    closingCard: "Mismo mecanismo que una interrupción. Lo único distinto es quién lo pidió.",
     expectedFinalState: { AX: 11, BX: 0, IP: 104, SP: 900, MODE: "user", IF: 1, halted: true }
   },
 
@@ -1442,6 +1487,7 @@ const EXAMPLES = [
       title: "Los tres mecanismos",
       headers: ["Mecanismo", "¿Espera?", "¿Copia?", "Instrucciones"]
     },
+    closingCard: "Dos preguntas distintas: si la CPU espera, y si la CPU copia.",
     variants: [
       {
         variantLabel: "I/O programada",
@@ -1613,6 +1659,7 @@ const EXAMPLES = [
       "524.compact": "Recién ahora, cuando termina la rutina del teclado, vuelve P1 a la instrucción 101. Salieron en orden inverso al que entraron: la última que llegó fue la primera en terminar.",
       "102.compact": "AX terminó en 2, como si nada de todo esto hubiera pasado."
     },
+    closingCard: "La pila devuelve en el orden inverso al que guardó.",
     expectedFinalState: { AX: 2, BX: 0, IP: 103, SP: 900, MODE: "user", IF: 1, halted: true }
   },
 
@@ -2432,10 +2479,11 @@ const dom = {
   kernelBadge: document.getElementById("kernelBadge"),
   variantList: document.getElementById("variantList"),
   counter: document.getElementById("counter"),
+  first: document.getElementById("firstStep"),
   prev: document.getElementById("prevStep"),
   next: document.getElementById("nextStep"),
+  last: document.getElementById("lastStep"),
   play: document.getElementById("playPause"),
-  reset: document.getElementById("reset"),
   detailed: document.getElementById("granularityDetailed"),
   compact: document.getElementById("granularityCompact"),
   tooltip: document.getElementById("tooltip")
@@ -2937,7 +2985,13 @@ function contextCard() {
 function closingCardBlock(text) {
   const card = document.createElement("div");
   card.className = "closing-card";
-  renderRich(card, text);
+  const tag = document.createElement("span");
+  tag.className = "tag";
+  tag.textContent = UI_TEXT.takeawayTag;
+  card.appendChild(tag);
+  const body = document.createElement("div");
+  renderRich(body, text);
+  card.appendChild(body);
   return card;
 }
 
@@ -3104,7 +3158,10 @@ function render() {
   dom.play.textContent = view.playing ? UI_TEXT.pause : UI_TEXT.play;
   dom.prev.textContent = UI_TEXT.prevStep;
   dom.next.textContent = UI_TEXT.nextStep;
-  dom.reset.textContent = UI_TEXT.reset;
+  dom.first.textContent = UI_TEXT.firstStep;
+  dom.last.textContent = UI_TEXT.lastStep;
+  dom.first.disabled = view.stepIndex === 0;
+  dom.last.disabled = view.stepIndex === currentSnapshots().length - 1;
   Array.prototype.forEach.call(dom.exampleList.children, function (button, index) {
     button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
   });
@@ -3170,6 +3227,7 @@ function scheduleTick() {
 
 function lookupTooltip(key) {
   if (key.indexOf("instr:") === 0) return INSTRUCTION_HELP[key.slice(6)];
+  if (key.indexOf("panel:") === 0) return PANEL_TIPS[key.slice(6)];
   return TOOLTIPS[key];
 }
 
@@ -3206,7 +3264,8 @@ dom.contextToggle.addEventListener("click", function () {
 
 dom.next.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex + 1); });
 dom.prev.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex - 1); });
-dom.reset.addEventListener("click", function () { stopPlaying(); goTo(0); });
+dom.first.addEventListener("click", function () { stopPlaying(); goTo(0); });
+dom.last.addEventListener("click", function () { stopPlaying(); goTo(currentSnapshots().length - 1); });
 dom.play.addEventListener("click", function () { view.playing ? (stopPlaying(), render()) : startPlaying(); });
 dom.detailed.addEventListener("click", function () { stopPlaying(); setGranularity("detallado"); });
 dom.compact.addEventListener("click", function () { stopPlaying(); setGranularity("compacto"); });
@@ -3219,6 +3278,8 @@ document.addEventListener("keydown", function (event) {
   if (closestElement(event.target, "button") && event.key === " ") return;
   if (event.key === "ArrowRight") { stopPlaying(); goTo(view.stepIndex + 1); event.preventDefault(); }
   if (event.key === "ArrowLeft") { stopPlaying(); goTo(view.stepIndex - 1); event.preventDefault(); }
+  if (event.key === "Home") { stopPlaying(); goTo(0); event.preventDefault(); }
+  if (event.key === "End") { stopPlaying(); goTo(currentSnapshots().length - 1); event.preventDefault(); }
   if (event.key === " ") { view.playing ? (stopPlaying(), render()) : startPlaying(); event.preventDefault(); }
   if (event.key === "Escape") hideTooltip();
 });

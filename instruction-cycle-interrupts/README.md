@@ -29,6 +29,16 @@ lo anterior.
 | 8 | Interrupciones anidadas | Dos contextos guardados a la vez en la pila, y por qué se devuelven en orden inverso |
 | 9 | Cambio de contexto | Que cuando lo que se retoma es otro programa, el contexto ya no alcanza con la pila |
 
+Cada ejemplo termina con una **placa de cierre**: una frase, en un recuadro, que
+es lo que el estudiante se tiene que llevar de ese ejemplo. Está en el campo
+`closingCard` de cada uno. Y cada título de panel tiene un globito que explica
+qué muestra ese panel, en `PANEL_TIPS`.
+
+Los controles son **Primero · Anterior · Siguiente · Último · Reproducir**, con
+las flechas del teclado y `Inicio` / `Fin`. Son los mismos que en el otro recurso
+de la familia: si acá se agrega o se saca uno, hay que hacer lo mismo allá. La
+regla está en `CLAUDE.md`.
+
 Hay dos niveles de detalle, que se cambian en cualquier momento: **detallado**
 (cada etapa del ciclo es un paso) y **compacto** (un paso por instrucción). La
 atención de una interrupción se muestra paso por paso en los dos.
@@ -445,7 +455,9 @@ Además de los programas y las notas, un ejemplo puede declarar:
   otro. Va junto con `contextNames` e `initialContexts`.
 - `forceCheck` — direcciones después de las cuales el paso de verificación de
   interrupciones se muestra siempre, incluso en modo compacto.
-- `sidePanel`, `closing`, `closingCard` — paneles fijos y placas de cierre.
+- `sidePanel`, `closing`, `closingCard` — paneles fijos y placas de cierre. La
+  placa de cierre la tienen los nueve ejemplos, y es lo último que se lee: si se
+  agrega un ejemplo, tiene que traer la suya.
 - `dataLabels` — el nombre de cada celda de datos, para que no sean números sueltos.
 - `short` — la palabra que va en el botón de arriba; el título completo se muestra
   al lado del número de paso.
@@ -475,6 +487,8 @@ escrito dentro del motor o del dibujo.
 8. Abierta con doble clic y sin internet, sigue funcionando igual.
 9. Se ve bien a 1280×720 (el proyector del aula) y a 390 px de ancho (un
    teléfono).
+10. Los nueve ejemplos terminan mostrando su placa de cierre, y se ve entera sin
+    tener que arrastrar la narración.
 
 Valores finales conocidos, para chequear a ojo:
 
