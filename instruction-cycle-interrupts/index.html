@@ -568,6 +568,20 @@
     padding: 2px 8px;
   }
 
+  .proc-state {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 5px;
+    padding: 1px 7px;
+    border: 1px solid currentColor;
+  }
+  .proc-state.running { color: var(--handler); background: var(--handler-soft); }
+  .proc-state.ready { color: var(--accent); background: var(--accent-soft); }
+  .proc-state.blocked { color: var(--alert); background: var(--alert-soft); }
+
   .narration-body {
     padding: 9px 12px 3px;
     flex: 1 1 auto;
@@ -980,6 +994,7 @@ const REGISTER_NAMES = ["AX", "BX", "CX"];
 const STACK_BASE = 900;
 
 const MODE_LABELS = { user: "usuario", kernel: "kernel" };
+const PROC_STATE_LABELS = { running: "RUNNING", ready: "READY", blocked: "BLOCKED" };
 
 const UI_TEXT = {
   stages: [
@@ -1436,7 +1451,8 @@ const EXAMPLES = [
       250: "estado del disco",
       251: "palabra 1 que entrega el disco",
       252: "palabra 2 que entrega el disco",
-      253: "orden para el controlador de DMA"
+      253: "orden para el controlador de DMA",
+      254: "orden para el controlador de disco"
     },
     closing: {
       title: "Los tres mecanismos",
@@ -1472,11 +1488,12 @@ const EXAMPLES = [
         initialData: { 200: 0, 201: 0, 250: 0, 251: 7, 252: 5 },
         interrupts: [],
         disk: { statusCell: 250, readyAfterReads: 3 },
+        procState: { initial: { P1: "running" } },
         initialIF: 1,
         notes: {
           "101.compact": "El syscall le pide al disco que empiece a buscar los datos. El disco tarda: no los tiene listos en el momento.",
           "701.compact": "La rutina lee la celda 250, que es donde el disco dice si ya terminó. Todavía dice 0.",
-          "704.compact": "El salto vuelve para atrás y la rutina pregunta de nuevo. Esto es *esperar*: la CPU está ocupada preguntando y no puede hacer otra cosa.",
+          "704.compact": "El salto vuelve para atrás y la rutina pregunta de nuevo. Esto es *esperar*: la CPU está ocupada preguntando y no puede hacer otra cosa. Fijate que P1 nunca deja de estar RUNNING: no cede la CPU, la desperdicia.",
           "705.compact": "Recién ahora el disco dice que está listo. Lo que sigue es la CPU copiando los datos a memoria, palabra por palabra.",
           "710.compact": "Mirá el contador: todas esas instrucciones las ejecutó la CPU para traer dos palabras. La CPU esperó *y* copió."
         },
@@ -1494,6 +1511,10 @@ const EXAMPLES = [
             "HALT"
           ] },
           DISK: { label: "Rutina del syscall 3 (leer del disco)", shortName: "la rutina del disco", stackName: "del disco", kind: "handler", origin: 700, lines: [
+            "PUSH AX",
+            "MOV AX, 2",
+            "MOV [254], AX",
+            "POP AX",
             "IRET"
           ] },
           DISKEND: { label: "Rutina de atención del fin de I/O", shortName: "la rutina del fin de I/O", stackName: "del fin de I/O", kind: "handler", origin: 540, lines: [
@@ -1507,16 +1528,23 @@ const EXAMPLES = [
           ] }
         },
         regions: [{ program: "P1" }, { program: "DISK" }, { program: "DISKEND" }],
-        initialData: { 200: 0, 201: 0, 251: 7, 252: 5 },
-        interrupts: [{ id: "disk", atAddress: 700, atStage: "execute" }],
+        initialData: { 200: 0, 201: 0, 251: 7, 252: 5, 254: 0 },
+        interrupts: [{ id: "disk", atAddress: 704, atStage: "execute" }],
+        procState: { initial: { P1: "running" }, events: [
+          { atAddress: 700, program: "P1", to: "blocked" },
+          { atAddress: 546, program: "P1", to: "ready" },
+          { atAddress: 102, program: "P1", to: "running" }
+        ] },
         initialIF: 1,
         notes: {
-          "101.compact": "El syscall le pide al disco que empiece a buscar los datos, igual que antes.",
-          "700.compact": "Y la rutina no hace nada más: devuelve el control enseguida. No se queda preguntando. El disco va a avisar cuando termine.",
-          "700.check": "El disco avisó con una interrupción: terminó de buscar. Recién acá la CPU se ocupa del asunto.",
+          "101.compact": "El syscall pasa al kernel para pedir la lectura. A partir de acá P1 no sigue por su cuenta.",
+          "702.compact": "La rutina le pide al disco 2 palabras (celda 254), igual que se le pide al DMA. Pero el disco es «tonto»: solo las va a dejar en su propio buffer (celdas 251 y 252) y avisar. Copiarlas a la memoria final (200/201) lo va a tener que hacer la CPU. El DMA, con la misma orden, las escribe directo en memoria: por eso es más inteligente.",
+          "704.compact": "La rutina devuelve el control, pero P1 no vuelve a correr: quedó BLOCKED esperando el disco. El SO lo saca de la CPU, que queda libre mientras el disco trabaja.",
+          "704.check": "El disco avisó con una interrupción: terminó de buscar. Recién acá la CPU se ocupa del asunto.",
           "541.compact": "Esto sí lo hace la CPU: copiar las palabras a memoria, una por una.",
-          "546.compact": "Mirá el contador: mucho menos que con I/O programada, porque la CPU no esperó. Pero copió igual.",
-          "104.compact": "Una cosa: acá la CPU quedó libre mientras el disco trabajaba, pero no había otro programa para correr, así que no hizo nada con esa libertad. Eso es exactamente el ejemplo 9."
+          "546.compact": "Copiados los datos, la rutina termina y P1 pasa a READY: el disco cumplió, ya puede volver a correr. Mirá el contador: mucho menos que con I/O programada, porque la CPU no esperó. Pero copió igual.",
+          "102.compact": "El SO vuelve a poner a P1 en RUNNING y retoma justo donde había quedado, con los datos ya en memoria.",
+          "104.compact": "Una cosa: mientras P1 estaba BLOCKED la CPU quedó libre, pero no había otro programa para correr, así que no hizo nada con esa libertad. Aprovechar ese hueco es exactamente el ejemplo 9."
         },
         expectedFinalState: { AX: 12, IP: 105, SP: 900, MODE: "user", IF: 1, halted: true }
       },
@@ -1546,13 +1574,19 @@ const EXAMPLES = [
         initialData: { 200: 0, 201: 0, 253: 0 },
         interrupts: [],
         dma: { afterAddress: 704, raise: "disk", writes: [{ cell: 200, value: 7 }, { cell: 201, value: 5 }] },
+        procState: { initial: { P1: "running" }, events: [
+          { atAddress: 700, program: "P1", to: "blocked" },
+          { atAddress: 540, program: "P1", to: "ready" },
+          { atAddress: 102, program: "P1", to: "running" }
+        ] },
         initialIF: 1,
         notes: {
-          "702.compact": "La rutina le dice al controlador de DMA cuántas palabras traer y a partir de qué celda escribirlas. Eso es todo lo que hace la CPU.",
-          "704.compact": "La rutina devuelve el control. A partir de acá el DMA trabaja solo.",
+          "702.compact": "La rutina le pide al DMA 2 palabras (celda 253), igual que al disco. La diferencia es que el DMA las va a escribir directo en la memoria final (200/201), sin que la CPU copie nada. Eso es todo lo que hace la CPU.",
+          "704.compact": "La rutina devuelve el control, pero P1 queda BLOCKED esperando la transferencia. A partir de acá el DMA trabaja solo, sin CPU.",
           "dma.1": "Fijate en la celda 200 y en el contador: la celda se llenó y el contador no se movió. La CPU no ejecutó ninguna instrucción para esto.",
           "dma.2": "La segunda palabra, igual. El DMA escribe directo en memoria.",
-          "540.compact": "La rutina del fin de I/O no tiene nada que copiar: los datos ya están en memoria. Solo devuelve el control.",
+          "540.compact": "La rutina del fin de I/O no tiene nada que copiar: los datos ya están en memoria. Solo devuelve el control, y P1 pasa a READY.",
+          "102.compact": "El SO vuelve a poner a P1 en RUNNING. Retoma con los datos ya en memoria, y la CPU no ejecutó ni una instrucción para copiarlos.",
           "104.compact": "Pensá qué pasaría con 100 palabras en vez de 2: en los dos primeros mecanismos el número crece con cada palabra. Acá no cambia."
         },
         expectedFinalState: { AX: 12, IP: 105, SP: 900, MODE: "user", IF: 1, halted: true }
@@ -1759,7 +1793,8 @@ function createState(example) {
     halted: false,
     diskReads: 0,
     kernelInstructions: 0,
-    contexts: JSON.parse(JSON.stringify(example.initialContexts || {}))
+    contexts: JSON.parse(JSON.stringify(example.initialContexts || {})),
+    procState: Object.assign({}, example.procState && example.procState.initial)
   };
 }
 
@@ -1783,7 +1818,8 @@ function cloneState(state) {
     halted: state.halted,
     diskReads: state.diskReads,
     kernelInstructions: state.kernelInstructions,
-    contexts: JSON.parse(JSON.stringify(state.contexts))
+    contexts: JSON.parse(JSON.stringify(state.contexts)),
+    procState: Object.assign({}, state.procState)
   };
 }
 
@@ -1943,6 +1979,10 @@ function buildTrace(example) {
     const address = state.IP;
     const entry = built.byAddress[address];
     if (!entry) break;
+
+    (example.procState && example.procState.events || []).forEach(function (ev) {
+      if (ev.atAddress === address) state.procState[ev.program] = ev.to;
+    });
 
     const instruction = entry.instruction;
     const programKey = entry.programKey;
@@ -2531,6 +2571,13 @@ function renderMemory(snapshot) {
     box.className = "region " + program.kind;
     const heading = document.createElement("h3");
     heading.textContent = program.label;
+    const pstate = snapshot.state.procState && snapshot.state.procState[region.program];
+    if (pstate) {
+      const badge = document.createElement("span");
+      badge.className = "proc-state " + pstate;
+      badge.textContent = PROC_STATE_LABELS[pstate];
+      heading.appendChild(badge);
+    }
     box.appendChild(heading);
     program.instructions.forEach(function (instruction) {
       const row = document.createElement("div");
