@@ -109,6 +109,55 @@ Animation exists so the eye can follow a change, not to decorate.
 - CSS Grid or Flexbox. Relative units. The `body` never scrolls horizontally; wide
   content (tables, diagrams) scrolls inside its own `overflow-x: auto` container.
 
+## Canvas: derive it, never inherit it
+
+A resource in the same family as an existing one shares its **chassis** — the
+example ladder in the header, the narration panel, the step counter, the control
+bar, the keyboard bindings, the type scale, the palette roles. That is where
+recognition comes from, and it is not up for discussion.
+
+It does **not** share its **canvas**: which panels are on screen, how much space
+each one gets, and what the unit of a step is. Those are derived per example, and
+the derivation is three questions:
+
+1. What is the unit of a step here — a line of source, or an event?
+2. What mutates, that the student has to watch?
+3. Given 1 and 2, which panels earn their space, and which are dead weight
+   stealing room from what matters?
+
+What follows from that:
+
+- A panel is on screen when it is the subject of the example, or when it changes
+  during the example. **Panels may leave.** When one leaves, the narration says so
+  once, in one clause. Nothing is on screen because it was introduced earlier.
+- Weight is part of the answer. The subject gets the space; context gets a strip.
+- The unit of a step is declared per example and shown on screen. It never
+  changes silently.
+- **The vocabulary ceiling is a house rule, not a preference.** A resource never
+  introduces a noun that a later class will redefine, even when the word is the
+  standard one. The first resource holds this line strictly: it says *programa* 75
+  times and never says *proceso*, *PCB*, *planificador*, *quantum*, *hilo* or
+  *marco* — it defers with "eso es la clase que viene". When a name is needed and
+  the honest name is taken, name the thing that is actually happening instead:
+  *la llamada* and *su lugar en el stack* instead of *frame* or *marco*, *los bytes
+  pedidos* instead of *bloque*. It usually reads more concretely anyway.
+
+- **Set layout styles when creating the element, not by mutating an old one.** If a
+  grid's column widths or a row's height depend on the step or the example, build
+  the container fresh with that style already on it instead of reassigning the
+  style of the container that was already there. It reads more simply, and it
+  avoids a real case that cost hours to find: under some conditions the browser
+  accepts the inline-style assignment but never recalculates layout, leaving the
+  page laid out with the previous step's measurements.
+
+- **The renderer takes its panel set from the example data, not from its own
+  source.** A panel grid hardcoded in render code is what makes a canvas get
+  inherited by accident.
+
+If the answers come out identical to the sibling resource's, the inherited layout
+was right — but say in the delivery that it was checked, so the next person does
+not have to wonder.
+
 ## Visual style
 
 **The course has no defined visual identity yet.** Until it does, the rule is

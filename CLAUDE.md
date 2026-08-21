@@ -37,6 +37,43 @@ index.html           resource index (GitHub Pages landing page)
 That is the whole set. This repo stays small on purpose — do not add a skill for
 something that happens once.
 
+## Chassis and canvas
+
+Resources in the same family share a **chassis**. They do not share a **canvas**.
+
+- **Chassis — shared, and not up for discussion:** the header with the example
+  ladder, the narration panel, the step counter, the control bar, the keyboard
+  bindings, the type scale and the palette roles. A student who meets the second
+  resource two weeks after the first has to recognise it, and recognition comes
+  from these. Concretely, and **all-or-nothing** — if one step-by-step resource
+  has one of these, every other one gets it too: the same control set (primero /
+  anterior / siguiente / último, plus play/pause where autoplay exists), a tooltip
+  on every panel title, a closing card at the end of every example carrying the one
+  sentence to remember, the same keys (arrows, `Inicio`, `Fin`), and one favicon
+  for the whole repo.
+- **Canvas — derived, never inherited:** which panels are on screen, how much
+  space each one gets, and what the unit of a step is. Every example answers
+  three questions for itself: what is the unit of a step, what mutates that the
+  student has to watch, and therefore which panels earn their space. A panel is
+  on screen when it is the subject or when it changes. Panels may leave; when one
+  leaves, the narration says so once, in one clause. Nothing stays on screen
+  because it was introduced earlier.
+
+**Why this is written down.** The second resource took its panel grid from the
+first by instruction, and nobody checked it. It happened to fit the examples
+whose step is a line of source and whose mutation is the memory map, and it was
+wrong for the ones whose step is an event and whose mutation is who holds the
+CPU. The tell was in the planning document itself: its panel list had no CPU
+panel, while one example's beats required one. A list derived from the examples
+cannot be missing a panel the examples need — so that list had been copied, not
+reasoned.
+
+Finding it late was cheap only because the step engine was already
+canvas-agnostic: examples are data, snapshots are precomputed, and the renderer
+takes its panel set from the example. Keep it that way. If a resource ever needs
+a panel grid hardcoded in its render code, that is the moment to stop and re-read
+this section.
+
 ## Hard rules
 
 - **No comments in code.** Not banner comments, not explanatory comments, not

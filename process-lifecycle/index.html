@@ -1,0 +1,3846 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23b45309%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%229.5%22%20width%3D%2213%22%20height%3D%2213%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%2F%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M13%209.5V5M19%209.5V5M13%2027v-4.5M19%2027v-4.5M9.5%2013H5M9.5%2019H5M27%2013h-4.5M27%2019h-4.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<title>Procesos e hilos</title>
+<style>
+  :root {
+    --ink: #10151d;
+    --ink-soft: #35404f;
+    --muted: #5f6877;
+    --faint: #838c9a;
+    --line: #e3e7ee;
+    --line-strong: #c6ccd8;
+    --page: #edf0f6;
+    --card: #ffffff;
+
+    --running: #1d4ed8;
+    --running-soft: #e8eefc;
+    --accent: #a85a06;
+    --accent-soft: #fdf0dc;
+    --pointer: #35404f;
+    --alert: #c0392f;
+    --alert-soft: #fbeae8;
+    --thread: #6d4aad;
+    --thread-soft: #eee9f8;
+    --region-fill: #fbfcfe;
+    --region-fill-alt: #f2f5f9;
+
+    --radius: 11px;
+    --shadow: 0 1px 2px rgba(16, 21, 29, 0.05), 0 1px 8px rgba(16, 21, 29, 0.04);
+    --fast: 160ms;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--page);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 10px 14px 12px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 640; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
+  }
+
+  button:hover:not([disabled]) { border-color: var(--faint); }
+  button:active:not([disabled]) { transform: translateY(1px); }
+
+  button:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  header { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+
+  .head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
+
+  .head-row .spacer { flex: 1; }
+
+  .toggle-label { font-size: 12.5px; color: var(--muted); }
+
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filters button { padding: 3px 10px; font-size: 12.5px; }
+  .filters button[aria-pressed="true"] { color: #fff; }
+
+  .counter-box { border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px 6px; background: var(--region-fill); }
+  .counter-box + .counter-box { margin-top: 8px; }
+  .counter-top { display: flex; align-items: baseline; gap: 8px; }
+  .counter-label { font-size: 11.5px; font-weight: 650; color: var(--ink-soft); line-height: 1.25; }
+  .counter-value { margin-left: auto; font-size: 20px; font-weight: 800; }
+  .counter-gloss { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+
+  .decider-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .decider-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+    padding: 1px 5px;
+    border-left: 3px solid transparent;
+    border-radius: 4px;
+    font-size: 11.5px;
+    transition: opacity var(--fast) ease-out;
+  }
+
+  .decider-row.current { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 650; }
+  .decider-row.later { color: var(--faint); opacity: 0.55; }
+  .decider-row.faded { opacity: 0.28; }
+  .decider-step { color: var(--muted); font-size: 10.5px; min-width: 6ch; }
+  .decider-who { font-weight: 800; min-width: 3ch; }
+  .decider-change { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .decider-change .arrow { margin: 0 4px; color: var(--muted); }
+
+  .decider-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 0 5px;
+    white-space: nowrap;
+  }
+
+  .examples { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  .examples button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px 5px 6px;
+    font-size: 12.5px;
+    text-align: left;
+    box-shadow: var(--shadow);
+  }
+
+  .examples button .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
+  .examples button[aria-current="true"] .num { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+  main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  main.has-wide { grid-template-rows: minmax(0, 1fr) auto; }
+
+  .panel.wide { grid-column: 1 / -1; }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .panel > h2 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 9px 12px 8px;
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+
+  .panel > h2::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line-strong);
+    flex: 0 0 auto;
+  }
+
+  .panel.source > h2::before { background: var(--running); }
+  .panel.memory > h2::before { background: var(--ink-soft); }
+  .panel.pcb > h2::before { background: var(--accent); }
+
+  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; }
+  .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
+
+  .panel > h2 .file { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; letter-spacing: 0; color: var(--ink-soft); font-size: 12px; }
+
+  .panel > h2 .panel-owner {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  .panel > h2 .panel-note {
+    margin-left: auto;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--faint);
+    text-align: right;
+  }
+
+  .panel-body {
+    padding: 10px 12px 12px;
+    overflow: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .source-code { display: flex; flex-direction: column; }
+
+  .code-line {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    line-height: 1.3;
+    padding: 0 6px 1px 4px;
+    border-left: 3px solid transparent;
+    border-radius: 4px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    white-space: pre;
+  }
+
+  .code-line .num { color: var(--faint); min-width: 2ch; text-align: right; font-size: 12px; }
+  .code-line .text { flex: 1; }
+
+  .code-line.current {
+    background: var(--running-soft);
+    border-left-color: var(--running);
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .processes { display: grid; gap: 10px; height: 100%; align-items: stretch; }
+  .processes.two { grid-template-columns: 1fr 1fr; }
+
+  .process { display: flex; flex-direction: column; min-height: 0; transition: opacity var(--fast) ease-out; }
+  .process.dim { opacity: 0.62; }
+
+  .process-head { display: flex; align-items: baseline; gap: 7px; flex: 0 0 auto; margin-bottom: 6px; }
+  .process-head .name { font-size: 13px; font-weight: 700; }
+  .process-head .pid { font-size: 11.5px; color: var(--muted); }
+
+  .active-chip {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--running);
+    background: var(--running-soft);
+    border: 1px solid var(--running);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+
+  .map {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-right: 16px;
+  }
+
+  .map-arrows { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+
+  .map-region {
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 2px 6px 2px;
+    background: var(--region-fill);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .map-region.text, .map-region.data { background: var(--region-fill-alt); }
+  .map-region.text, .map-region.data { flex: 0 0 auto; }
+  .map-region.stack { flex: 1 1 auto; min-height: 68px; overflow: auto; padding-bottom: 2px; }
+  .map-region.heap { flex: 0 0 auto; min-height: 30px; justify-content: flex-end; }
+
+  .region-head { display: flex; align-items: baseline; gap: 7px; flex: 0 0 auto; line-height: 1.3; }
+
+  .region-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 1px dotted var(--line-strong);
+  }
+
+  .region-name:hover { border-bottom-style: solid; }
+  .region-gloss { font-size: 10.5px; color: var(--muted); }
+  .region-grow { font-size: 10.5px; color: var(--faint); margin-left: auto; white-space: nowrap; }
+  .region-head { flex-wrap: wrap; }
+  .region-head .region-empty { margin: 0 0 0 auto; }
+  .region-head .row { margin-left: auto; gap: 7px; padding: 0; }
+
+  .frames { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; }
+  .blocks { display: flex; flex-direction: column-reverse; gap: 3px; margin-top: 3px; }
+
+  .frame, .block {
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--card);
+    padding: 3px 8px;
+  }
+
+  .frame { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .frame.top { border-left: 3px solid var(--running); }
+
+  .thread-stacks { display: grid; gap: 3px; margin-top: 2px; align-items: start; }
+  .thread-stack .frames { gap: 1px; margin-top: 1px; }
+
+  .thread-stack {
+    border: 1.5px solid var(--thread);
+    border-radius: 7px;
+    background: var(--thread-soft);
+    padding: 1px 4px 2px;
+    min-width: 0;
+  }
+
+  .thread-stack.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+  .thread-name { display: block; font-size: 11px; font-weight: 800; color: var(--thread); letter-spacing: 0.03em; }
+  .frame.thread { border-color: var(--thread); background: var(--card); }
+
+  .line-threads { position: absolute; right: 5px; top: 1px; display: flex; gap: 3px; }
+
+  .thread-chip {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--thread);
+    background: var(--thread-soft);
+    border: 1px solid var(--thread);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+
+  .thread-chip.current { background: var(--thread); color: #fff; }
+  .code-line.marked { background: var(--thread-soft); border-left-color: var(--thread); }
+
+  .tcb-card {
+    border: 1.5px solid var(--thread);
+    border-radius: 9px;
+    background: var(--thread-soft);
+    padding: 4px 8px 5px;
+  }
+
+  .tcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--thread); margin-bottom: 2px; }
+  .tcb-card.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+  .frame-name { font-size: 11.5px; font-weight: 700; flex: 0 0 auto; }
+  .frame-name .mono { font-size: 12px; }
+  .frame-empty { font-size: 10.5px; color: var(--faint); }
+
+  .vars { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .var {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 7px;
+    font-size: 11.5px;
+    background: var(--region-fill-alt);
+  }
+
+  .var .vname { color: var(--muted); }
+  .var .vval { font-weight: 700; }
+  .var.points .vval { color: var(--pointer); }
+  .var.points::after { content: "\2192"; color: var(--pointer); font-weight: 700; }
+
+  .block { display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; }
+  .block .addr { color: var(--muted); }
+  .block .size { font-weight: 700; }
+  .block .held { color: var(--ink); }
+  .block .block-note { margin-left: auto; color: var(--muted); font-size: 10.5px; text-align: right; }
+  .block.hole { border-style: dashed; background: var(--region-fill-alt); color: var(--muted); }
+  .block.lost { border-color: var(--line-strong); background: var(--region-fill-alt); }
+
+  .free-band {
+    flex: 0 0 auto;
+    border: 1px dashed var(--line-strong);
+    border-radius: 8px;
+    padding: 1px 6px 2px;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--muted);
+  }
+
+  .free-band .region-name { color: var(--muted); border: 0; }
+
+  .region-empty { font-size: 11px; color: var(--faint); margin-top: 3px; }
+
+  .region-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+
+  .row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+    padding: 0 4px;
+    border-radius: 4px;
+  }
+
+  .row .rname { color: var(--muted); }
+  .row .rval { font-weight: 700; margin-left: auto; }
+
+  .changed { animation: flash var(--fast) ease-out; }
+  .frame.changed, .block.changed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .var.changed, .row.changed { background: var(--accent-soft); border-color: var(--accent); }
+  .var.changed .vname, .row.changed .rname { color: var(--accent); }
+  .var.changed .vval, .row.changed .rval { color: var(--accent); }
+
+  .empty-state { font-size: 13px; color: var(--muted); margin: 0; }
+
+  .panel.states .panel-body { display: flex; flex-direction: column; gap: 7px; }
+
+  .states-diagram { flex: 1 1 auto; min-height: 92px; width: 100%; }
+
+  .state-node text { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
+  .state-node .holders { font-size: 10px; font-weight: 700; }
+  .state-edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
+  .state-edge.active { stroke: var(--accent); stroke-width: 2.6; }
+  .state-edge.strong { stroke-width: 3.2; }
+  .state-edge.faded, .state-arrow.faded, .edge-label.faded { opacity: 0.16; }
+  .state-arrow { fill: var(--line-strong); }
+  .state-arrow.active { fill: var(--accent); }
+
+  .edge-label {
+    font-size: 9.5px;
+    fill: var(--muted);
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 3.2px;
+    stroke-linejoin: round;
+  }
+
+  .edge-label.active { fill: var(--accent); font-weight: 700; }
+  .edge-leader { stroke: var(--line-strong); stroke-width: 0.7; opacity: 0.75; }
+  .edge-leader.faded { opacity: 0.14; }
+
+  .state-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; flex: 0 0 auto; }
+  .state-legend .item { display: inline-flex; align-items: baseline; gap: 4px; font-size: 10.5px; color: var(--muted); }
+  .state-legend .dot { width: 8px; height: 8px; border-radius: 2px; border: 1.5px solid; align-self: center; }
+  .state-legend .name { font-weight: 700; color: var(--ink-soft); font-size: 10px; letter-spacing: 0.03em; }
+
+  .cpu-owner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 2px 5px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .cpu-owner .label { font-size: 11px; color: var(--muted); font-weight: 650; }
+  .cpu-owner .value { font-size: 15px; font-weight: 800; }
+  .cpu-owner.changed .label, .cpu-owner.changed .value { color: var(--accent); }
+
+  .ctx-caption { display: block; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-top: 7px; }
+  .ctx-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; }
+
+  .ctx-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .ctx-row .name { color: var(--muted); font-size: 11px; font-weight: 650; }
+  .ctx-row .val { font-weight: 700; }
+  .ctx-row.changed { background: var(--accent-soft); }
+  .ctx-row.changed .name, .ctx-row.changed .val { color: var(--accent); }
+
+  .cpu-empty { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+
+  .pcb-state { display: inline-block; padding: 0 7px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1.5px solid; }
+
+  .pcb-context {
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 1px 5px 2px;
+    margin-top: 2px;
+  }
+
+  .pcb-context.empty { border-style: dashed; }
+  .pcb-context-empty { font-size: 10.5px; color: var(--muted); margin: 0; }
+
+  .panel.occupancy .panel-body { display: flex; flex-direction: column; gap: 10px; }
+
+  .occ-block { border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 7px 6px; background: var(--region-fill); }
+  .occ-block.swap, .occ-block.pending { border-style: dashed; background: var(--region-fill-alt); }
+
+  .occ-head { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+  .occ-name { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .occ-usage { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 650; }
+  .occ-empty { margin-left: auto; font-size: 11px; color: var(--faint); }
+
+  .occ-bar { display: flex; gap: 3px; margin-top: 4px; height: 40px; }
+
+  .occ-cell {
+    min-width: 0;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 5px;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .occ-cell .who { font-size: 12.5px; font-weight: 800; }
+  .occ-cell .units { font-size: 10px; color: var(--muted); }
+  .occ-cell.free { border-style: dashed; background: transparent; }
+  .occ-cell.free .who { font-size: 11px; font-weight: 650; color: var(--muted); }
+  .occ-cell.spacer { border: 0; background: transparent; }
+  .occ-cell.changed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+  .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; }
+
+  .tl-lanes { display: flex; flex-direction: column; gap: 3px; }
+  .tl-lane { display: flex; align-items: stretch; gap: 8px; }
+  .tl-name { flex: 0 0 36px; text-align: right; font-size: 10.5px; color: var(--muted); font-weight: 700; align-self: center; }
+  .tl-track { flex: 1 1 auto; display: flex; gap: 2px; min-width: 0; height: 20px; }
+
+  .tl-seg {
+    min-width: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 0 3px;
+  }
+
+  .tl-seg.none { border-style: dashed; border-color: var(--line); background: transparent; }
+  .tl-seg.busy { border-color: var(--running); background: var(--running-soft); color: var(--running); }
+  .tl-seg.overhead { border-color: var(--alert); background: var(--alert-soft); color: var(--alert); }
+
+  .tl-seg.idle {
+    border-color: var(--alert);
+    color: #93291f;
+    background: repeating-linear-gradient(135deg, var(--alert-soft) 0 5px, #f6d5d1 5px 10px);
+  }
+
+  .tl-seg.fresh { box-shadow: 0 0 0 2px var(--accent); }
+
+  .tl-legend { display: inline-flex; flex-wrap: wrap; gap: 2px 12px; }
+  .tl-legend .item { display: inline-flex; align-items: center; gap: 4px; }
+  .tl-legend .swatch { width: 12px; height: 9px; border-radius: 2px; border: 1px solid; }
+  .tl-legend .swatch.busy { border-color: var(--running); background: var(--running-soft); }
+  .tl-legend .swatch.overhead { border-color: var(--alert); background: var(--alert-soft); }
+  .tl-legend .swatch.idle { border-color: var(--alert); background: repeating-linear-gradient(135deg, var(--alert-soft) 0 4px, #f6d5d1 4px 8px); }
+
+  .pcb-card {
+    border: 1.5px solid var(--line-strong);
+    border-radius: 9px;
+    padding: 6px 8px 7px;
+  }
+
+  .pcb-cards.side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: start; }
+  .pcb-cards.side .pcb-card + .pcb-card { margin-top: 0; }
+  .pcb-card + .pcb-card { margin-top: 8px; }
+  .pcb-card.dim { opacity: 0.62; }
+  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 3px; }
+
+  .pcb-field {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1px 8px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .pcb-field .name { color: var(--muted); font-size: 11px; font-weight: 650; }
+  .pcb-field .val { font-weight: 700; }
+  .pcb-field.changed { background: var(--accent-soft); }
+  .pcb-field.changed .name, .pcb-field.changed .val { color: var(--accent); }
+
+  footer { flex: 0 0 auto; display: block; min-height: 0; }
+
+  .narration-panel { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+
+  .narration-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 12px 7px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .narration-head .title { font-weight: 660; font-size: 14.5px; }
+  .narration-head .subtitle { font-size: 13px; color: var(--muted); flex: 1; min-width: 160px; }
+
+  .granularity {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--page);
+    border-radius: 5px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  .narration-body {
+    padding: 9px 12px 4px;
+    flex: 1 1 auto;
+    min-height: 113px;
+    overflow-y: auto;
+  }
+
+  .narration-body.with-extras {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr);
+    gap: 6px 16px;
+    align-content: start;
+  }
+
+  .narration-extras { min-width: 0; min-height: 0; overflow-y: auto; }
+  .narration-main { min-width: 0; }
+
+  .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
+  .narration-note { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
+
+  .takeaway {
+    padding: 7px 11px;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    animation: flash var(--fast) ease-out;
+  }
+
+  .takeaway .tag {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .takeaway .line { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+  .compare { margin: 7px 0 0; overflow-x: auto; }
+  .compare.full { grid-column: 1 / -1; margin: 0; }
+  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.22; }
+  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 2px 0; }
+  .compare th.head-region { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; font-size: 12px; color: var(--ink); letter-spacing: 0; }
+  .compare td { padding: 0 16px 0 0; vertical-align: top; }
+  .compare td.label { color: var(--muted); }
+
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 4px 12px 0; }
+
+  .progress-track { flex: 1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--running);
+    border-radius: 2px;
+    transition: transform var(--fast) ease-out;
+    transform-origin: left center;
+  }
+
+  .progress { font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 12px 8px; }
+
+  .controls .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
+
+  .controls .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
+  .controls .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
+  .controls .small { padding: 6px 11px; font-size: 13px; }
+
+  .tip {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    border-bottom: 1px dotted var(--running);
+    cursor: help;
+    border-radius: 0;
+  }
+
+  .tip:hover { border-bottom-style: solid; }
+
+  #tooltip {
+    position: fixed;
+    z-index: 20;
+    max-width: 330px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.42;
+    box-shadow: 0 6px 20px rgba(16, 21, 29, 0.3);
+    display: none;
+  }
+
+  #tooltip.open { display: block; animation: flash var(--fast) ease-out; }
+  #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  @keyframes flash {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 1000px) {
+    body { height: auto; overflow: auto; padding-bottom: calc(122px + env(safe-area-inset-bottom)); }
+    main { grid-template-columns: 1fr !important; grid-template-rows: none !important; }
+    .panel-body { overflow: visible; }
+    .map-region.stack { min-height: 120px; }
+    .narration-body { overflow: visible; }
+    .narration-body.with-extras { grid-template-columns: 1fr; }
+    .narration-head { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .processes.two { grid-template-columns: 1fr; }
+    .pcb-cards.side { grid-template-columns: 1fr; }
+    .decider-change { white-space: normal; overflow: visible; text-overflow: clip; }
+    .pcb-cards.side .pcb-card + .pcb-card { margin-top: 8px; }
+
+    .controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      background: var(--card);
+      border-top: 1px solid var(--line-strong);
+      box-shadow: 0 -2px 12px rgba(16, 21, 29, 0.08);
+      z-index: 10;
+    }
+
+    .controls .big, .controls .small { width: 100%; }
+    #playPause { display: none; }
+    #prevStep { order: 1; }
+    #nextStep { order: 2; }
+    #firstStep { order: 3; }
+    #lastStep { order: 4; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Procesos e hilos</h1>
+  <div class="head-row">
+    <nav class="examples" id="exampleList" aria-label="Ejemplos"></nav>
+  </div>
+  <div class="head-row" id="filterRow" hidden>
+    <span class="toggle-label" id="filterLabel"></span>
+    <div class="filters" id="filterBar" role="group" aria-labelledby="filterLabel"></div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  <section class="panel narration-panel">
+    <div class="narration-head">
+      <span class="title" id="exampleTitle"></span>
+      <span class="subtitle" id="exampleSubtitle"></span>
+      <span class="granularity" id="granularityNote"></span>
+    </div>
+    <div class="narration-body" id="narrationPanel" aria-live="polite"></div>
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="controls">
+      <button type="button" class="small" id="firstStep"></button>
+      <button type="button" class="big" id="prevStep"></button>
+      <button type="button" class="big primary" id="nextStep"></button>
+      <button type="button" class="small" id="lastStep"></button>
+      <button type="button" class="small" id="playPause"></button>
+    </div>
+  </section>
+</footer>
+
+<div id="tooltip" role="tooltip"></div>
+
+<script id="data">
+const UI_TEXT = {
+  progress: "paso {current} de {total}",
+  panels: {
+    source: "Código fuente",
+    memory: "Memoria del proceso",
+    pcb: "PCB",
+    states: "Estados",
+    cpu: "CPU",
+    timeline: "Línea de tiempo",
+    occupancy: "Ocupación de memoria",
+    deciders: "Quién decidió cada transición",
+    counters: "Grados"
+  },
+  firstStep: "Primero",
+  prevStep: "Anterior",
+  nextStep: "Siguiente",
+  lastStep: "Último",
+  play: "Reproducir",
+  pause: "Pausar",
+  none: "—",
+  takeawayTag: "Para llevarse",
+  activeChip: "activo en este paso",
+  pidLabel: "PID {pid}",
+  processInHeading: "{id} · PID {pid}",
+  pcbTitle: "PCB de {name}",
+  noProcess: "Todavía no hay proceso: no hay memoria reservada ni PCB.",
+  textNote: "no cambia",
+  dataEmpty: "El programa no tiene variables globales.",
+  heapEmpty: "Vacío: el programa no pidió memoria.",
+  stackEmpty: "Vacío: no hay ninguna función en ejecución.",
+  frameNoVars: "sin variables locales",
+  blockSize: "{size} bytes",
+  blockFree: "libre",
+  blockLost: "no queda ningún puntero con su dirección",
+  addressNote: "Las direcciones y los tamaños son de ejemplo.",
+  pcbLabels: {
+    pid: "PID",
+    program: "programa",
+    state: "estado",
+    line: "línea actual",
+    frames: "llamadas en curso",
+    heapBlocks: "pedidos sin liberar",
+    context: "contexto",
+    image: "imagen",
+    threads: "hilos"
+  },
+  pcbContextEmpty: "vacío: está ejecutando, su contexto está en la CPU",
+  locations: { pending: "todavía no cargado", memory: "en memoria", swap: "en SWAP" },
+  occupancy: {
+    memoryLabel: "memoria",
+    memoryGloss: "lo que hay cargado en este momento",
+    swapLabel: "SWAP",
+    swapGloss: "un lugar del disco donde se estaciona un proceso suspendido entero",
+    free: "libre",
+    swapEmpty: "Vacío: por ahora no hay ningún proceso suspendido.",
+    pendingLabel: "esperando entrar",
+    pendingGloss: "admitidos todavía no: no hay lugar",
+    unitsUsed: "{used} de {total} ocupadas"
+  },
+  counters: [
+    { key: "multiprogramming", label: "grado de multiprogramación", gloss: "procesos en memoria" },
+    { key: "multiprocessing", label: "grado de multiprocesamiento", gloss: "procesos ejecutando a la vez" }
+  ],
+  deciders: {
+    stepLabel: "paso {n}",
+    empty: "Todavía no hubo ninguna transición.",
+    filterLabel: "Ver las que decide",
+    filterAll: "Todas"
+  },
+  tcbTitle: "TCB de {id}",
+  tcbLabels: { state: "estado", line: "línea actual" },
+  threadStacksNote: "un stack por hilo",
+  cpu: {
+    ownerLabel: "ejecutando",
+    contextLabel: "contexto",
+    empty: "Vacía: en este momento no hay ningún contexto cargado.",
+    note: "Valores de ejemplo."
+  },
+  timeline: {
+    cpuLane: "CPU",
+    empty: "Todavía no pasó tiempo.",
+    kinds: {
+      busy: "la CPU ejecuta {label}",
+      overhead: "cambio de contexto: no ejecuta ningún proceso",
+      idle: "la CPU no tiene nada que ejecutar"
+    },
+    shortKinds: {
+      overhead: "cambio de contexto",
+      idle: "sin nada que ejecutar"
+    },
+    legend: [
+      { kind: "busy", text: "un proceso ejecutando" },
+      { kind: "overhead", text: "cambio de contexto" },
+      { kind: "idle", text: "CPU sin nada que ejecutar" }
+    ]
+  }
+};
+
+const STATES = {
+  NEW: { label: "NEW", gloss: "nuevo", color: "#c2246b", soft: "#fdeaf3", x: 52, y: 46 },
+  READY: { label: "READY", gloss: "listo", color: "#1a7a3f", soft: "#e6f4ec", x: 188, y: 46 },
+  RUNNING: { label: "RUNNING", gloss: "en ejecución", color: "#1d4ed8", soft: "#e8eefc", x: 330, y: 46 },
+  BLOCKED: { label: "BLOCKED", gloss: "en espera", color: "#c0392f", soft: "#fbeae8", x: 188, y: 158 },
+  TERMINATED: { label: "TERMINATED", gloss: "terminado", color: "#5b6472", soft: "#eef0f4", x: 350, y: 158 },
+  "READY SUSPENDED": {
+    label: "READY SUSPENDED", gloss: "listo, fuera de memoria",
+    color: "#a06000", soft: "#fdf1d8", x: 80, y: 268
+  },
+  "BLOCKED SUSPENDED": {
+    label: "BLOCKED SUSPENDED", gloss: "en espera, fuera de memoria",
+    color: "#b5510a", soft: "#fdeadb", x: 300, y: 268
+  }
+};
+
+const STATE_DIAGRAM = { viewBox: "0 0 460 200", nodeHeight: 34 };
+
+const DECIDERS = {
+  long: { label: "planificador de largo plazo", short: "largo plazo", gloss: "cuántos procesos hay en el sistema", color: "#1e3a8a" },
+  medium: { label: "planificador de mediano plazo", short: "mediano plazo", gloss: "qué procesos están en memoria", color: "#0f766e" },
+  short: { label: "planificador de corto plazo", short: "corto plazo", gloss: "a quién le toca la CPU", color: "#a21caf" },
+  none: { label: "nadie: es un evento", short: "nadie", gloss: "pasó algo y el estado cambió solo", color: "#6b7480" }
+};
+
+const STATE_EDGES = [
+  { from: "NEW", to: "READY", label: "admitido", bend: 0, labelOffset: -14, decider: "long" },
+  { from: "READY", to: "RUNNING", label: "lo elige el SO", bend: -28, labelOffset: -14, decider: "short" },
+  { from: "RUNNING", to: "READY", label: "fin de quantum", bend: -28, labelOffset: -24, at: 0.85, decider: "short" },
+  { from: "RUNNING", to: "BLOCKED", label: "pide I/O", bend: 0, labelOffset: -22, at: 0.6, decider: "none" },
+  { from: "BLOCKED", to: "READY", label: "termina la I/O", bend: 0, labelOffset: 0, at: 0.44, decider: "none" },
+  { from: "RUNNING", to: "TERMINATED", label: "termina", bend: 0, labelOffset: -32, decider: "long" },
+  { from: "READY", to: "READY SUSPENDED", label: "suspendido", bend: 50, labelOffset: 55, at: 0.36, decider: "medium" },
+  { from: "READY SUSPENDED", to: "READY", label: "reanudado", bend: -92, labelOffset: -32, at: 0.36, decider: "medium" },
+  { from: "BLOCKED", to: "BLOCKED SUSPENDED", label: "suspendido", bend: 0, labelOffset: -24, decider: "medium" },
+  { from: "BLOCKED SUSPENDED", to: "BLOCKED", label: "reanudado", bend: -26, labelOffset: -40, decider: "medium" },
+  { from: "BLOCKED SUSPENDED", to: "READY SUSPENDED", label: "termina la I/O", bend: -36, labelOffset: -36, decider: "none" }
+];
+
+const PANEL_TIPS = {
+  source: {
+    title: "Código fuente",
+    body: "El programa que este proceso está ejecutando, tal como está escrito en el archivo. La línea resaltada es la que se está ejecutando en este paso."
+  },
+  memory: {
+    title: "Memoria del proceso",
+    body: "Todo lo que el proceso tiene en memoria, dividido en cuatro regiones. Se lee de abajo hacia arriba: text, data, heap y stack."
+  },
+  pcb: {
+    title: "PCB",
+    body: "La ficha que el sistema operativo tiene de cada proceso. No está en la memoria del proceso: está en la del sistema operativo."
+  },
+  states: {
+    title: "Estados",
+    body: "En qué situación está cada proceso, y por qué flecha pasó de una a otra. La flecha en ámbar es la del paso actual."
+  },
+  cpu: {
+    title: "CPU",
+    body: "El contexto que la CPU tiene cargado en este momento: de quién es, y qué valores tiene. Hay una sola CPU, así que hay un solo contexto cargado."
+  },
+  timeline: {
+    title: "Línea de tiempo",
+    body: "El tiempo que pasó, de izquierda a derecha. El carril de arriba es la CPU; abajo, uno por proceso. En rojo, el tiempo en el que no ejecutó ningún proceso."
+  },
+  occupancy: {
+    title: "Ocupación de memoria",
+    body: "Cuánto lugar hay en memoria y quién lo está ocupando. Abajo, los procesos que están afuera: en el SWAP los suspendidos, y aparte los que todavía no entraron."
+  },
+  deciders: {
+    title: "Quién decidió cada transición",
+    body: "Todas las transiciones de la traza, en orden. La resaltada es la del paso actual; las de más abajo todavía no pasaron."
+  },
+  counters: {
+    title: "Grados",
+    body: "Cuántos procesos hay en memoria, y cuántos ejecutan a la vez. El segundo nunca pasa de 1, porque hay una sola CPU."
+  }
+};
+
+const REGIONS = {
+  text: { label: "text", gloss: "código del programa", tip: "text" },
+  data: { label: "data", gloss: "variables globales", tip: "data" },
+  heap: { label: "heap", gloss: "memoria dinámica", tip: "heap", grow: "crece hacia arriba" },
+  stack: { label: "stack", gloss: "variables locales", tip: "stack", grow: "crece hacia abajo" },
+  free: { label: "libre", gloss: "espacio sin usar entre el heap y el stack" }
+};
+
+const TOOLTIPS = {
+  text: {
+    title: "text",
+    body: "La región donde queda el código del programa cuando el proceso arranca. No cambia mientras el proceso corre."
+  },
+  data: {
+    title: "data",
+    body: "Las variables globales del programa. Existen desde que el proceso arranca hasta que termina, y hay una sola de cada una por proceso."
+  },
+  heap: {
+    title: "heap",
+    body: "La memoria que el programa pide mientras corre, con malloc, y devuelve con free. La maneja el programador."
+  },
+  stack: {
+    title: "stack",
+    body: "Acá el stack le da lugar a cada llamada que está en curso: ahí viven sus variables locales. Se vacía solo, sin que nadie lo limpie: el lugar de una llamada se libera cuando esa llamada termina."
+  },
+  pcb: {
+    title: "PCB",
+    body: "La estructura donde el sistema operativo anota todo lo que sabe de un proceso. Hay una por proceso, y no vive en la memoria del proceso sino en la del sistema operativo."
+  },
+  pid: {
+    title: "PID",
+    body: "El número con el que el sistema operativo identifica a un proceso. Dos procesos del mismo programa tienen PID distintos."
+  },
+  malloc: {
+    title: "malloc",
+    body: "Pide una cantidad de bytes en el heap y devuelve la dirección donde empiezan."
+  },
+  free: {
+    title: "free",
+    body: "Devuelve al heap una memoria que se había pedido con malloc. El programa lo tiene que llamar: nadie lo hace por él."
+  },
+  puntero: {
+    title: "Puntero",
+    body: "Una variable que guarda una dirección de memoria. Ocupa lugar donde esté declarada; lo que apunta está en otro lado."
+  },
+  estado: {
+    title: "Estado",
+    body: "En qué situación está un proceso en este momento: si está ejecutando, si podría ejecutar y espera su turno, o si está esperando que pase algo. El sistema operativo lo anota en el PCB."
+  },
+  contexto: {
+    title: "Contexto",
+    body: "Todo lo que un proceso tiene guardado mientras ejecuta: el IP, que dice por qué instrucción sigue, y los registros. Si lo sacan de la CPU y después vuelve, necesita encontrar todo eso igual que como lo dejó."
+  },
+  cambioDeContexto: {
+    title: "Cambio de contexto",
+    body: "Sacar un proceso de la CPU y poner otro: guardar el contexto del que sale en su PCB, elegir al que entra, y cargar el contexto del que entra desde su PCB. Mientras eso pasa, no ejecuta ningún proceso."
+  },
+  quantum: {
+    title: "Fin de quantum",
+    body: "Se terminó el tiempo que le tocaba en la CPU."
+  }
+};
+
+const PROGRAMS = {
+  contador: {
+    file: "contador.c",
+    lines: [
+      "int contador = 0;",
+      "",
+      "int main(void) {",
+      "    contador = contador + 1;",
+      "    contador = contador + 1;",
+      "    return 0;",
+      "}"
+    ]
+  },
+  recursion: {
+    file: "recursion.c",
+    lines: [
+      "int main(int argc, char *argv[]) {",
+      "    hacer_algo(3);",
+      "}",
+      "",
+      "void hacer_algo(int tope) {",
+      "    if (tope > 0) {",
+      "        int nuevo_tope = tope - 1;",
+      "        hacer_algo(nuevo_tope);",
+      "    }",
+      "}"
+    ]
+  },
+  hilos: {
+    file: "hilos.c",
+    lines: [
+      "int total = 3;",
+      "",
+      "void contar(int desde) {",
+      "    int propio = desde;",
+      "    propio = propio + total;",
+      "    leer_del_disco();",
+      "}",
+      "",
+      "int main(void) {",
+      "    crear_hilo(contar, 20);",
+      "    crear_hilo(contar, 30);",
+      "    contar(10);",
+      "}"
+    ]
+  },
+  espera: {
+    file: "espera.c",
+    lines: [
+      "int main(void) {",
+      "    int total = 0;",
+      "    total = total + 1;",
+      "    int dato = leer_del_disco();",
+      "    total = total + dato;",
+      "    return 0;",
+      "}"
+    ]
+  },
+  pedidos: {
+    file: "pedidos.c",
+    lines: [
+      "void usar_y_liberar(void) {",
+      "    int *datos = malloc(40);",
+      "    datos[0] = 7;",
+      "    free(datos);",
+      "}",
+      "",
+      "void olvidarse(void) {",
+      "    int *perdido = malloc(16);",
+      "    perdido[0] = 5;",
+      "}",
+      "",
+      "int main(void) {",
+      "    usar_y_liberar();",
+      "    olvidarse();",
+      "}"
+    ]
+  }
+};
+
+const EXAMPLES = [
+  {
+    number: 1,
+    title: "Un programa, dos procesos",
+    short: "Programa y proceso",
+    adds: "Agrega: la diferencia entre un programa y un proceso.",
+    subtitle: "Un programa es un archivo. Un proceso es una ejecución de ese archivo.",
+    program: "contador",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "0.86fr 1.7fr 0.76fr", panels: ["source", "memory", "pcb"] },
+    pcbFields: ["pid", "program", "line", "frames", "heapBlocks"],
+    closing: "El mismo programa, dos procesos distintos.",
+    steps: [
+      {
+        narration: "Esto es un programa: un archivo con código, guardado en el disco. No está corriendo. No tiene memoria reservada, y nadie lleva la cuenta de en qué línea va, porque no va en ninguna.",
+        note: "Los otros dos paneles están vacíos justamente por eso: todavía no hay de qué proceso hablar."
+      },
+      {
+        line: 3,
+        focus: "P1",
+        narration: "El sistema operativo carga el programa y crea un *proceso*. Le asigna un [[pid:PID]] que lo identifica, el 41, y memoria propia dividida en cuatro regiones: *text* con el código, *data* con la variable global, el *heap* todavía vacío y el *stack* con lo que main necesita para correr.",
+        note: "Además le arma un [[pcb:PCB]]: la ficha donde el sistema operativo anota lo que sabe de este proceso. El archivo sigue en el disco, intacto.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [{ name: "contador", value: "0" }] },
+          { op: "frame.push", name: "main" }
+        ]
+      },
+      {
+        line: 3,
+        focus: "P2",
+        narration: "Se carga el mismo archivo una segunda vez. Aparece otro proceso, P2, con otro PID, su propia memoria y su propio PCB. Un programa se puede ejecutar todas las veces que se quiera, y cada ejecución es un proceso distinto.",
+        note: "Los dos *text* son idénticos: es el mismo código. Todo el resto es de cada uno. Hay una sola CPU, así que no corren a la vez: los vamos a mirar de a uno.",
+        ops: [
+          { op: "process.add", id: "P2", pid: 42, data: [{ name: "contador", value: "0" }] },
+          { op: "frame.push", name: "main" }
+        ]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        narration: "Miramos primero a P1. Ejecuta su línea 4 y suma 1 a contador: en su *data*, contador pasa de 0 a 1.",
+        ops: [{ op: "data.set", name: "contador", value: "1" }]
+      },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "P1 ejecuta la línea 5. Su contador ya vale 2.",
+        note: "Mientras esto pasaba, el contador de P2 no se movió: sigue en 0. No es el mismo contador; es otra variable, en otra memoria.",
+        ops: [{ op: "data.set", name: "contador", value: "2" }]
+      },
+      {
+        line: 4,
+        focus: "P2",
+        narration: "Ahora miramos a P2, que todavía no había ejecutado nada. Arranca por su línea 4 y su contador pasa de 0 a 1. El de P1 sigue en 2.",
+        note: "Dos procesos del mismo programa avanzan cada uno por su cuenta, con su propia copia de las variables y su propia marca de en qué línea van.",
+        ops: [{ op: "data.set", name: "contador", value: "1" }]
+      }
+    ],
+    expectedFinalState: {
+      processes: [
+        { id: "P1", frames: 1, heapBlocks: 0, data: { contador: "2" } },
+        { id: "P2", frames: 1, heapBlocks: 0, data: { contador: "1" } }
+      ]
+    }
+  },
+
+  {
+    number: 2,
+    title: "El stack",
+    short: "Stack",
+    adds: "Agrega: cómo el stack le da lugar a cada llamada.",
+    subtitle: "Cada llamada tiene su lugar en el stack, con sus propias variables locales.",
+    program: "recursion",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "1fr 1.02fr 0.78fr", panels: ["source", "memory", "pcb"] },
+    pcbFields: ["pid", "program", "line", "frames", "heapBlocks"],
+    closing: "Los 4 tope son 4 variables distintas.",
+    steps: [
+      {
+        line: 1,
+        focus: "P1",
+        narration: "Arranca main. En el *stack* aparece su lugar: ahí van a vivir sus variables locales mientras la llamada esté en curso.",
+        note: "main no declara ninguna variable local, así que su lugar en el stack queda vacío.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [] },
+          { op: "frame.push", name: "main" }
+        ]
+      },
+      { line: 2, focus: "P1", narration: "main llama a hacer_algo con el valor 3." },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "Entrar a una función le da lugar en el stack a esa llamada. hacer_algo(3) aparece con su propia copia de tope, que vale 3.",
+        ops: [{ op: "frame.push", name: "hacer_algo(3)", vars: [{ name: "tope", value: "3" }] }]
+      },
+      { line: 6, focus: "P1", narration: "tope vale 3, así que la condición se cumple: entra al if." },
+      {
+        line: 7,
+        focus: "P1",
+        narration: "Se declara nuevo_tope, que vale tope - 1 = 2. Es una variable local, así que vive en el lugar de esta llamada y en ninguno más.",
+        ops: [{ op: "var.set", name: "nuevo_tope", value: "2" }]
+      },
+      { line: 8, focus: "P1", narration: "hacer_algo se llama a sí misma, esta vez con 2." },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "Otra llamada, otro lugar en el stack. hacer_algo(2) trae su propio tope, que vale 2, y el tope de la llamada anterior sigue intacto en el suyo.",
+        note: "La misma función, dos llamadas en ejecución al mismo tiempo, dos copias de tope.",
+        ops: [{ op: "frame.push", name: "hacer_algo(2)", vars: [{ name: "tope", value: "2" }] }]
+      },
+      { line: 6, focus: "P1", narration: "2 es mayor que 0: entra al if." },
+      {
+        line: 7,
+        focus: "P1",
+        narration: "El nuevo_tope de esta llamada vale 1.",
+        ops: [{ op: "var.set", name: "nuevo_tope", value: "1" }]
+      },
+      { line: 8, focus: "P1", narration: "Otra llamada, ahora con 1." },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "hacer_algo(1) entra al stack con su tope en 1.",
+        ops: [{ op: "frame.push", name: "hacer_algo(1)", vars: [{ name: "tope", value: "1" }] }]
+      },
+      { line: 6, focus: "P1", narration: "1 es mayor que 0: entra al if." },
+      {
+        line: 7,
+        focus: "P1",
+        narration: "El nuevo_tope de esta llamada vale 0.",
+        ops: [{ op: "var.set", name: "nuevo_tope", value: "0" }]
+      },
+      { line: 8, focus: "P1", narration: "Última llamada, con 0." },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "hacer_algo(0) entra al stack con su tope en 0.",
+        note: "Cuatro llamadas a la misma función, en curso al mismo tiempo, cada una con su lugar. El espacio reservado para el stack es el mismo de antes: lo que cambió es cuánto está ocupado.",
+        ops: [{ op: "frame.push", name: "hacer_algo(0)", vars: [{ name: "tope", value: "0" }] }]
+      },
+      {
+        line: 6,
+        focus: "P1",
+        narration: "0 no es mayor que 0: la condición no se cumple y el if no se ejecuta.",
+        note: "Por eso esta llamada no tiene nuevo_tope: la línea 7 nunca corrió acá. Las otras tres sí la corrieron y sí lo tienen. Son cuatro variables distintas que se llaman igual: una por llamada."
+      },
+      {
+        line: 10,
+        focus: "P1",
+        narration: "hacer_algo(0) termina. Su lugar en el stack se libera y su tope se va con él.",
+        ops: [{ op: "frame.pop" }]
+      },
+      {
+        line: 10,
+        focus: "P1",
+        narration: "La llamada que la había llamado sigue en la línea 8, no le queda nada por hacer y también termina: se libera su lugar, con su tope y su nuevo_tope adentro.",
+        ops: [{ op: "frame.pop" }]
+      },
+      {
+        line: 10,
+        focus: "P1",
+        narration: "Una llamada menos. El stack se vacía en el orden inverso al que se llenó.",
+        ops: [{ op: "frame.pop" }]
+      },
+      {
+        line: 10,
+        focus: "P1",
+        narration: "Se libera el lugar de la última llamada a hacer_algo. El stack queda como al principio: solo main.",
+        ops: [{ op: "frame.pop" }]
+      },
+      {
+        line: 3,
+        focus: "P1",
+        narration: "main termina y se libera su lugar. El stack del proceso queda vacío.",
+        note: "Ninguna de las variables locales sobrevivió. El stack no guarda nada para después: guarda lo que hace falta mientras una función está en ejecución.",
+        ops: [{ op: "frame.pop" }]
+      }
+    ],
+    expectedFinalState: {
+      processes: [{ id: "P1", frames: 0, heapBlocks: 0, data: {} }],
+      maxFrames: 5
+    }
+  },
+
+  {
+    number: 3,
+    title: "El heap",
+    short: "Heap",
+    adds: "Agrega: la memoria que el programa pide y tiene que devolver.",
+    subtitle: "El puntero, los bytes pedidos, y qué pasa cuando nadie llama a free.",
+    program: "pedidos",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "1fr 1.02fr 0.78fr", panels: ["source", "memory", "pcb"] },
+    pcbFields: ["pid", "program", "line", "frames", "heapBlocks"],
+    addressNote: true,
+    closing: "El puntero vive en el stack. Lo que apunta, en el heap.",
+    compare: {
+      headers: ["", "stack", "heap"],
+      rows: [
+        ["¿quién lo maneja?", "se maneja solo: al entrar y al salir de cada función", "lo maneja el programa, con malloc y free"],
+        ["¿qué guarda?", "las variables locales de cada llamada", "los bytes que el programa pide mientras corre"],
+        ["¿cuándo se libera?", "al terminar la función, siempre", "cuando el programa llama a free; si no lo llama, no se libera"]
+      ]
+    },
+    steps: [
+      {
+        line: 12,
+        focus: "P1",
+        narration: "Arranca main y aparece su lugar en el stack.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [] },
+          { op: "frame.push", name: "main" }
+        ]
+      },
+      { line: 13, focus: "P1", narration: "main llama a usar_y_liberar." },
+      {
+        line: 1,
+        focus: "P1",
+        narration: "La llamada a usar_y_liberar entra al stack.",
+        ops: [{ op: "frame.push", name: "usar_y_liberar" }]
+      },
+      {
+        line: 2,
+        focus: "P1",
+        narration: "[[malloc:malloc]](40) pide 40 bytes. El sistema los reserva en el *heap* y devuelve la dirección donde empiezan: 4000. Ese número se guarda en datos, que es una variable local: vive en el *stack*, con la llamada.",
+        note: "Son dos cosas distintas, en dos lugares distintos: el [[puntero:puntero]] acá, los 40 bytes allá. La flecha es lo único que los une.",
+        ops: [
+          { op: "heap.set", segments: [{ kind: "block", id: "A", address: 4000, size: 40 }] },
+          { op: "var.set", name: "datos", value: "4000", pointsTo: "A" }
+        ]
+      },
+      {
+        line: 3,
+        focus: "P1",
+        narration: "datos[0] = 7 escribe un 7 adentro de esos 40 bytes, en el heap. En el stack no cambia nada: ahí solo está la dirección.",
+        ops: [{ op: "heap.set", segments: [{ kind: "block", id: "A", address: 4000, size: 40, value: "[0] = 7" }] }]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        narration: "[[free:free]](datos) los devuelve. Donde estaban queda un hueco de 40 bytes libres.",
+        note: "El número 4000 sigue guardado en datos, pero ahí ya no hay nada del proceso.",
+        ops: [
+          { op: "heap.set", segments: [{ kind: "hole", address: 4000, size: 40 }] },
+          { op: "var.set", name: "datos", value: "4000", pointsTo: null }
+        ]
+      },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "usar_y_liberar termina: se libera su lugar en el stack y datos desaparece. El heap quedó igual que antes de la llamada.",
+        ops: [{ op: "frame.pop" }]
+      },
+      { line: 14, focus: "P1", narration: "main llama a olvidarse." },
+      {
+        line: 7,
+        focus: "P1",
+        narration: "La llamada a olvidarse entra al stack.",
+        ops: [{ op: "frame.push", name: "olvidarse" }]
+      },
+      {
+        line: 8,
+        focus: "P1",
+        narration: "Este malloc pide 16 bytes. En el hueco de 40 entran, así que van ahí y quedan 24 bytes libres a continuación.",
+        note: "Si hubiera pedido 64 no habrían entrado en el hueco, y habría que buscarles lugar en otra parte del heap.",
+        ops: [
+          {
+            op: "heap.set",
+            segments: [
+              { kind: "block", id: "B", address: 4000, size: 16 },
+              { kind: "hole", address: 4016, size: 24 }
+            ]
+          },
+          { op: "var.set", name: "perdido", value: "4000", pointsTo: "B" }
+        ]
+      },
+      {
+        line: 9,
+        focus: "P1",
+        narration: "Se escribe un 5 adentro de esos 16 bytes.",
+        ops: [
+          {
+            op: "heap.set",
+            segments: [
+              { kind: "block", id: "B", address: 4000, size: 16, value: "[0] = 5" },
+              { kind: "hole", address: 4016, size: 24 }
+            ]
+          }
+        ]
+      },
+      {
+        line: 10,
+        focus: "P1",
+        narration: "olvidarse termina sin llamar a free. Se libera su lugar en el stack y perdido se va con él: los 16 bytes siguen ocupados en el heap y ya no queda ninguna variable con su dirección. Nadie puede llegar a ellos, ni liberarlos.",
+        note: "El stack se limpió solo, como siempre. El heap no: esos 16 bytes quedan ocupados hasta que termine el proceso.",
+        ops: [
+          { op: "frame.pop" },
+          {
+            op: "heap.set",
+            segments: [
+              { kind: "block", id: "B", address: 4000, size: 16, value: "[0] = 5", lost: true },
+              { kind: "hole", address: 4016, size: 24 }
+            ]
+          }
+        ]
+      }
+    ],
+    expectedFinalState: {
+      processes: [{ id: "P1", frames: 1, heapBlocks: 1, data: {} }],
+      maxFrames: 2
+    }
+  },
+
+  {
+    number: 4,
+    title: "El proceso se bloquea",
+    short: "Estados",
+    adds: "Agrega: los estados de un proceso, y quién decide cada cambio.",
+    subtitle: "Pedir una I/O no es una decisión: bloquearse es lo que sigue.",
+    program: "espera",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "0.8fr 1.3fr 0.72fr", panels: ["source", "states", "pcb"], wide: ["timeline"] },
+    pcbFields: ["pid", "program", "state", "line"],
+    states: ["NEW", "READY", "RUNNING", "BLOCKED", "TERMINATED"],
+    transitions: ["NEW>READY", "READY>RUNNING", "RUNNING>BLOCKED", "BLOCKED>READY", "RUNNING>TERMINATED"],
+    closing: "Bloquearse no lo decide nadie: pasa.",
+    steps: [
+      {
+        focus: "P1",
+        narration: "El sistema operativo crea el proceso: le da su PID, su memoria y su PCB, y lo deja en NEW. Todavía no puede ejecutar nada.",
+        note: "La memoria del proceso no cambia en todo este ejemplo, así que el mapa no está en pantalla. Lo que cambia, y es lo nuevo acá, es el [[estado:estado]].",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [] },
+          { op: "frame.push", name: "main" },
+          { op: "state.set", value: "NEW" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Lo admite: pasa a READY. Ya tiene todo lo que necesita para ejecutar, y lo único que le falta es que le den la CPU.",
+        ops: [{ op: "state.set", value: "READY" }]
+      },
+      {
+        line: 1,
+        focus: "P1",
+        narration: "El sistema operativo le da la CPU: pasa a RUNNING y empieza a ejecutar.",
+        note: "Esta transición la decidió alguien. Vale la pena retener la distinción, porque no todas van a ser así.",
+        ops: [{ op: "state.set", value: "RUNNING" }]
+      },
+      {
+        line: 2,
+        focus: "P1",
+        narration: "Ejecuta la línea 2.",
+        ops: [{ op: "time.advance", units: 1, cpu: { kind: "busy", label: "P1" } }]
+      },
+      {
+        line: 3,
+        focus: "P1",
+        narration: "Ejecuta la línea 3. Hasta acá viene haciendo cuentas, sin pedirle nada a nadie.",
+        ops: [{ op: "time.advance", units: 1, cpu: { kind: "busy", label: "P1" } }]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        narration: "Esta línea le pide un dato al disco. El disco tarda, y el proceso no puede seguir sin ese dato.",
+        ops: [{ op: "time.advance", units: 1, cpu: { kind: "busy", label: "P1" } }]
+      },
+      {
+        focus: "P1",
+        narration: "Pasa a BLOCKED. *Nadie decidió esto*: el proceso pidió una I/O, y bloquearse es lo que sigue. No hubo nadie eligiendo, y no había otra opción.",
+        note: "En la línea de tiempo la CPU queda en rojo. No hay ningún otro proceso para poner, así que no ejecuta nada: ese rojo es tiempo perdido, y es el problema que resuelve el ejemplo 5.",
+        ops: [
+          { op: "state.set", value: "BLOCKED" },
+          { op: "time.advance", units: 4, cpu: { kind: "idle" } }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "El disco avisa que terminó. El proceso pasa a READY: ya puede ejecutar de nuevo. Esto tampoco lo decidió nadie, pasó.",
+        note: "READY, no RUNNING. Terminar la I/O lo saca de la espera; no le devuelve la CPU.",
+        ops: [{ op: "state.set", value: "READY" }]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        narration: "El sistema operativo le devuelve la CPU: RUNNING otra vez. Esta transición sí la decidió alguien.",
+        ops: [{ op: "state.set", value: "RUNNING" }]
+      },
+      {
+        line: 5,
+        focus: "P1",
+        narration: "Con el dato ya en la mano, ejecuta la línea 5.",
+        ops: [{ op: "time.advance", units: 2, cpu: { kind: "busy", label: "P1" } }]
+      },
+      {
+        line: 6,
+        focus: "P1",
+        narration: "Ejecuta la última línea.",
+        ops: [{ op: "time.advance", units: 1, cpu: { kind: "busy", label: "P1" } }]
+      },
+      {
+        focus: "P1",
+        narration: "El programa termina y el proceso pasa a TERMINATED. El sistema operativo le saca la memoria y se queda con el PCB hasta cerrar todo.",
+        note: "Algunas transiciones las decide el sistema operativo; otras pasan solas. Cuál es cuál es el ejemplo 7.",
+        ops: [
+          { op: "state.set", value: "TERMINATED" },
+          { op: "frame.pop" }
+        ]
+      }
+    ],
+    expectedFinalState: {
+      processes: [{ id: "P1", frames: 0, heapBlocks: 0, data: {}, state: "TERMINATED" }],
+      timelineUnits: 10
+    }
+  },
+
+  {
+    number: 5,
+    title: "Dos procesos, una CPU",
+    short: "Cambio de contexto",
+    adds: "Agrega: el cambio de contexto, y el PCB como lugar donde se guarda el contexto.",
+    subtitle: "Guardar el contexto de uno, elegir, cargar el del otro. Y lo que cuesta.",
+    stepUnit: "Un paso = un evento",
+    canvas: { columns: "1.34fr 0.5fr 0.94fr", panels: ["states", "cpu", "pcb"], wide: ["timeline"] },
+    pcbFields: ["pid", "state", "context"],
+    pcbLayout: "side",
+    states: ["NEW", "READY", "RUNNING", "BLOCKED", "TERMINATED"],
+    transitions: ["NEW>READY", "READY>RUNNING", "RUNNING>READY", "RUNNING>BLOCKED", "BLOCKED>READY", "RUNNING>TERMINATED"],
+    dimInactive: true,
+    closing: "Mientras se guarda y se carga, no ejecuta nadie.",
+    steps: [
+      {
+        focus: "P1",
+        narration: "Dos procesos, una sola CPU. P1 está en RUNNING: su [[contexto:contexto]] —el IP y los registros— está *en la CPU*, porque es el que está ejecutando. P2 ya ejecutó antes, lo sacaron, y está en READY.",
+        note: "En los dos PCB se ve la diferencia: el casillero de contexto de P1 está vacío, y el de P2 está lleno. El contexto está en un lugar por vez. Acá no mostramos el código: lo que importa no es en qué línea va cada uno, sino quién tiene la CPU.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [] },
+          { op: "frame.push", name: "main" },
+          { op: "state.set", value: "RUNNING" },
+          { op: "process.add", id: "P2", pid: 42, data: [] },
+          { op: "frame.push", process: "P2", name: "main" },
+          { op: "state.set", process: "P2", value: "READY" },
+          { op: "cpu.set", owner: "P1", context: { IP: "104", AX: "7", SP: "900" } },
+          { op: "context.set", process: "P2", context: { IP: "212", AX: "3", SP: "880" } },
+          { op: "time.advance", units: 3, cpu: { kind: "busy", label: "P1" } }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "P1 pide una I/O y se bloquea. La CPU se queda sin nadie ejecutando, y hay un proceso en READY esperando su turno.",
+        ops: [{ op: "state.set", value: "BLOCKED" }]
+      },
+      {
+        focus: "P1",
+        narration: "[[cambioDeContexto:Cambio de contexto]], paso 1 de 3: el sistema operativo copia el contexto que estaba en la CPU al PCB de P1. La CPU queda vacía.",
+        note: "En el recurso anterior, el contexto se apilaba en la pila del sistema. Acá no: va a una estructura que el sistema operativo mantiene para cada proceso, y esa estructura es el [[pcb:PCB]].",
+        ops: [
+          { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
+          { op: "context.save", process: "P1" }
+        ]
+      },
+      {
+        focus: "P2",
+        narration: "Paso 2 de 3: el sistema operativo elige a quién le da la CPU. P2 está en READY, así que va P2.",
+        note: "Cómo lo elige no es tema de este recurso: por ahora, lo elige.",
+        ops: [{ op: "time.advance", units: 1, cpu: { kind: "overhead" } }]
+      },
+      {
+        focus: "P2",
+        narration: "Paso 3 de 3: copia el contexto de P2 desde su PCB a la CPU, y P2 pasa a RUNNING. El casillero de contexto de P2 queda vacío, y el de P1 lleno: se invirtieron.",
+        note: "Los tres pasos juntos son el cambio de contexto. En la línea de tiempo son la banda roja: durante todo ese tiempo no ejecutó ningún proceso.",
+        ops: [
+          { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
+          { op: "context.load", process: "P2" },
+          { op: "state.set", process: "P2", value: "RUNNING" }
+        ]
+      },
+      {
+        focus: "P2",
+        narration: "P2 ejecuta. Sus valores cambian en la CPU y en ningún PCB: mientras un proceso ejecuta, su contexto vive en la CPU.",
+        ops: [
+          { op: "cpu.set", owner: "P2", context: { IP: "216", AX: "5", SP: "880" } },
+          { op: "time.advance", units: 3, cpu: { kind: "busy", label: "P2" } }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Termina la I/O de P1. P1 pasa a READY, no a RUNNING: la CPU la tiene P2 y nadie se la va a sacar por esto.",
+        note: "Su contexto sigue guardado en su PCB, intacto, desde que lo sacaron.",
+        ops: [
+          { op: "state.set", process: "P1", value: "READY" },
+          { op: "time.advance", units: 1, cpu: { kind: "busy", label: "P2" } }
+        ]
+      },
+      {
+        focus: "P2",
+        narration: "A P2 se le termina el tiempo que le tocaba —[[quantum:fin de quantum]]— y pasa a READY. Estaba ejecutando bien, no pidió nada: simplemente se le acabó el turno.",
+        ops: [{ op: "state.set", process: "P2", value: "READY" }]
+      },
+      {
+        focus: "P2",
+        narration: "Otro cambio de contexto, paso 1 de 3: el contexto de P2 se copia a su PCB y la CPU vuelve a quedar vacía.",
+        ops: [
+          { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
+          { op: "context.save", process: "P2" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Paso 2 de 3: elige a P1, que está en READY desde que terminó su I/O.",
+        ops: [{ op: "time.advance", units: 1, cpu: { kind: "overhead" } }]
+      },
+      {
+        focus: "P1",
+        narration: "Paso 3 de 3: carga el contexto de P1 desde su PCB. Vuelve con el mismo IP y los mismos registros que tenía cuando se bloqueó.",
+        note: "Por eso el contexto se guarda: P1 sigue en la instrucción exacta donde había quedado, sin repetir ni saltear nada.",
+        ops: [
+          { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
+          { op: "context.load", process: "P1" },
+          { op: "state.set", process: "P1", value: "RUNNING" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "P1 ejecuta de nuevo, desde donde había quedado.",
+        note: "Las dos bandas rojas de la línea de tiempo son tiempo de CPU en el que no ejecutó ningún proceso. Es lo que cuesta cambiar de uno a otro, y se paga cada vez.",
+        ops: [
+          { op: "cpu.set", owner: "P1", context: { IP: "108", AX: "9", SP: "900" } },
+          { op: "time.advance", units: 3, cpu: { kind: "busy", label: "P1" } }
+        ]
+      }
+    ],
+    expectedFinalState: {
+      processes: [
+        { id: "P1", frames: 1, heapBlocks: 0, data: {}, state: "RUNNING" },
+        { id: "P2", frames: 1, heapBlocks: 0, data: {}, state: "READY" }
+      ],
+      timelineUnits: 16,
+      cpuOwner: "P1"
+    }
+  },
+
+  {
+    number: 6,
+    title: "No entran todos",
+    short: "Suspensión",
+    adds: "Agrega: la suspensión, el SWAP y los dos estados suspendidos.",
+    subtitle: "Cuando no hay lugar en memoria, alguien tiene que salir.",
+    stepUnit: "Un paso = un evento",
+    canvas: { columns: "0.9fr 1.4fr 0.8fr", panels: ["occupancy", "states", "pcb"] },
+    pcbFields: ["pid", "state", "image"],
+    pcbLayout: "side",
+    capacity: 10,
+    diagramViewBox: "0 0 460 335",
+    states: ["NEW", "READY", "RUNNING", "BLOCKED", "TERMINATED", "READY SUSPENDED", "BLOCKED SUSPENDED"],
+    transitions: [
+      "NEW>READY", "READY>RUNNING", "RUNNING>READY", "RUNNING>BLOCKED", "BLOCKED>READY",
+      "RUNNING>TERMINATED", "READY>READY SUSPENDED", "READY SUSPENDED>READY",
+      "BLOCKED>BLOCKED SUSPENDED", "BLOCKED SUSPENDED>READY SUSPENDED"
+    ],
+    closing: "Lo que cambia no es la suspensión: es si sigue bloqueado.",
+    steps: [
+      {
+        focus: "P1",
+        narration: "La memoria tiene un tamaño, y cada proceso ocupa un lugar adentro. Acá caben 10 unidades: P1 ocupa 3 y P2 ocupa 3, así que sobran 4.",
+        note: "Del cambio de contexto no vamos a hablar más: ya está visto. Este ejemplo es sobre el lugar, así que tampoco mostramos el código.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [], footprint: 3, location: "memory" },
+          { op: "state.set", value: "RUNNING" },
+          { op: "process.add", id: "P2", pid: 42, data: [], footprint: 3, location: "memory" },
+          { op: "state.set", process: "P2", value: "READY" }
+        ]
+      },
+      {
+        focus: "P3",
+        narration: "Llega un tercer proceso. Todavía no está en memoria y no puede ejecutar: está en NEW.",
+        ops: [
+          { op: "process.add", id: "P3", pid: 43, data: [], footprint: 4, location: "pending" },
+          { op: "state.set", process: "P3", value: "NEW" }
+        ]
+      },
+      {
+        focus: "P3",
+        narration: "El sistema operativo lo admite: le da lugar en memoria y pasa a READY. Ocupa 4 unidades, así que la memoria queda llena.",
+        ops: [
+          { op: "location.set", process: "P3", value: "memory" },
+          { op: "state.set", process: "P3", value: "READY" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "P1 pide una I/O y se bloquea. La CPU pasa a P2, que estaba en READY.",
+        note: "Dos transiciones en un solo paso: una pasó sola y la otra la decidió el sistema operativo.",
+        ops: [
+          { op: "state.set", process: "P1", value: "BLOCKED" },
+          { op: "state.set", process: "P2", value: "RUNNING" }
+        ]
+      },
+      {
+        focus: "P4",
+        narration: "Llega un cuarto proceso, que necesita 3 unidades. No hay ninguna libre, así que no lo pueden admitir: se queda en NEW.",
+        note: "Para que entre, alguno de los que están adentro tiene que salir.",
+        ops: [
+          { op: "process.add", id: "P4", pid: 44, data: [], footprint: 3, location: "pending" },
+          { op: "state.set", process: "P4", value: "NEW" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "El sistema operativo suspende a P1: su imagen entera se va al SWAP y las 3 unidades quedan libres. Como estaba bloqueado, pasa a BLOCKED SUSPENDED.",
+        note: "Lo eligió porque estaba bloqueado: no iba a poder usar la CPU igual. Y *su PCB se queda en memoria*: es lo único que sabe dónde fue a parar el proceso.",
+        ops: [
+          { op: "location.set", process: "P1", value: "swap" },
+          { op: "state.set", process: "P1", value: "BLOCKED SUSPENDED" }
+        ]
+      },
+      {
+        focus: "P4",
+        narration: "Con las 3 unidades libres, ahora sí admiten a P4: entra a memoria y pasa a READY. La memoria vuelve a estar llena.",
+        ops: [
+          { op: "location.set", process: "P4", value: "memory" },
+          { op: "state.set", process: "P4", value: "READY" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Termina la I/O que estaba esperando P1. P1 sigue en el SWAP, fuera de la memoria, pero ya no está esperando nada: pasa a READY SUSPENDED *sin volver a memoria*.",
+        note: "Los dos estados suspendidos están igual de afuera. Lo único que los distingue es la respuesta a una pregunta: si volviera a memoria ahora, ¿estaría bloqueado? Antes de este paso, sí. Después, no.",
+        ops: [{ op: "state.set", process: "P1", value: "READY SUSPENDED" }]
+      },
+      {
+        focus: "P3",
+        narration: "El sistema operativo decide traer de vuelta a P1, que ya puede ejecutar. Para hacerle lugar suspende a P3, que está en READY: su imagen se va al SWAP y pasa a READY SUSPENDED.",
+        note: "Mismo mecanismo que con P1, distinto estado de salida: P3 no estaba esperando nada, así que sale por el otro lado del diagrama.",
+        ops: [
+          { op: "location.set", process: "P3", value: "swap" },
+          { op: "state.set", process: "P3", value: "READY SUSPENDED" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "P1 vuelve del SWAP a memoria y pasa a READY: queda listo para que le den la CPU, con todo lo suyo donde estaba.",
+        note: "En el SWAP quedó P3, listo también, pero afuera. Los dos podrían ejecutar; la diferencia es que uno está en memoria y el otro no.",
+        ops: [
+          { op: "location.set", process: "P1", value: "memory" },
+          { op: "state.set", process: "P1", value: "READY" }
+        ]
+      }
+    ],
+    expectedFinalState: {
+      processes: [
+        { id: "P1", frames: 0, heapBlocks: 0, data: {}, state: "READY", location: "memory" },
+        { id: "P2", frames: 0, heapBlocks: 0, data: {}, state: "RUNNING", location: "memory" },
+        { id: "P3", frames: 0, heapBlocks: 0, data: {}, state: "READY SUSPENDED", location: "swap" },
+        { id: "P4", frames: 0, heapBlocks: 0, data: {}, state: "READY", location: "memory" }
+      ],
+      residentUnits: 9
+    }
+  }
+,
+
+  {
+    number: 7,
+    title: "¿Quién decidió esto?",
+    short: "Planificadores",
+    adds: "Agrega: los tres planificadores, y las transiciones que no decide ninguno.",
+    subtitle: "La misma traza del ejemplo 6, releída: quién decidió cada cambio.",
+    stepUnit: "Un paso = un evento",
+    canvas: { columns: "1.04fr 1.34fr 0.58fr", panels: ["deciders", "states", "counters"] },
+    pcbFields: ["pid", "state", "image"],
+    capacity: 10,
+    diagramViewBox: "0 0 460 335",
+    filter: true,
+    sameTraceAs: 6,
+    states: ["NEW", "READY", "RUNNING", "BLOCKED", "TERMINATED", "READY SUSPENDED", "BLOCKED SUSPENDED"],
+    transitions: [
+      "NEW>READY", "READY>RUNNING", "RUNNING>READY", "RUNNING>BLOCKED", "BLOCKED>READY",
+      "RUNNING>TERMINATED", "READY>READY SUSPENDED", "READY SUSPENDED>READY",
+      "BLOCKED>BLOCKED SUSPENDED", "BLOCKED SUSPENDED>READY SUSPENDED"
+    ],
+    closing: "No todas las transiciones las decide un planificador.",
+    steps: [
+      {
+        focus: "P1",
+        narration: "La misma traza del ejemplo 6, paso por paso, pero mirando una sola cosa: *quién decidió* cada cambio de estado. A la izquierda están todas las transiciones de la traza, y arriba se puede filtrar por planificador.",
+        note: "Hay tres planificadores, y una cuarta categoría que no es un planificador: nadie. Esa cuarta es la mitad de este ejemplo. Del código no hace falta nada acá: la traza es la misma del ejemplo 6.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [], footprint: 3, location: "memory" },
+          { op: "state.set", value: "RUNNING" },
+          { op: "process.add", id: "P2", pid: 42, data: [], footprint: 3, location: "memory" },
+          { op: "state.set", process: "P2", value: "READY" }
+        ]
+      },
+      {
+        focus: "P3",
+        narration: "Llega P3 y queda en NEW. Todavía no hubo ninguna transición: crear un proceso no es un cambio de estado, es el punto de partida.",
+        note: "Los dos grados de la derecha se mueven con la traza: cuántos procesos hay en memoria, y cuántos ejecutan a la vez. El segundo nunca pasa de 1, porque hay una sola CPU.",
+        ops: [
+          { op: "process.add", id: "P3", pid: 43, data: [], footprint: 4, location: "pending" },
+          { op: "state.set", process: "P3", value: "NEW" }
+        ]
+      },
+      {
+        focus: "P3",
+        narration: "P3 pasa de NEW a READY. Admitir un proceso lo decide el *planificador de largo plazo*: es el que decide cuántos procesos hay en el sistema.",
+        ops: [
+          { op: "location.set", process: "P3", value: "memory" },
+          { op: "state.set", process: "P3", value: "READY" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Dos transiciones en un paso, y no las decide el mismo. P1 pasa a BLOCKED: eso *no lo decidió nadie*, pidió una I/O. P2 pasa a RUNNING: eso lo decide el *planificador de corto plazo*, que elige a cuál de los que están listos le toca la CPU.",
+        note: "Cómo elige el de corto plazo es la clase que viene. Acá lo único que importa es que alguien elige.",
+        ops: [
+          { op: "state.set", process: "P1", value: "BLOCKED" },
+          { op: "state.set", process: "P2", value: "RUNNING" }
+        ]
+      },
+      {
+        focus: "P4",
+        narration: "Llega P4 y queda en NEW. Tampoco hay transición todavía: el planificador de largo plazo no lo admite, porque no hay lugar en memoria.",
+        ops: [
+          { op: "process.add", id: "P4", pid: 44, data: [], footprint: 3, location: "pending" },
+          { op: "state.set", process: "P4", value: "NEW" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "P1 sale de memoria. Suspender lo decide el *planificador de mediano plazo*: es el que decide qué procesos están en memoria y cuáles quedan afuera.",
+        ops: [
+          { op: "location.set", process: "P1", value: "swap" },
+          { op: "state.set", process: "P1", value: "BLOCKED SUSPENDED" }
+        ]
+      },
+      {
+        focus: "P4",
+        narration: "Otra vez el de largo plazo: ahora hay lugar, y admite a P4. Con esto el grado de multiprogramación vuelve a 3.",
+        ops: [
+          { op: "location.set", process: "P4", value: "memory" },
+          { op: "state.set", process: "P4", value: "READY" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Termina la I/O de P1. *Nadie* decidió esta transición: ocurrió algo y el estado cambió solo. Es el mismo caso que bloquearse, del otro lado.",
+        note: "Con el filtro en *nadie* quedan a la vista las dos transiciones de esta traza que no decidió ningún planificador.",
+        ops: [{ op: "state.set", process: "P1", value: "READY SUSPENDED" }]
+      },
+      {
+        focus: "P3",
+        narration: "Mediano plazo otra vez: suspende a P3 para hacer lugar. Es el planificador que sube y baja el grado de multiprogramación.",
+        ops: [
+          { op: "location.set", process: "P3", value: "swap" },
+          { op: "state.set", process: "P3", value: "READY SUSPENDED" }
+        ]
+      },
+      {
+        focus: "P1",
+        narration: "Y de nuevo el de mediano plazo: traer un proceso de vuelta a memoria también es suyo. La traza terminó.",
+        note: "Ocho transiciones en toda la traza: dos las decidió el de largo plazo, tres el de mediano, una el de corto, y dos no las decidió nadie.",
+        ops: [
+          { op: "location.set", process: "P1", value: "memory" },
+          { op: "state.set", process: "P1", value: "READY" }
+        ]
+      }
+    ],
+    expectedFinalState: {
+      processes: [
+        { id: "P1", frames: 0, heapBlocks: 0, data: {}, state: "READY", location: "memory" },
+        { id: "P2", frames: 0, heapBlocks: 0, data: {}, state: "RUNNING", location: "memory" },
+        { id: "P3", frames: 0, heapBlocks: 0, data: {}, state: "READY SUSPENDED", location: "swap" },
+        { id: "P4", frames: 0, heapBlocks: 0, data: {}, state: "READY", location: "memory" }
+      ],
+      residentUnits: 9
+    }
+  },
+
+  {
+    number: 8,
+    title: "El mismo programa, con hilos",
+    short: "Hilos",
+    adds: "Agrega: los hilos, y qué se duplica cuando aparecen.",
+    subtitle: "Un stack y un TCB por hilo. Todo lo demás, uno solo.",
+    program: "hilos",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "0.8fr 1.4fr 0.8fr", panels: ["source", "memory", "pcb"] },
+    pcbFields: ["pid", "state", "threads"],
+    pcbLayout: "side",
+    closing: "Un solo espacio de direcciones, tres trazas.",
+    compare: {
+      headers: ["", "otro proceso (ejemplo 1)", "otro hilo (acá)"],
+      rows: [
+        ["¿qué hay que crear?", "text, data, heap y stack nuevos, más un PCB", "un stack y un TCB"],
+        ["¿qué comparte con el original?", "nada: son dos memorias distintas", "el text, el data y el heap"],
+        ["¿en qué espacio de direcciones vive?", "en otro", "en el mismo"]
+      ]
+    },
+    steps: [
+      {
+        line: 9,
+        focus: "P1",
+        thread: "H1",
+        narration: "Un proceso más, con su memoria y su PCB. Arranca como todos los anteriores: un solo hilo de ejecución, con un solo stack.",
+        note: "Ese hilo no tenía nombre hasta ahora porque era el único. Acá se llama H1.",
+        ops: [
+          { op: "process.add", id: "P1", pid: 41, data: [{ name: "total", value: "3" }] },
+          { op: "state.set", value: "RUNNING" },
+          { op: "thread.add", id: "H1", state: "RUNNING", line: 9, frames: [{ name: "main" }] }
+        ]
+      },
+      {
+        line: 10,
+        focus: "P1",
+        thread: "H1",
+        narration: "crear_hilo arranca un hilo nuevo, H2, que va a ejecutar contar con 20. Aparecen *dos cosas y nada más*: un stack propio para H2 y un TCB.",
+        note: "El text, el data y el heap son los mismos de antes: no se duplicó ninguno. Ahí está la diferencia con el ejemplo 1, donde el segundo proceso necesitó una memoria entera.",
+        ops: [
+          { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)", vars: [{ name: "desde", value: "20" }] }] }
+        ]
+      },
+      {
+        line: 11,
+        focus: "P1",
+        thread: "H1",
+        narration: "Otro hilo, H3, con 30. Otro stack y otro TCB.",
+        ops: [
+          { op: "thread.add", id: "H3", state: "READY", line: 3, frames: [{ name: "contar(30)", vars: [{ name: "desde", value: "30" }] }] }
+        ]
+      },
+      {
+        line: 12,
+        focus: "P1",
+        thread: "H1",
+        narration: "H1 llama a contar con 10. Esa llamada entra en su propio stack, arriba de la de main.",
+        note: "Tres hilos ejecutando la misma función, cada uno con su copia de desde. Es lo mismo que pasaba con las llamadas en el ejemplo 2, pero ahora en tres stacks distintos.",
+        ops: [
+          { op: "thread.frame.push", thread: "H1", name: "contar(10)", vars: [{ name: "desde", value: "10" }] }
+        ]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        thread: "H1",
+        narration: "H1 sigue con la CPU y ejecuta la línea 4 de contar: su propio vale 10.",
+        note: "Hay una sola CPU: mientras ejecuta H1, los otros dos esperan su turno. Nunca hay dos hilos ejecutando a la vez.",
+        ops: [{ op: "thread.var.set", thread: "H1", name: "propio", value: "10" }]
+      },
+      {
+        line: 5,
+        focus: "P1",
+        thread: "H1",
+        narration: "H1 suma total a su propio: 10 + 3 = 13. total está en el *data*, y hay uno solo para todo el proceso: los tres hilos leen el mismo.",
+        ops: [{ op: "thread.var.set", thread: "H1", name: "propio", value: "13" }]
+      },
+      {
+        line: 6,
+        focus: "P1",
+        thread: "H1",
+        narration: "H1 pide una I/O y se bloquea, así que la CPU pasa a otro hilo del mismo proceso. *El proceso sigue en RUNNING*: H2 y H3 todavía pueden ejecutar.",
+        note: "Un hilo bloqueado no bloquea al proceso. Eso es nuevo: hasta el ejemplo 5, cuando el proceso pedía una I/O no quedaba nadie adentro para seguir.",
+        ops: [
+          { op: "thread.state", thread: "H1", value: "BLOCKED" },
+          { op: "thread.state", thread: "H2", value: "RUNNING" }
+        ]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        thread: "H2",
+        narration: "Ahora ejecuta H2, desde el principio de contar: su propio vale 20.",
+        note: "Cada hilo siguió hasta bloquearse. También podría habérsele terminado el turno antes, como al proceso del ejemplo 5: quién sigue lo decide el sistema operativo.",
+        ops: [{ op: "thread.var.set", thread: "H2", name: "propio", value: "20" }]
+      },
+      {
+        line: 5,
+        focus: "P1",
+        thread: "H2",
+        narration: "H2 hace su cuenta con el mismo total: 20 + 3 = 23.",
+        ops: [{ op: "thread.var.set", thread: "H2", name: "propio", value: "23" }]
+      },
+      {
+        line: 6,
+        focus: "P1",
+        thread: "H2",
+        narration: "H2 también pide una I/O y se bloquea. La CPU pasa a H3, el único que queda.",
+        ops: [
+          { op: "thread.state", thread: "H2", value: "BLOCKED" },
+          { op: "thread.state", thread: "H3", value: "RUNNING" }
+        ]
+      },
+      {
+        line: 4,
+        focus: "P1",
+        thread: "H3",
+        narration: "H3 arranca su parte: su propio vale 30. Tres variables locales con el mismo nombre y tres valores distintos, cada una en su stack.",
+        ops: [{ op: "thread.var.set", thread: "H3", name: "propio", value: "30" }]
+      },
+      {
+        line: 5,
+        focus: "P1",
+        thread: "H3",
+        narration: "H3 hace su cuenta: 30 + 3 = 33.",
+        ops: [{ op: "thread.var.set", thread: "H3", name: "propio", value: "33" }]
+      },
+      {
+        line: 6,
+        focus: "P1",
+        thread: "H3",
+        narration: "H3 pide su I/O y se bloquea. Ahora sí: con los tres hilos bloqueados, *el proceso entero pasa a BLOCKED*, porque no queda nada suyo que pueda ejecutar.",
+        note: "Un text, un data, un heap; tres stacks y tres trazas. Eso es un proceso con hilos.",
+        ops: [
+          { op: "thread.state", thread: "H3", value: "BLOCKED" },
+          { op: "state.set", process: "P1", value: "BLOCKED" }
+        ]
+      }
+    ],
+    expectedFinalState: {
+      processes: [{
+        id: "P1", frames: 0, heapBlocks: 0, data: { total: "3" }, state: "BLOCKED",
+        threads: { H1: "BLOCKED", H2: "BLOCKED", H3: "BLOCKED" }
+      }],
+      threadsTotal: 3
+    }
+  }
+];
+</script>
+
+<script id="engine">
+function fill(template, values) {
+  return template.replace(/\{(\w+)\}/g, function (match, key) {
+    return values[key] === undefined ? match : values[key];
+  });
+}
+
+function findByName(list, name) {
+  return list.filter(function (item) { return item.name === name; })[0] || null;
+}
+
+function segmentKey(segment) {
+  return segment.kind === "block" ? "block:" + segment.id : "hole:" + segment.address;
+}
+
+function cloneVariable(variable) {
+  return { name: variable.name, value: variable.value, pointsTo: variable.pointsTo || null };
+}
+
+function cloneFrame(frame) {
+  return { name: frame.name, vars: frame.vars.map(cloneVariable) };
+}
+
+function cloneSegment(segment) {
+  return {
+    kind: segment.kind,
+    id: segment.id || null,
+    address: segment.address,
+    size: segment.size,
+    value: segment.value || null,
+    lost: segment.lost === true
+  };
+}
+
+function cloneContext(context) {
+  if (!context) return null;
+  const copy = {};
+  Object.keys(context).forEach(function (key) { copy[key] = context[key]; });
+  return copy;
+}
+
+function sameContext(a, b) {
+  if (!a || !b) return !a && !b;
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every(function (key) { return a[key] === b[key]; });
+}
+
+function cloneThread(thread) {
+  return {
+    id: thread.id,
+    state: thread.state,
+    line: thread.line,
+    stack: thread.stack.map(cloneFrame)
+  };
+}
+
+function cloneProcess(process) {
+  return {
+    id: process.id,
+    pid: process.pid,
+    program: process.program,
+    line: process.line,
+    state: process.state,
+    context: cloneContext(process.context),
+    location: process.location,
+    footprint: process.footprint,
+    threads: process.threads.map(cloneThread),
+    data: process.data.map(cloneVariable),
+    heap: process.heap.map(cloneSegment),
+    stack: process.stack.map(cloneFrame)
+  };
+}
+
+function cloneTimeline(timeline) {
+  const lanes = {};
+  Object.keys(timeline.lanes).forEach(function (id) {
+    lanes[id] = timeline.lanes[id].map(function (segment) {
+      return { kind: segment.kind, label: segment.label, units: segment.units, tone: segment.tone };
+    });
+  });
+  return {
+    units: timeline.units,
+    cpu: timeline.cpu.map(function (segment) {
+      return { kind: segment.kind, label: segment.label, units: segment.units, tone: segment.tone };
+    }),
+    lanes: lanes
+  };
+}
+
+function cloneState(state) {
+  return {
+    processes: state.processes.map(cloneProcess),
+    cpu: { owner: state.cpu.owner, context: cloneContext(state.cpu.context) },
+    timeline: cloneTimeline(state.timeline)
+  };
+}
+
+function emptyState() {
+  return { processes: [], cpu: { owner: null, context: null }, timeline: { units: 0, cpu: [], lanes: {} } };
+}
+
+function programFile(key) {
+  return PROGRAMS[key] ? PROGRAMS[key].file : UI_TEXT.none;
+}
+
+function newProcess(op, example) {
+  return {
+    id: op.id,
+    pid: op.pid,
+    program: example.program || null,
+    line: null,
+    state: null,
+    context: null,
+    location: op.location || null,
+    footprint: op.footprint || 0,
+    threads: [],
+    data: (op.data || []).map(cloneVariable),
+    heap: [],
+    stack: []
+  };
+}
+
+function findProcess(processes, id) {
+  return processes.filter(function (process) { return process.id === id; })[0] || null;
+}
+
+function findThread(process, id) {
+  return process.threads.filter(function (thread) { return thread.id === id; })[0] || null;
+}
+
+function residentProcesses(processes) {
+  return processes.filter(function (process) { return process.location === "memory"; });
+}
+
+function setLocal(process, op) {
+  const frame = process.stack[process.stack.length - 1];
+  if (!frame) return;
+  const existing = findByName(frame.vars, op.name);
+  if (existing) {
+    existing.value = op.value;
+    existing.pointsTo = op.pointsTo || null;
+    return;
+  }
+  frame.vars.push({ name: op.name, value: op.value, pointsTo: op.pointsTo || null });
+}
+
+function setGlobal(process, op) {
+  const existing = findByName(process.data, op.name);
+  if (existing) {
+    existing.value = op.value;
+    return;
+  }
+  process.data.push({ name: op.name, value: op.value, pointsTo: null });
+}
+
+function appendSegment(list, kind, label, units, tone) {
+  const last = list[list.length - 1];
+  if (last && last.kind === kind && last.label === label && last.tone === (tone || null)) {
+    last.units += units;
+    return;
+  }
+  list.push({ kind: kind, label: label, units: units, tone: tone || null });
+}
+
+function advanceTime(state, op) {
+  const timeline = state.timeline;
+  timeline.units += op.units;
+  appendSegment(timeline.cpu, op.cpu.kind, op.cpu.label || null, op.units, op.cpu.tone);
+  state.processes.forEach(function (process) {
+    if (!timeline.lanes[process.id]) timeline.lanes[process.id] = [];
+    appendSegment(timeline.lanes[process.id], process.state, null, op.units, null);
+  });
+}
+
+function applyOp(state, op, focus, example) {
+  if (op.op === "process.add") {
+    state.processes.push(newProcess(op, example));
+    if (state.timeline.units > 0) {
+      state.timeline.lanes[op.id] = [{ kind: "none", label: null, units: state.timeline.units, tone: null }];
+    }
+    return;
+  }
+  if (op.op === "cpu.set") {
+    state.cpu.owner = op.owner;
+    state.cpu.context = cloneContext(op.context);
+    return;
+  }
+  if (op.op === "cpu.clear") {
+    state.cpu.owner = null;
+    state.cpu.context = null;
+    return;
+  }
+  if (op.op === "time.advance") {
+    advanceTime(state, op);
+    return;
+  }
+  const process = findProcess(state.processes, op.process || focus);
+  if (!process) return;
+  if (op.op === "frame.push") {
+    process.stack.push({ name: op.name, vars: (op.vars || []).map(cloneVariable) });
+    return;
+  }
+  if (op.op === "frame.pop") {
+    process.stack.pop();
+    return;
+  }
+  if (op.op === "var.set") {
+    setLocal(process, op);
+    return;
+  }
+  if (op.op === "data.set") {
+    setGlobal(process, op);
+    return;
+  }
+  if (op.op === "heap.set") {
+    process.heap = op.segments.map(cloneSegment);
+    return;
+  }
+  if (op.op === "state.set") {
+    process.state = op.value;
+    return;
+  }
+  if (op.op === "context.set") {
+    process.context = cloneContext(op.context);
+    return;
+  }
+  if (op.op === "context.save") {
+    process.context = cloneContext(state.cpu.context);
+    state.cpu.owner = null;
+    state.cpu.context = null;
+    return;
+  }
+  if (op.op === "context.load") {
+    state.cpu.owner = process.id;
+    state.cpu.context = cloneContext(process.context);
+    process.context = null;
+    return;
+  }
+  if (op.op === "location.set") {
+    process.location = op.value;
+    return;
+  }
+  if (op.op === "thread.add") {
+    process.threads.push({
+      id: op.id,
+      state: op.state || null,
+      line: op.line || null,
+      stack: (op.frames || []).map(function (frame) {
+        return { name: frame.name, vars: (frame.vars || []).map(cloneVariable) };
+      })
+    });
+    return;
+  }
+  const thread = op.thread ? findThread(process, op.thread) : null;
+  if (!thread) return;
+  if (op.op === "thread.state") {
+    thread.state = op.value;
+    return;
+  }
+  if (op.op === "thread.frame.push") {
+    thread.stack.push({ name: op.name, vars: (op.vars || []).map(cloneVariable) });
+    return;
+  }
+  if (op.op === "thread.var.set") {
+    const frame = thread.stack[thread.stack.length - 1];
+    if (!frame) return;
+    const existing = findByName(frame.vars, op.name);
+    if (existing) {
+      existing.value = op.value;
+      return;
+    }
+    frame.vars.push({ name: op.name, value: op.value, pointsTo: null });
+  }
+}
+
+function pcbValues(process, fields) {
+  const available = {
+    pid: process.pid,
+    program: programFile(process.program),
+    state: process.state === null ? UI_TEXT.none : process.state,
+    line: process.line === null ? UI_TEXT.none : process.line,
+    frames: process.stack.length,
+    heapBlocks: process.heap.filter(function (segment) { return segment.kind === "block"; }).length,
+    context: process.context,
+    image: process.location === null ? UI_TEXT.none : UI_TEXT.locations[process.location],
+    threads: process.threads.length
+  };
+  const values = {};
+  fields.forEach(function (field) { values[field] = available[field]; });
+  return values;
+}
+
+function diffProcess(before, after, fields) {
+  const changed = { created: !before, data: [], vars: [], segments: [], frames: false, pcb: [], state: null, location: false, threads: [] };
+  if (!before) return changed;
+  if (before.state !== after.state) changed.state = { from: before.state, to: after.state };
+  after.data.forEach(function (variable) {
+    const previous = findByName(before.data, variable.name);
+    if (!previous || previous.value !== variable.value) changed.data.push(variable.name);
+  });
+  if (before.stack.length !== after.stack.length) changed.frames = true;
+  changed.location = before.location !== after.location;
+  changed.threads = [];
+  after.threads.forEach(function (thread) {
+    const old = findThread(before, thread.id);
+    if (!old || old.state !== thread.state || old.line !== thread.line) changed.threads.push(thread.id);
+    else {
+      const oldTop = old.stack[old.stack.length - 1];
+      const newTop = thread.stack[thread.stack.length - 1];
+      const oldText = oldTop ? JSON.stringify(oldTop.vars) : "";
+      const newText = newTop ? JSON.stringify(newTop.vars) : "";
+      if (oldText !== newText || old.stack.length !== thread.stack.length) changed.threads.push(thread.id);
+    }
+  });
+  after.stack.forEach(function (frame, index) {
+    const previous = before.stack[index];
+    frame.vars.forEach(function (variable) {
+      const old = previous ? findByName(previous.vars, variable.name) : null;
+      const moved = !old || old.value !== variable.value || old.pointsTo !== variable.pointsTo;
+      if (moved) changed.vars.push(index + ":" + variable.name);
+    });
+  });
+  after.heap.forEach(function (segment, index) {
+    const previous = before.heap[index];
+    const moved = !previous || previous.kind !== segment.kind || previous.address !== segment.address ||
+      previous.size !== segment.size || previous.value !== segment.value || previous.lost !== segment.lost;
+    if (moved) changed.segments.push(segmentKey(segment));
+  });
+  const oldValues = pcbValues(before, fields);
+  const newValues = pcbValues(after, fields);
+  fields.forEach(function (field) {
+    const same = field === "context"
+      ? sameContext(oldValues[field], newValues[field])
+      : oldValues[field] === newValues[field];
+    if (!same) changed.pcb.push(field);
+  });
+  return changed;
+}
+
+function diffCpu(before, after) {
+  if (!before) return { owner: false, fields: [] };
+  const fields = [];
+  const keys = after.context ? Object.keys(after.context) : [];
+  keys.forEach(function (key) {
+    if (!before.context || before.context[key] !== after.context[key]) fields.push(key);
+  });
+  return { owner: before.owner !== after.owner, fields: fields };
+}
+
+function markChanges(snapshots, example) {
+  snapshots.forEach(function (snapshot, index) {
+    const previous = index === 0 ? null : snapshots[index - 1];
+    const changed = {};
+    snapshot.processes.forEach(function (process) {
+      const before = previous ? findProcess(previous.processes, process.id) : null;
+      changed[process.id] = diffProcess(before, process, example.pcbFields);
+    });
+    snapshot.changed = changed;
+    snapshot.changedCpu = diffCpu(previous ? previous.cpu : null, snapshot.cpu);
+    snapshot.freshUnits = snapshot.timeline.units - (previous ? previous.timeline.units : 0);
+  });
+  return snapshots;
+}
+
+function buildSnapshots(example) {
+  let state = emptyState();
+  const snapshots = example.steps.map(function (step, index) {
+    state = cloneState(state);
+    (step.ops || []).forEach(function (op) { applyOp(state, op, step.focus, example); });
+    const focused = step.focus ? findProcess(state.processes, step.focus) : null;
+    if (focused && step.line) focused.line = step.line;
+    if (focused && step.thread && step.line) {
+      const thread = findThread(focused, step.thread);
+      if (thread) thread.line = step.line;
+    }
+    return {
+      index: index,
+      line: step.line || null,
+      focus: step.focus || null,
+      narration: step.narration,
+      note: step.note || null,
+      thread: step.thread || null,
+      processes: state.processes,
+      cpu: state.cpu,
+      timeline: state.timeline,
+      last: index === example.steps.length - 1
+    };
+  });
+  return markChanges(snapshots, example);
+}
+
+function verifyExample(example, snapshots) {
+  const problems = [];
+  const program = PROGRAMS[example.program] || null;
+  const declaredStates = example.states || [];
+  const declaredTransitions = example.transitions || [];
+  const showsDiagram = example.canvas.panels.concat(example.canvas.wide || []).indexOf("states") !== -1;
+
+  example.steps.forEach(function (step, index) {
+    const label = "paso " + (index + 1);
+    if (!step.narration) problems.push(label + " no tiene narración");
+    if (step.line) {
+      if (!program) problems.push(label + " apunta a una línea y el ejemplo no declara programa");
+      else if (program.lines[step.line - 1] === undefined) problems.push(label + " apunta a la línea " + step.line + ", que no existe");
+      else if (program.lines[step.line - 1].trim() === "") problems.push(label + " apunta a la línea " + step.line + ", que está vacía");
+      if (!step.focus) problems.push(label + " tiene línea pero no dice de qué proceso");
+    }
+    (step.ops || []).forEach(function (op) {
+      const target = op.process || step.focus;
+      const global = op.op === "process.add" || op.op === "time.advance" || op.op === "cpu.set" || op.op === "cpu.clear";
+      if (!global && !findProcess(snapshots[index].processes, target)) {
+        problems.push(label + " opera sobre " + target + ", que no existe");
+      }
+      if (op.op === "state.set" || op.op === "thread.state") {
+        if (!STATES[op.value]) problems.push(label + " usa el estado " + op.value + ", que no está en STATES");
+        else if (showsDiagram && declaredStates.indexOf(op.value) === -1) {
+          problems.push(label + " usa el estado " + op.value + ", que el ejemplo no declara");
+        }
+      }
+    });
+  });
+
+  snapshots.forEach(function (snapshot, index) {
+    snapshot.processes.forEach(function (process) {
+      const change = snapshot.changed[process.id];
+      if (!change || !change.state) return;
+      const edge = change.state.from + ">" + change.state.to;
+      if (!change.state.from) return;
+      const drawn = STATE_EDGES.some(function (candidate) { return candidate.from + ">" + candidate.to === edge; });
+      if (!drawn) problems.push("la transición " + edge + " del paso " + (index + 1) + " no existe en STATE_EDGES");
+      else if (showsDiagram && declaredTransitions.indexOf(edge) === -1) {
+        problems.push("la transición " + edge + " del paso " + (index + 1) + " no está declarada en el ejemplo");
+      }
+    });
+    if (example.capacity !== undefined) {
+      const used = residentProcesses(snapshot.processes).reduce(function (sum, process) { return sum + process.footprint; }, 0);
+      if (used > example.capacity) {
+        problems.push("en el paso " + (index + 1) + " la memoria tiene " + used + " unidades ocupadas y la capacidad es " + example.capacity);
+      }
+      snapshot.processes.forEach(function (process) {
+        const suspended = process.state === "READY SUSPENDED" || process.state === "BLOCKED SUSPENDED";
+        const esperado = suspended ? "swap" : (process.state === "NEW" ? "pending" : "memory");
+        if (process.location !== esperado) {
+          problems.push(process.id + " está en " + process.location + " estando en " + process.state +
+            ", y debería estar en " + esperado + ", en el paso " + (index + 1));
+        }
+      });
+    }
+    const timeline = snapshot.timeline;
+    Object.keys(timeline.lanes).forEach(function (id) {
+      const total = timeline.lanes[id].reduce(function (sum, segment) { return sum + segment.units; }, 0);
+      if (total !== timeline.units) {
+        problems.push("el carril de " + id + " tiene " + total + " unidades y la línea de tiempo " + timeline.units + " en el paso " + (index + 1));
+      }
+    });
+  });
+
+  if (showsDiagram && declaredStates.length === 0) problems.push("muestra el diagrama y no declara estados");
+  declaredStates.forEach(function (name) {
+    if (!STATES[name]) problems.push("el ejemplo declara el estado " + name + ", que no está en STATES");
+  });
+  declaredTransitions.forEach(function (edge) {
+    const drawn = STATE_EDGES.some(function (candidate) { return candidate.from + ">" + candidate.to === edge; });
+    if (!drawn) problems.push("el ejemplo declara la transición " + edge + ", que no está en STATE_EDGES");
+  });
+
+  const expected = example.expectedFinalState;
+  if (expected) {
+    const last = snapshots[snapshots.length - 1];
+    const final = last.processes;
+    if (final.length !== expected.processes.length) {
+      problems.push("quedaron " + final.length + " procesos y se esperaban " + expected.processes.length);
+    }
+    expected.processes.forEach(function (wanted) {
+      const process = findProcess(final, wanted.id);
+      if (!process) {
+        problems.push("no quedó ningún proceso " + wanted.id);
+        return;
+      }
+      if (process.stack.length !== wanted.frames) {
+        problems.push(wanted.id + " terminó con " + process.stack.length + " frames y se esperaban " + wanted.frames);
+      }
+      const blocks = process.heap.filter(function (segment) { return segment.kind === "block"; }).length;
+      if (blocks !== wanted.heapBlocks) {
+        problems.push(wanted.id + " terminó con " + blocks + " pedidos sin liberar y se esperaban " + wanted.heapBlocks);
+      }
+      if (wanted.state !== undefined && process.state !== wanted.state) {
+        problems.push(wanted.id + " terminó en " + process.state + " y se esperaba " + wanted.state);
+      }
+      if (wanted.location !== undefined && process.location !== wanted.location) {
+        problems.push(wanted.id + " terminó " + process.location + " y se esperaba " + wanted.location);
+      }
+      if (wanted.threads !== undefined) {
+        Object.keys(wanted.threads).forEach(function (id) {
+          const thread = findThread(process, id);
+          if (!thread) problems.push(wanted.id + " no tiene el hilo " + id);
+          else if (thread.state !== wanted.threads[id]) {
+            problems.push(id + " terminó en " + thread.state + " y se esperaba " + wanted.threads[id]);
+          }
+        });
+      }
+      Object.keys(wanted.data).forEach(function (name) {
+        const variable = findByName(process.data, name);
+        if (!variable) problems.push(wanted.id + " no tiene la variable " + name);
+        else if (variable.value !== wanted.data[name]) {
+          problems.push(wanted.id + "." + name + " es " + variable.value + " y se esperaba " + wanted.data[name]);
+        }
+      });
+    });
+    if (expected.maxFrames !== undefined) {
+      const deepest = snapshots.reduce(function (most, snapshot) {
+        return snapshot.processes.reduce(function (inner, process) {
+          return Math.max(inner, process.stack.length);
+        }, most);
+      }, 0);
+      if (deepest !== expected.maxFrames) {
+        problems.push("el stack llegó a " + deepest + " frames y se esperaban " + expected.maxFrames);
+      }
+    }
+    if (expected.timelineUnits !== undefined && last.timeline.units !== expected.timelineUnits) {
+      problems.push("la línea de tiempo llegó a " + last.timeline.units + " unidades y se esperaban " + expected.timelineUnits);
+    }
+    if (expected.cpuOwner !== undefined && last.cpu.owner !== expected.cpuOwner) {
+      problems.push("la CPU terminó con " + last.cpu.owner + " y se esperaba " + expected.cpuOwner);
+    }
+    if (expected.threadsTotal !== undefined) {
+      const total = final.reduce(function (sum, process) { return sum + process.threads.length; }, 0);
+      if (total !== expected.threadsTotal) {
+        problems.push("quedaron " + total + " hilos y se esperaban " + expected.threadsTotal);
+      }
+    }
+    if (expected.residentUnits !== undefined) {
+      const used = residentProcesses(final).reduce(function (sum, process) { return sum + process.footprint; }, 0);
+      if (used !== expected.residentUnits) {
+        problems.push("quedaron " + used + " unidades ocupadas y se esperaban " + expected.residentUnits);
+      }
+    }
+  }
+
+  if (example.sameTraceAs !== undefined) {
+    const other = EXAMPLES.filter(function (candidate) { return candidate.number === example.sameTraceAs; })[0];
+    if (!other) problems.push("dice seguir la traza del ejemplo " + example.sameTraceAs + ", que no existe");
+    else {
+      const mine = JSON.stringify(example.steps.map(function (step) { return step.ops || []; }));
+      const theirs = JSON.stringify(other.steps.map(function (step) { return step.ops || []; }));
+      if (mine !== theirs) problems.push("su traza ya no es igual a la del ejemplo " + example.sameTraceAs);
+    }
+  }
+
+  if (problems.length > 0) {
+    console.error("Ejemplo " + example.number + ": " + problems.join("; "));
+  }
+}
+
+function deriveTransitions(snapshots) {
+  const list = [];
+  snapshots.forEach(function (snapshot, index) {
+    snapshot.processes.forEach(function (process) {
+      const change = snapshot.changed[process.id];
+      if (!change || !change.state || !change.state.from) return;
+      const edge = STATE_EDGES.filter(function (candidate) {
+        return candidate.from === change.state.from && candidate.to === change.state.to;
+      })[0];
+      list.push({
+        stepIndex: index,
+        processId: process.id,
+        from: change.state.from,
+        to: change.state.to,
+        decider: edge ? edge.decider : "none"
+      });
+    });
+  });
+  return list;
+}
+
+
+
+const BUILT_EXAMPLES = EXAMPLES.map(function (example) {
+  const snapshots = buildSnapshots(example);
+  const mostProcesses = snapshots.reduce(function (most, snapshot) {
+    return Math.max(most, snapshot.processes.length);
+  }, 0);
+  return {
+    example: example,
+    snapshots: snapshots,
+    transitions: deriveTransitions(snapshots),
+    mostProcesses: mostProcesses
+  };
+});
+
+BUILT_EXAMPLES.forEach(function (built) { verifyExample(built.example, built.snapshots); });
+</script>
+
+<script id="ui">
+const dom = {
+  exampleList: document.getElementById("exampleList"),
+  filterRow: document.getElementById("filterRow"),
+  filterLabel: document.getElementById("filterLabel"),
+  filterBar: document.getElementById("filterBar"),
+  narration: document.getElementById("narrationPanel"),
+  main: document.getElementById("main"),
+  footer: document.querySelector("footer"),
+  title: document.getElementById("exampleTitle"),
+  subtitle: document.getElementById("exampleSubtitle"),
+  granularity: document.getElementById("granularityNote"),
+  progress: document.getElementById("progress"),
+  progressFill: document.getElementById("progressFill"),
+  first: document.getElementById("firstStep"),
+  prev: document.getElementById("prevStep"),
+  next: document.getElementById("nextStep"),
+  last: document.getElementById("lastStep"),
+  play: document.getElementById("playPause"),
+  tooltip: document.getElementById("tooltip")
+};
+
+const AUTOPLAY_DELAY = 2800;
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const PANELS = {
+  source: { extras: ["file", "owner"], render: function (snapshot) { renderSource(snapshot); } },
+  memory: { extras: ["owner", "note"], render: function (snapshot) { renderMemory(snapshot); } },
+  pcb: { extras: [], render: function (snapshot) { renderPcb(snapshot); } },
+  states: { extras: [], render: function (snapshot) { renderStates(snapshot); } },
+  cpu: { extras: ["note"], render: function (snapshot) { renderCpu(snapshot); } },
+  timeline: { extras: ["note"], render: function (snapshot) { renderTimeline(snapshot); } },
+  occupancy: { extras: [], render: function (snapshot) { renderOccupancy(snapshot); } },
+  deciders: { extras: [], render: function (snapshot) { renderDeciders(snapshot); } },
+  counters: { extras: [], render: function (snapshot) { renderCounters(snapshot); } }
+};
+
+const panelRefs = {};
+let canvasKey = "";
+
+const view = {
+  exampleIndex: 0,
+  stepIndex: 0,
+  filter: "all",
+  playing: false,
+  timer: null
+};
+
+function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentExample() { return currentBuilt().example; }
+function currentSnapshots() { return currentBuilt().snapshots; }
+function currentSnapshot() { return currentSnapshots()[view.stepIndex]; }
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function renderRich(target, text) {
+  target.textContent = "";
+  const pattern = /\[\[(\w+):([^\]]+)\]\]|\*([^*]+)\*/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+    if (match[1]) {
+      const button = element("button", "tip", match[2]);
+      button.type = "button";
+      button.dataset.tip = match[1];
+      target.appendChild(button);
+    } else {
+      target.appendChild(element("strong", null, match[3]));
+    }
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) target.appendChild(document.createTextNode(text.slice(cursor)));
+  return target;
+}
+
+function buildPanel(id) {
+  const refs = { body: element("div", "panel-body") };
+  const section = element("section", "panel " + id);
+  const heading = element("h2");
+  const title = element("button", "tip", UI_TEXT.panels[id]);
+  title.type = "button";
+  title.dataset.tip = "panel:" + id;
+  heading.appendChild(title);
+  PANELS[id].extras.forEach(function (extra) {
+    if (extra === "file") {
+      refs.file = element("span", "file mono");
+      heading.appendChild(refs.file);
+    }
+    if (extra === "owner") {
+      refs.owner = element("span", id === "memory" ? "panel-owner mono" : "active-chip");
+      refs.owner.hidden = true;
+      heading.appendChild(refs.owner);
+    }
+    if (extra === "note") {
+      refs.note = element("span", "panel-note");
+      refs.note.hidden = true;
+      heading.appendChild(refs.note);
+    }
+  });
+  section.appendChild(heading);
+  section.appendChild(refs.body);
+  refs.section = section;
+  return refs;
+}
+
+function canvasPanels(example) {
+  return example.canvas.panels.concat(example.canvas.wide || []);
+}
+
+function buildCanvas(example) {
+  const canvas = example.canvas;
+  const wide = canvas.wide || [];
+  const key = canvas.columns + "|" + canvas.panels.join(",") + "|" + wide.join(",");
+  if (key === canvasKey) return;
+  canvasKey = key;
+  Object.keys(panelRefs).forEach(function (id) { delete panelRefs[id]; });
+  const fresh = element("main", wide.length > 0 ? "has-wide" : null);
+  fresh.id = "main";
+  fresh.style.gridTemplateColumns = canvas.columns;
+  canvasPanels(example).forEach(function (id) {
+    const refs = buildPanel(id);
+    if (wide.indexOf(id) !== -1) refs.section.classList.add("wide");
+    panelRefs[id] = refs;
+    fresh.appendChild(refs.section);
+  });
+  dom.main.replaceWith(fresh);
+  dom.main = fresh;
+}
+
+function renderFilter() {
+  const example = currentExample();
+  dom.filterRow.hidden = !example.filter;
+  if (!example.filter) return;
+  dom.filterLabel.textContent = UI_TEXT.deciders.filterLabel;
+  dom.filterBar.textContent = "";
+  const options = [{ key: "all", label: UI_TEXT.deciders.filterAll, color: null }].concat(
+    Object.keys(DECIDERS).map(function (key) {
+      return { key: key, label: DECIDERS[key].short, color: DECIDERS[key].color };
+    })
+  );
+  options.forEach(function (option) {
+    const button = element("button", null, option.label);
+    button.type = "button";
+    const active = view.filter === option.key;
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+    if (active) {
+      button.style.background = option.color || "var(--ink)";
+      button.style.borderColor = option.color || "var(--ink)";
+    }
+    button.addEventListener("click", function () {
+      view.filter = option.key;
+      render();
+    });
+    dom.filterBar.appendChild(button);
+  });
+}
+
+function renderExampleList() {
+  dom.exampleList.textContent = "";
+  BUILT_EXAMPLES.forEach(function (built, index) {
+    const button = element("button");
+    button.type = "button";
+    button.appendChild(element("span", "num", built.example.number));
+    button.appendChild(element("span", null, built.example.short));
+    button.title = built.example.adds;
+    button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
+    button.addEventListener("click", function () { selectExample(index); });
+    dom.exampleList.appendChild(button);
+  });
+}
+
+function threadMarks(snapshot) {
+  const marks = {};
+  const process = snapshot.focus ? findProcess(snapshot.processes, snapshot.focus) : null;
+  if (!process) return marks;
+  process.threads.forEach(function (thread) {
+    if (!thread.line) return;
+    if (!marks[thread.line]) marks[thread.line] = [];
+    marks[thread.line].push(thread);
+  });
+  return marks;
+}
+
+function renderSource(snapshot) {
+  const refs = panelRefs.source;
+  const program = PROGRAMS[currentExample().program];
+  refs.file.textContent = program.file;
+  const shared = currentBuilt().mostProcesses > 1 && snapshot.focus;
+  refs.owner.hidden = !shared;
+  refs.owner.textContent = shared ? snapshot.focus : "";
+  refs.body.textContent = "";
+  const marks = threadMarks(snapshot);
+  const code = element("div", "source-code mono");
+  program.lines.forEach(function (text, index) {
+    const row = element("div", "code-line");
+    const here = marks[index + 1] || [];
+    if (snapshot.line === index + 1) row.classList.add("current");
+    else if (here.length > 0) row.classList.add("marked");
+    row.appendChild(element("span", "num", index + 1));
+    row.appendChild(element("span", "text", text === "" ? " " : text));
+    if (here.length > 0) {
+      const chips = element("span", "line-threads");
+      here.forEach(function (thread) {
+        const chip = element("span", "thread-chip mono", thread.id);
+        if (thread.id === snapshot.thread) chip.classList.add("current");
+        chips.appendChild(chip);
+      });
+      row.appendChild(chips);
+    }
+    code.appendChild(row);
+  });
+  refs.body.appendChild(code);
+}
+
+function regionHead(region, trailing) {
+  const head = element("div", "region-head");
+  const name = element("button", "region-name mono", region.label);
+  name.type = "button";
+  if (region.tip) name.dataset.tip = region.tip;
+  head.appendChild(name);
+  if (region.gloss) head.appendChild(element("span", "region-gloss", region.gloss));
+  if (region.grow) head.appendChild(element("span", "region-grow", region.grow));
+  if (trailing) head.appendChild(trailing);
+  return head;
+}
+
+function variableChip(variable, key, changed) {
+  const chip = element("span", "var");
+  if (variable.pointsTo) {
+    chip.classList.add("points");
+    chip.dataset.pointsTo = variable.pointsTo;
+  }
+  if (changed.vars.indexOf(key) !== -1) chip.classList.add("changed");
+  chip.appendChild(element("span", "vname mono", variable.name));
+  chip.appendChild(element("span", "vval mono", variable.value));
+  return chip;
+}
+
+function frameBox(frame, index, isTop, changed) {
+  const box = element("div", "frame");
+  if (isTop) box.classList.add("top");
+  if (isTop && changed.frames) box.classList.add("changed");
+  const name = element("div", "frame-name");
+  name.appendChild(element("span", "mono", frame.name));
+  box.appendChild(name);
+  if (frame.vars.length === 0) {
+    box.appendChild(element("span", "frame-empty", UI_TEXT.frameNoVars));
+    return box;
+  }
+  const vars = element("div", "vars");
+  frame.vars.forEach(function (variable) {
+    vars.appendChild(variableChip(variable, index + ":" + variable.name, changed));
+  });
+  box.appendChild(vars);
+  return box;
+}
+
+function threadStacks(process, changed) {
+  const wrap = element("div", "thread-stacks");
+  wrap.style.gridTemplateColumns = "repeat(" + process.threads.length + ", minmax(0, 1fr))";
+  process.threads.forEach(function (thread) {
+    const box = element("div", "thread-stack");
+    if (changed.threads.indexOf(thread.id) !== -1) box.classList.add("changed");
+    box.appendChild(element("span", "thread-name mono", thread.id));
+    const frames = element("div", "frames");
+    thread.stack.forEach(function (frame) {
+      const row = element("div", "frame thread");
+      row.appendChild(element("span", "frame-name mono", frame.name));
+      if (frame.vars.length > 0) {
+        const vars = element("div", "vars");
+        frame.vars.forEach(function (variable) {
+          const chip = element("span", "var");
+          chip.appendChild(element("span", "vname mono", variable.name));
+          chip.appendChild(element("span", "vval mono", variable.value));
+          vars.appendChild(chip);
+        });
+        row.appendChild(vars);
+      }
+      frames.appendChild(row);
+    });
+    box.appendChild(frames);
+    wrap.appendChild(box);
+  });
+  return wrap;
+}
+
+function stackRegion(process, changed) {
+  const region = element("section", "map-region stack");
+  if (process.threads.length > 0) {
+    region.appendChild(regionHead(REGIONS.stack, element("span", "region-gloss", UI_TEXT.threadStacksNote)));
+    region.appendChild(threadStacks(process, changed));
+    return region;
+  }
+  if (process.stack.length === 0) {
+    region.appendChild(regionHead(REGIONS.stack, element("p", "region-empty", UI_TEXT.stackEmpty)));
+    return region;
+  }
+  region.appendChild(regionHead(REGIONS.stack));
+  const frames = element("div", "frames");
+  process.stack.forEach(function (frame, index) {
+    frames.appendChild(frameBox(frame, index, index === process.stack.length - 1, changed));
+  });
+  region.appendChild(frames);
+  return region;
+}
+
+function blockBox(segment, changed) {
+  const box = element("div", "block");
+  const key = segmentKey(segment);
+  if (segment.kind === "hole") box.classList.add("hole");
+  if (segment.lost) box.classList.add("lost");
+  if (changed.segments.indexOf(key) !== -1) box.classList.add("changed");
+  if (segment.kind === "block") box.dataset.segId = segment.id;
+  box.appendChild(element("span", "addr mono", segment.address));
+  box.appendChild(element("span", "size mono", fill(UI_TEXT.blockSize, { size: segment.size })));
+  if (segment.value) box.appendChild(element("span", "held mono", segment.value));
+  if (segment.kind === "hole") box.appendChild(element("span", "block-note", UI_TEXT.blockFree));
+  if (segment.lost) box.appendChild(element("span", "block-note", UI_TEXT.blockLost));
+  return box;
+}
+
+function heapRegion(process, changed) {
+  const region = element("section", "map-region heap");
+  if (process.heap.length === 0) {
+    region.appendChild(regionHead(REGIONS.heap, element("p", "region-empty", UI_TEXT.heapEmpty)));
+    return region;
+  }
+  region.appendChild(regionHead(REGIONS.heap));
+  const blocks = element("div", "blocks");
+  process.heap.forEach(function (segment) {
+    blocks.appendChild(blockBox(segment, changed));
+  });
+  region.appendChild(blocks);
+  return region;
+}
+
+function dataRegion(process, changed) {
+  const region = element("section", "map-region data");
+  if (process.data.length === 0) {
+    region.appendChild(regionHead(REGIONS.data, element("p", "region-empty", UI_TEXT.dataEmpty)));
+    return region;
+  }
+  region.appendChild(regionHead(REGIONS.data));
+  const rows = element("div", "region-rows");
+  process.data.forEach(function (variable) {
+    const row = element("div", "row");
+    if (changed.data.indexOf(variable.name) !== -1) row.classList.add("changed");
+    row.appendChild(element("span", "rname mono", variable.name));
+    row.appendChild(element("span", "rval mono", variable.value));
+    rows.appendChild(row);
+  });
+  region.appendChild(rows);
+  return region;
+}
+
+function textRegion(process) {
+  const region = element("section", "map-region text");
+  const row = element("div", "row");
+  row.appendChild(element("span", "rname mono", PROGRAMS[process.program].file));
+  row.appendChild(element("span", "block-note", UI_TEXT.textNote));
+  region.appendChild(regionHead(REGIONS.text, row));
+  return region;
+}
+
+function freeBand() {
+  const band = element("div", "free-band");
+  band.appendChild(element("span", "region-name mono", REGIONS.free.label));
+  band.appendChild(element("span", "region-gloss", REGIONS.free.gloss));
+  return band;
+}
+
+function processColumn(process, snapshot, withHead) {
+  const changed = snapshot.changed[process.id];
+  const column = element("div", "process");
+  if (currentExample().dimInactive && snapshot.focus && snapshot.focus !== process.id) column.classList.add("dim");
+  if (withHead) {
+    const head = element("div", "process-head");
+    head.appendChild(element("span", "name", process.id));
+    head.appendChild(element("span", "pid mono", fill(UI_TEXT.pidLabel, { pid: process.pid })));
+    if (snapshot.focus === process.id) head.appendChild(element("span", "active-chip", UI_TEXT.activeChip));
+    column.appendChild(head);
+  }
+
+  const map = element("div", "map");
+  const arrows = document.createElementNS(SVG_NS, "svg");
+  arrows.setAttribute("class", "map-arrows");
+  map.appendChild(arrows);
+  map.appendChild(stackRegion(process, changed));
+  map.appendChild(freeBand());
+  map.appendChild(heapRegion(process, changed));
+  map.appendChild(dataRegion(process, changed));
+  map.appendChild(textRegion(process));
+  column.appendChild(map);
+  return column;
+}
+
+function renderMemory(snapshot) {
+  const refs = panelRefs.memory;
+  const showAddresses = Boolean(currentExample().addressNote) && snapshot.processes.length > 0;
+  refs.note.hidden = !showAddresses;
+  refs.note.textContent = showAddresses ? UI_TEXT.addressNote : "";
+  refs.body.textContent = "";
+  const solo = snapshot.processes.length === 1;
+  refs.owner.hidden = !solo;
+  refs.owner.textContent = solo
+    ? fill(UI_TEXT.processInHeading, { id: snapshot.processes[0].id, pid: snapshot.processes[0].pid })
+    : "";
+  if (snapshot.processes.length === 0) {
+    refs.body.appendChild(element("p", "empty-state", UI_TEXT.noProcess));
+    return;
+  }
+  const holder = element("div", "processes");
+  if (snapshot.processes.length > 1) holder.classList.add("two");
+  snapshot.processes.forEach(function (process) {
+    holder.appendChild(processColumn(process, snapshot, !solo));
+  });
+  refs.body.appendChild(holder);
+}
+
+function renderPcb(snapshot) {
+  const body = panelRefs.pcb.body;
+  body.textContent = "";
+  if (snapshot.processes.length === 0) {
+    body.appendChild(element("p", "empty-state", UI_TEXT.noProcess));
+    return;
+  }
+  const example = currentExample();
+  const fields = example.pcbFields;
+  const cards = element("div", "pcb-cards" + (example.pcbLayout === "side" ? " side" : ""));
+  body.appendChild(cards);
+  snapshot.processes.forEach(function (process) {
+    const changed = snapshot.changed[process.id];
+    const values = pcbValues(process, fields);
+    const card = element("div", "pcb-card");
+    if (currentExample().dimInactive && snapshot.focus && snapshot.focus !== process.id) card.classList.add("dim");
+    card.appendChild(element("h3", null, fill(UI_TEXT.pcbTitle, { name: process.id })));
+    fields.forEach(function (field) {
+      const row = element("div", "pcb-field");
+      if (changed.pcb.indexOf(field) !== -1) row.classList.add("changed");
+      row.appendChild(element("span", "name", UI_TEXT.pcbLabels[field]));
+      if (field === "context") {
+        card.appendChild(row);
+        card.appendChild(contextBlock(values.context, changed.pcb.indexOf("context") !== -1));
+        return;
+      }
+      if (field === "state" && STATES[values.state]) {
+        const state = STATES[values.state];
+        const chip = element("span", "pcb-state mono", state.label);
+        chip.style.borderColor = state.color;
+        chip.style.background = state.soft;
+        chip.style.color = state.color;
+        row.appendChild(chip);
+        card.appendChild(row);
+        return;
+      }
+      row.appendChild(element("span", "val mono", values[field]));
+      card.appendChild(row);
+    });
+    cards.appendChild(card);
+    process.threads.forEach(function (thread) {
+      cards.appendChild(tcbCard(thread, changed.threads.indexOf(thread.id) !== -1));
+    });
+  });
+}
+
+function stateBox(name) {
+  const state = STATES[name];
+  const width = Math.max(state.label.length * 6.9 + 30, 60);
+  return {
+    x: state.x - width / 2,
+    y: state.y - STATE_DIAGRAM.nodeHeight / 2,
+    w: width,
+    h: STATE_DIAGRAM.nodeHeight,
+    cx: state.x,
+    cy: state.y
+  };
+}
+
+function clipToBox(box, towardX, towardY) {
+  const dx = towardX - box.cx;
+  const dy = towardY - box.cy;
+  const scaleX = dx === 0 ? Infinity : (box.w / 2 + 3) / Math.abs(dx);
+  const scaleY = dy === 0 ? Infinity : (box.h / 2 + 3) / Math.abs(dy);
+  const ratio = Math.min(scaleX, scaleY);
+  return { x: box.cx + dx * ratio, y: box.cy + dy * ratio };
+}
+
+function svgNode(tag, attributes) {
+  const node = document.createElementNS(SVG_NS, tag);
+  Object.keys(attributes).forEach(function (key) { node.setAttribute(key, attributes[key]); });
+  return node;
+}
+
+function edgeGeometry(edge) {
+  const from = stateBox(edge.from);
+  const to = stateBox(edge.to);
+  const dx = to.cx - from.cx;
+  const dy = to.cy - from.cy;
+  const length = Math.sqrt(dx * dx + dy * dy) || 1;
+  const perpX = -dy / length;
+  const perpY = dx / length;
+  const controlX = (from.cx + to.cx) / 2 + perpX * edge.bend;
+  const controlY = (from.cy + to.cy) / 2 + perpY * edge.bend;
+  const start = clipToBox(from, controlX, controlY);
+  const end = clipToBox(to, controlX, controlY);
+  const tipFromX = edge.bend === 0 ? start.x : controlX;
+  const tipFromY = edge.bend === 0 ? start.y : controlY;
+  const tipDx = end.x - tipFromX;
+  const tipDy = end.y - tipFromY;
+  const tipLength = Math.sqrt(tipDx * tipDx + tipDy * tipDy) || 1;
+  const dirX = tipDx / tipLength;
+  const dirY = tipDy / tipLength;
+  const baseX = end.x - dirX * 8;
+  const baseY = end.y - dirY * 8;
+  const t = edge.at === undefined ? 0.5 : edge.at;
+  const midX = edge.bend === 0
+    ? start.x + (end.x - start.x) * t
+    : Math.pow(1 - t, 2) * start.x + 2 * (1 - t) * t * controlX + Math.pow(t, 2) * end.x;
+  const midY = edge.bend === 0
+    ? start.y + (end.y - start.y) * t
+    : Math.pow(1 - t, 2) * start.y + 2 * (1 - t) * t * controlY + Math.pow(t, 2) * end.y;
+  const nudgeX = edge.nudgeX || 0;
+  const nudgeY = edge.nudgeY || 0;
+  return {
+    anchorX: midX,
+    anchorY: midY,
+    path: edge.bend === 0
+      ? "M " + start.x + " " + start.y + " L " + end.x + " " + end.y
+      : "M " + start.x + " " + start.y + " Q " + controlX + " " + controlY + " " + end.x + " " + end.y,
+    arrow: end.x + "," + end.y + " " + (baseX - dirY * 3.6) + "," + (baseY + dirX * 3.6) + " " +
+      (baseX + dirY * 3.6) + "," + (baseY - dirX * 3.6),
+    midX: midX + nudgeX,
+    midY: midY + nudgeY,
+    perpX: perpX,
+    perpY: perpY
+  };
+}
+
+function labelHitsBox(x, y, halfWidth, boxes) {
+  return boxes.some(function (box) {
+    return x + halfWidth > box.x - 3 && x - halfWidth < box.x + box.w + 3 && y > box.y - 5 && y < box.y + box.h + 5;
+  });
+}
+
+function placeEdgeLabel(geometry, edge, boxes, taken, bounds) {
+  const halfWidth = edge.label.length * 2.5;
+  const attempts = [1, 1.45, 1.9, -1, -1.45, 2.4, -1.9];
+  let chosen = null;
+  attempts.forEach(function (factor) {
+    if (chosen) return;
+    const x = geometry.midX + geometry.perpX * edge.labelOffset * factor;
+    const y = geometry.midY + geometry.perpY * edge.labelOffset * factor;
+    const inside = x - halfWidth > 1 && x + halfWidth < bounds.width - 1 && y > 7 && y < bounds.height - 5;
+    if (inside && !labelHitsBox(x, y, halfWidth, boxes) && !labelHitsBox(x, y, halfWidth, taken)) {
+      chosen = { x: x, y: y };
+    }
+  });
+  if (!chosen) {
+    chosen = {
+      x: geometry.midX + geometry.perpX * edge.labelOffset,
+      y: geometry.midY + geometry.perpY * edge.labelOffset
+    };
+  }
+  taken.push({ x: chosen.x - halfWidth, y: chosen.y - 6, w: halfWidth * 2, h: 12 });
+  return chosen;
+}
+
+function diagramBounds(viewBox) {
+  const parts = viewBox.split(" ");
+  return { width: Number(parts[2]), height: Number(parts[3]) };
+}
+
+function renderStates(snapshot) {
+  const example = currentExample();
+  const body = panelRefs.states.body;
+  body.textContent = "";
+  const svg = svgNode("svg", {
+    class: "states-diagram",
+    viewBox: example.diagramViewBox || STATE_DIAGRAM.viewBox,
+    preserveAspectRatio: "xMidYMid meet",
+    "aria-hidden": "true"
+  });
+  const byDecider = Boolean(example.filter);
+  const viewBox = example.diagramViewBox || STATE_DIAGRAM.viewBox;
+  const bounds = diagramBounds(viewBox);
+  const boxes = example.states.map(stateBox);
+  const taken = [];
+  const focusChange = snapshot.focus ? snapshot.changed[snapshot.focus] : null;
+  const activeEdge = focusChange && focusChange.state && focusChange.state.from
+    ? focusChange.state.from + ">" + focusChange.state.to
+    : null;
+
+  STATE_EDGES.forEach(function (edge) {
+    const id = edge.from + ">" + edge.to;
+    if (example.transitions.indexOf(id) === -1) return;
+    const geometry = edgeGeometry(edge);
+    const active = id === activeEdge;
+    const faded = byDecider && view.filter !== "all" && view.filter !== edge.decider;
+    const tone = byDecider ? DECIDERS[edge.decider].color : null;
+    const path = svgNode("path", {
+      class: "state-edge" + (active && !byDecider ? " active" : "") + (active ? " strong" : "") + (faded ? " faded" : ""),
+      d: geometry.path
+    });
+    const arrow = svgNode("polygon", {
+      class: "state-arrow" + (active && !byDecider ? " active" : "") + (faded ? " faded" : ""),
+      points: geometry.arrow
+    });
+    if (tone) {
+      path.style.stroke = tone;
+      arrow.style.fill = tone;
+    }
+    svg.appendChild(path);
+    svg.appendChild(arrow);
+    const spot = placeEdgeLabel(geometry, edge, boxes, taken, bounds);
+    const distancia = Math.sqrt(Math.pow(spot.x - geometry.anchorX, 2) + Math.pow(spot.y - geometry.anchorY, 2));
+    if (distancia > 15) {
+      const leader = svgNode("line", {
+        class: "edge-leader" + (faded ? " faded" : ""),
+        x1: spot.x, y1: spot.y, x2: geometry.anchorX, y2: geometry.anchorY
+      });
+      if (tone) leader.style.stroke = tone;
+      svg.appendChild(leader);
+    }
+    const label = svgNode("text", {
+      class: "edge-label" + (active && !byDecider ? " active" : "") + (faded ? " faded" : ""),
+      x: spot.x,
+      y: spot.y,
+      "text-anchor": "middle",
+      "dominant-baseline": "middle"
+    });
+    if (tone) label.style.fill = tone;
+    label.textContent = edge.label;
+    svg.appendChild(label);
+  });
+
+  example.states.forEach(function (name) {
+    const state = STATES[name];
+    const box = stateBox(name);
+    const holders = snapshot.processes.filter(function (process) { return process.state === name; });
+    const holdsFocus = holders.some(function (process) { return process.id === snapshot.focus; });
+    const group = svgNode("g", { class: "state-node" });
+    group.appendChild(svgNode("rect", {
+      x: box.x, y: box.y, width: box.w, height: box.h, rx: 7,
+      fill: holdsFocus ? state.color : state.soft,
+      stroke: state.color,
+      "stroke-width": holders.length > 0 ? 2.4 : 1.4
+    }));
+    const label = svgNode("text", {
+      x: box.cx, y: box.cy - 5, "text-anchor": "middle", "dominant-baseline": "middle",
+      fill: holdsFocus ? "#fff" : state.color
+    });
+    label.textContent = state.label;
+    group.appendChild(label);
+    if (holders.length > 0) {
+      const chips = svgNode("text", {
+        class: "holders", x: box.cx, y: box.cy + 9, "text-anchor": "middle", "dominant-baseline": "middle",
+        fill: holdsFocus ? "#fff" : state.color
+      });
+      chips.textContent = holders.map(function (process) { return process.id; }).join(" ");
+      group.appendChild(chips);
+    }
+    svg.appendChild(group);
+  });
+
+  body.appendChild(svg);
+  const legend = element("div", "state-legend");
+  example.states.forEach(function (name) {
+    const state = STATES[name];
+    const item = element("span", "item");
+    const dot = element("span", "dot");
+    dot.style.borderColor = state.color;
+    dot.style.background = state.soft;
+    item.appendChild(dot);
+    item.appendChild(element("span", "name mono", state.label));
+    item.appendChild(element("span", null, state.gloss));
+    legend.appendChild(item);
+  });
+  body.appendChild(legend);
+}
+
+function contextRows(context, changedFields) {
+  const rows = element("div", "ctx-rows");
+  Object.keys(context).forEach(function (key) {
+    const row = element("div", "ctx-row");
+    if (changedFields.indexOf(key) !== -1) row.classList.add("changed");
+    row.appendChild(element("span", "name mono", key));
+    row.appendChild(element("span", "val mono", context[key]));
+    rows.appendChild(row);
+  });
+  return rows;
+}
+
+function occupancyRow(kind, label, gloss, processes, capacity, changed, usage, emptyText) {
+  const block = element("div", "occ-block " + kind);
+  const head = element("div", "occ-head");
+  head.appendChild(element("span", "occ-name mono", label));
+  head.appendChild(element("span", "region-gloss", gloss));
+  if (processes.length === 0) {
+    if (emptyText) head.appendChild(element("span", "occ-empty", emptyText));
+    block.appendChild(head);
+    return block;
+  }
+  if (usage) head.appendChild(element("span", "occ-usage", usage));
+  block.appendChild(head);
+  const bar = element("div", "occ-bar");
+  let used = 0;
+  processes.forEach(function (process) {
+    used += process.footprint;
+    const cell = element("div", "occ-cell");
+    cell.style.flexGrow = process.footprint;
+    cell.style.flexBasis = "0";
+    if (changed.indexOf(process.id) !== -1) cell.classList.add("changed");
+    cell.appendChild(element("span", "who mono", process.id));
+    cell.appendChild(element("span", "units mono", process.footprint));
+    bar.appendChild(cell);
+  });
+  const rest = capacity - used;
+  if (rest > 0) {
+    const cell = element("div", "occ-cell " + (kind === "memory" ? "free" : "spacer"));
+    cell.style.flexGrow = rest;
+    cell.style.flexBasis = "0";
+    if (kind === "memory") cell.appendChild(element("span", "who", UI_TEXT.occupancy.free));
+    bar.appendChild(cell);
+  }
+  block.appendChild(bar);
+  return block;
+}
+
+function renderOccupancy(snapshot) {
+  const body = panelRefs.occupancy.body;
+  const capacity = currentExample().capacity;
+  const text = UI_TEXT.occupancy;
+  body.textContent = "";
+  const moved = snapshot.processes
+    .filter(function (process) { return snapshot.changed[process.id].location; })
+    .map(function (process) { return process.id; });
+  const at = function (where) {
+    return snapshot.processes.filter(function (process) { return process.location === where; });
+  };
+  const resident = at("memory");
+  const used = resident.reduce(function (sum, process) { return sum + process.footprint; }, 0);
+  body.appendChild(occupancyRow("memory", text.memoryLabel, text.memoryGloss, resident, capacity, moved,
+    fill(text.unitsUsed, { used: used, total: capacity }), null));
+  body.appendChild(occupancyRow("swap", text.swapLabel, text.swapGloss, at("swap"), capacity, moved, null, text.swapEmpty));
+  const pending = at("pending");
+  if (pending.length > 0) {
+    body.appendChild(occupancyRow("pending", text.pendingLabel, text.pendingGloss, pending, capacity, moved, null, null));
+  }
+}
+
+function renderCounters(snapshot) {
+  const body = panelRefs.counters.body;
+  body.textContent = "";
+  const values = {
+    multiprogramming: residentProcesses(snapshot.processes).length,
+    multiprocessing: snapshot.processes.filter(function (process) { return process.state === "RUNNING"; }).length
+  };
+  UI_TEXT.counters.forEach(function (entry) {
+    const box = element("div", "counter-box");
+    const top = element("div", "counter-top");
+    top.appendChild(element("span", "counter-label", entry.label));
+    top.appendChild(element("span", "counter-value mono", values[entry.key]));
+    box.appendChild(top);
+    box.appendChild(element("span", "counter-gloss", entry.gloss));
+    body.appendChild(box);
+  });
+}
+
+function renderDeciders(snapshot) {
+  const body = panelRefs.deciders.body;
+  const transitions = currentBuilt().transitions;
+  body.textContent = "";
+  if (transitions.length === 0) {
+    body.appendChild(element("p", "empty-state", UI_TEXT.deciders.empty));
+    return;
+  }
+  const list = element("div", "decider-list");
+  transitions.forEach(function (entry) {
+    const decider = DECIDERS[entry.decider];
+    const row = element("div", "decider-row");
+    if (entry.stepIndex === snapshot.index) row.classList.add("current");
+    if (entry.stepIndex > snapshot.index) row.classList.add("later");
+    if (view.filter !== "all" && view.filter !== entry.decider) row.classList.add("faded");
+    row.appendChild(element("span", "decider-step mono", fill(UI_TEXT.deciders.stepLabel, { n: entry.stepIndex + 1 })));
+    row.appendChild(element("span", "decider-who mono", entry.processId));
+    const change = element("span", "decider-change mono");
+    change.appendChild(element("span", null, STATES[entry.from].label));
+    change.appendChild(element("span", "arrow", "\u2192"));
+    change.appendChild(element("span", null, STATES[entry.to].label));
+    row.appendChild(change);
+    const tag = element("span", "decider-tag", decider.short);
+    tag.style.color = decider.color;
+    tag.style.borderColor = decider.color;
+    row.appendChild(tag);
+    list.appendChild(row);
+  });
+  body.appendChild(list);
+}
+
+function renderCpu(snapshot) {
+  const refs = panelRefs.cpu;
+  const body = refs.body;
+  refs.note.hidden = false;
+  refs.note.textContent = UI_TEXT.cpu.note;
+  body.textContent = "";
+  const owner = element("div", "cpu-owner");
+  if (snapshot.changedCpu.owner) owner.classList.add("changed");
+  owner.appendChild(element("span", "label", UI_TEXT.cpu.ownerLabel));
+  owner.appendChild(element("span", "value", snapshot.cpu.owner || UI_TEXT.none));
+  body.appendChild(owner);
+  if (!snapshot.cpu.context) {
+    body.appendChild(element("p", "cpu-empty", UI_TEXT.cpu.empty));
+    return;
+  }
+  body.appendChild(element("span", "ctx-caption", UI_TEXT.cpu.contextLabel));
+  body.appendChild(contextRows(snapshot.cpu.context, snapshot.changedCpu.fields));
+}
+
+function timelineLane(name, segments, freshUnits, byState) {
+  const lane = element("div", "tl-lane");
+  lane.appendChild(element("span", "tl-name mono", name));
+  const track = element("div", "tl-track");
+  segments.forEach(function (segment, index) {
+    const isLast = index === segments.length - 1;
+    const kind = byState ? "state" : segment.kind;
+    const box = element("div", "tl-seg " + (byState ? "" : kind));
+    box.style.flexGrow = segment.units;
+    box.style.flexBasis = "0";
+    if (isLast && freshUnits > 0) box.classList.add("fresh");
+    if (byState && segment.kind !== "none" && STATES[segment.kind]) {
+      const state = STATES[segment.kind];
+      box.style.borderColor = state.color;
+      box.style.background = state.soft;
+      box.style.color = state.color;
+      box.textContent = state.label;
+      box.title = state.label;
+    } else if (byState) {
+      box.classList.add("none");
+    } else if (kind === "busy") {
+      box.textContent = segment.label;
+      box.title = fill(UI_TEXT.timeline.kinds.busy, { label: segment.label });
+    } else {
+      box.textContent = UI_TEXT.timeline.shortKinds[kind];
+      box.title = UI_TEXT.timeline.kinds[kind];
+    }
+    track.appendChild(box);
+  });
+  lane.appendChild(track);
+  return lane;
+}
+
+function tcbCard(thread, changed) {
+  const card = element("div", "tcb-card");
+  if (changed) card.classList.add("changed");
+  card.appendChild(element("h3", null, fill(UI_TEXT.tcbTitle, { id: thread.id })));
+  const stateRow = element("div", "pcb-field");
+  stateRow.appendChild(element("span", "name", UI_TEXT.tcbLabels.state));
+  if (STATES[thread.state]) {
+    const state = STATES[thread.state];
+    const chip = element("span", "pcb-state mono", state.label);
+    chip.style.borderColor = state.color;
+    chip.style.background = state.soft;
+    chip.style.color = state.color;
+    stateRow.appendChild(chip);
+  }
+  card.appendChild(stateRow);
+  const lineRow = element("div", "pcb-field");
+  lineRow.appendChild(element("span", "name", UI_TEXT.tcbLabels.line));
+  lineRow.appendChild(element("span", "val mono", thread.line === null ? UI_TEXT.none : thread.line));
+  card.appendChild(lineRow);
+  return card;
+}
+
+function renderTimeline(snapshot) {
+  const refs = panelRefs.timeline;
+  const body = refs.body;
+  refs.note.hidden = false;
+  refs.note.textContent = "";
+  const legend = element("span", "tl-legend");
+  UI_TEXT.timeline.legend.forEach(function (entry) {
+    const item = element("span", "item");
+    item.appendChild(element("span", "swatch " + entry.kind));
+    item.appendChild(element("span", null, entry.text));
+    legend.appendChild(item);
+  });
+  refs.note.appendChild(legend);
+  body.textContent = "";
+  if (snapshot.timeline.units === 0) {
+    body.appendChild(element("p", "empty-state", UI_TEXT.timeline.empty));
+    return;
+  }
+  const lanes = element("div", "tl-lanes");
+  lanes.appendChild(timelineLane(UI_TEXT.timeline.cpuLane, snapshot.timeline.cpu, snapshot.freshUnits, false));
+  snapshot.processes.forEach(function (process) {
+    const segments = snapshot.timeline.lanes[process.id] || [];
+    if (segments.length === 0) return;
+    lanes.appendChild(timelineLane(process.id, segments, snapshot.freshUnits, true));
+  });
+  body.appendChild(lanes);
+}
+
+function contextBlock(context, changed) {
+  const box = element("div", "pcb-context");
+  if (changed) box.classList.add("changed");
+  if (!context) {
+    box.classList.add("empty");
+    box.appendChild(element("p", "pcb-context-empty", UI_TEXT.pcbContextEmpty));
+    return box;
+  }
+  box.appendChild(contextRows(context, []));
+  return box;
+}
+
+function takeawayBlock(text) {
+  const box = element("div", "takeaway");
+  box.appendChild(element("span", "tag", UI_TEXT.takeawayTag));
+  box.appendChild(element("span", "line", text));
+  return box;
+}
+
+function compareBlock(compare) {
+  const wrapper = element("div", "compare");
+  const table = element("table");
+  const head = element("tr");
+  compare.headers.forEach(function (text, index) {
+    const cell = element("th", index === 0 ? null : "head-region", text);
+    head.appendChild(cell);
+  });
+  table.appendChild(head);
+  compare.rows.forEach(function (cells) {
+    const row = element("tr");
+    cells.forEach(function (text, index) {
+      row.appendChild(element("td", index === 0 ? "label" : null, text));
+    });
+    table.appendChild(row);
+  });
+  wrapper.appendChild(table);
+  return wrapper;
+}
+
+function renderNarration(snapshot) {
+  const example = currentExample();
+  dom.narration.textContent = "";
+  dom.narration.classList.toggle("with-extras", snapshot.last);
+  const main = element("div", "narration-main");
+  const paragraph = element("p", "narration-text");
+  renderRich(paragraph, snapshot.narration);
+  main.appendChild(paragraph);
+  if (snapshot.note) {
+    const note = element("p", "narration-note");
+    renderRich(note, snapshot.note);
+    main.appendChild(note);
+  }
+  dom.narration.appendChild(main);
+  if (!snapshot.last) return;
+  const extras = element("div", "narration-extras");
+  extras.appendChild(takeawayBlock(example.closing));
+  dom.narration.appendChild(extras);
+  if (!example.compare) return;
+  const table = compareBlock(example.compare);
+  table.classList.add("full");
+  dom.narration.appendChild(table);
+}
+
+function arrowPath(map, source, target) {
+  const mapBox = map.getBoundingClientRect();
+  const from = source.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  const channel = mapBox.width - 6;
+  const startX = from.right - mapBox.left + 2;
+  const startY = from.top - mapBox.top + from.height / 2;
+  const endX = to.right - mapBox.left + 4;
+  const endY = to.top - mapBox.top + to.height / 2;
+  return {
+    points: startX + "," + startY + " " + channel + "," + startY + " " + channel + "," + endY + " " + endX + "," + endY,
+    head: endX + "," + endY + " " + (endX + 6) + "," + (endY - 4) + " " + (endX + 6) + "," + (endY + 4)
+  };
+}
+
+function drawArrows() {
+  const maps = document.querySelectorAll(".map");
+  Array.prototype.forEach.call(maps, function (map) {
+    const svg = map.querySelector(".map-arrows");
+    const box = map.getBoundingClientRect();
+    svg.textContent = "";
+    svg.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
+    svg.setAttribute("width", box.width);
+    svg.setAttribute("height", box.height);
+    const sources = map.querySelectorAll("[data-points-to]");
+    Array.prototype.forEach.call(sources, function (source) {
+      const target = map.querySelector('[data-seg-id="' + source.dataset.pointsTo + '"]');
+      if (!target) return;
+      const shape = arrowPath(map, source, target);
+      const line = document.createElementNS(SVG_NS, "polyline");
+      line.setAttribute("points", shape.points);
+      line.setAttribute("fill", "none");
+      line.setAttribute("stroke", "currentColor");
+      line.setAttribute("stroke-width", "1.5");
+      const head = document.createElementNS(SVG_NS, "polygon");
+      head.setAttribute("points", shape.head);
+      head.setAttribute("fill", "currentColor");
+      svg.appendChild(line);
+      svg.appendChild(head);
+    });
+    svg.style.color = "var(--pointer)";
+  });
+}
+
+function render() {
+  const example = currentExample();
+  const snapshot = currentSnapshot();
+  const total = currentSnapshots().length;
+  buildCanvas(example);
+  dom.title.textContent = example.number + ". " + example.title;
+  dom.subtitle.textContent = example.subtitle;
+  dom.granularity.textContent = example.stepUnit;
+  renderFilter();
+  canvasPanels(example).forEach(function (id) { PANELS[id].render(snapshot); });
+  renderNarration(snapshot);
+  drawArrows();
+  dom.progress.textContent = fill(UI_TEXT.progress, { current: view.stepIndex + 1, total: total });
+  dom.progressFill.style.transform = "scaleX(" + ((view.stepIndex + 1) / total) + ")";
+  dom.first.disabled = view.stepIndex === 0;
+  dom.prev.disabled = view.stepIndex === 0;
+  dom.next.disabled = view.stepIndex === total - 1;
+  dom.last.disabled = view.stepIndex === total - 1;
+  dom.play.textContent = view.playing ? UI_TEXT.pause : UI_TEXT.play;
+  Array.prototype.forEach.call(dom.exampleList.children, function (button, index) {
+    button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
+  });
+}
+
+function goTo(index) {
+  const total = currentSnapshots().length;
+  view.stepIndex = Math.max(0, Math.min(index, total - 1));
+  render();
+  if (view.playing && view.stepIndex === total - 1) stopPlaying();
+}
+
+function selectExample(index) {
+  stopPlaying();
+  view.exampleIndex = index;
+  view.stepIndex = 0;
+  view.filter = "all";
+  render();
+}
+
+function stopPlaying() {
+  view.playing = false;
+  if (view.timer) { clearTimeout(view.timer); view.timer = null; }
+  dom.play.textContent = UI_TEXT.play;
+}
+
+function scheduleTick() {
+  if (view.timer) clearTimeout(view.timer);
+  view.timer = setTimeout(function () {
+    if (!view.playing) return;
+    if (view.stepIndex >= currentSnapshots().length - 1) { stopPlaying(); render(); return; }
+    goTo(view.stepIndex + 1);
+    if (view.playing) scheduleTick();
+  }, AUTOPLAY_DELAY);
+}
+
+function startPlaying() {
+  view.playing = true;
+  scheduleTick();
+  render();
+}
+
+function togglePlaying() {
+  if (view.playing) { stopPlaying(); render(); return; }
+  startPlaying();
+}
+
+function lookupTooltip(key) {
+  if (key.indexOf("panel:") === 0) return PANEL_TIPS[key.slice(6)];
+  return TOOLTIPS[key];
+}
+
+function showTooltip(trigger) {
+  const tip = lookupTooltip(trigger.dataset.tip);
+  if (!tip) return;
+  dom.tooltip.textContent = "";
+  dom.tooltip.appendChild(element("strong", "tip-title", tip.title));
+  dom.tooltip.appendChild(document.createTextNode(tip.body));
+  dom.tooltip.classList.add("open");
+  const box = trigger.getBoundingClientRect();
+  const width = dom.tooltip.offsetWidth;
+  const height = dom.tooltip.offsetHeight;
+  let left = box.left;
+  if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+  let top = box.top - height - 8;
+  if (top < 8) top = box.bottom + 8;
+  dom.tooltip.style.left = Math.max(8, left) + "px";
+  dom.tooltip.style.top = top + "px";
+}
+
+function hideTooltip() { dom.tooltip.classList.remove("open"); }
+
+function closestElement(target, selector) {
+  return target && typeof target.closest === "function" ? target.closest(selector) : null;
+}
+
+dom.first.addEventListener("click", function () { stopPlaying(); goTo(0); });
+dom.prev.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex - 1); });
+dom.next.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex + 1); });
+dom.last.addEventListener("click", function () { stopPlaying(); goTo(currentSnapshots().length - 1); });
+dom.play.addEventListener("click", togglePlaying);
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "ArrowRight") { stopPlaying(); goTo(view.stepIndex + 1); event.preventDefault(); }
+  if (event.key === "ArrowLeft") { stopPlaying(); goTo(view.stepIndex - 1); event.preventDefault(); }
+  if (event.key === "Home") { stopPlaying(); goTo(0); event.preventDefault(); }
+  if (event.key === "End") { stopPlaying(); goTo(currentSnapshots().length - 1); event.preventDefault(); }
+  if (event.key === "Escape") hideTooltip();
+});
+
+document.addEventListener("mouseover", function (event) {
+  const trigger = closestElement(event.target, "[data-tip]");
+  if (trigger) showTooltip(trigger);
+});
+
+document.addEventListener("mouseout", function (event) {
+  if (closestElement(event.target, "[data-tip]")) hideTooltip();
+});
+
+document.addEventListener("click", function (event) {
+  const trigger = closestElement(event.target, "[data-tip]");
+  if (trigger) { showTooltip(trigger); return; }
+  hideTooltip();
+});
+
+document.addEventListener("focusin", function (event) {
+  const trigger = closestElement(event.target, "[data-tip]");
+  if (trigger) showTooltip(trigger);
+});
+
+window.addEventListener("resize", drawArrows);
+
+dom.first.textContent = UI_TEXT.firstStep;
+dom.prev.textContent = UI_TEXT.prevStep;
+dom.next.textContent = UI_TEXT.nextStep;
+dom.last.textContent = UI_TEXT.lastStep;
+dom.play.textContent = UI_TEXT.play;
+
+renderExampleList();
+render();
+</script>
+
+</body>
+</html>
