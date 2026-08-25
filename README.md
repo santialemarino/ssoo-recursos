@@ -12,7 +12,7 @@ clase.
 | Recurso | Qué es |
 |---|---|
 | [Ciclo de instrucción e interrupciones](instruction-cycle-interrupts/) | Un procesador simplificado que ejecuta programas cortos paso a paso: las cinco etapas del ciclo, los registros, la pila del sistema y cómo se atiende una interrupción. Nueve ejemplos en escalera, del programa lineal al cambio de contexto. |
-| [Procesos e hilos](process-lifecycle/) *(sin publicar todavía)* | Un proceso mirado por dentro, paso a paso: `text`, `data`, `heap` y `stack`, lo que cada llamada usa del stack, los estados, el cambio de contexto, la suspensión y el SWAP, los planificadores y los hilos. Ocho ejemplos en escalera, del programa contra el proceso a un proceso con tres hilos. |
+| [Procesos e hilos](process-lifecycle/) | Un proceso mirado por dentro, paso a paso: `text`, `data`, `heap` y `stack`, lo que cada llamada usa del stack, los estados, el cambio de contexto, la suspensión y el SWAP, los planificadores y los hilos. Ocho ejemplos en escalera, del programa contra el proceso a un proceso con tres hilos. |
 
 Cada recurso tiene su propio `README.md` al lado del `index.html`, con lo que hay
 que saber para editarlo: qué enseña, cómo cambiar un texto, cómo agregar un caso y
