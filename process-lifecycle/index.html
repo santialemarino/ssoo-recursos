@@ -95,21 +95,21 @@
   .filters button { padding: 3px 10px; font-size: 12.5px; }
   .filters button[aria-pressed="true"] { color: #fff; }
 
-  .counter-box { border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px 6px; background: var(--region-fill); }
+  .counter-box { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--region-fill); }
   .counter-box + .counter-box { margin-top: 8px; }
   .counter-top { display: flex; align-items: baseline; gap: 8px; }
   .counter-label { font-size: 11.5px; font-weight: 650; color: var(--ink-soft); line-height: 1.25; }
   .counter-value { margin-left: auto; font-size: 20px; font-weight: 800; }
   .counter-gloss { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
 
-  .decider-list { display: flex; flex-direction: column; gap: 2px; }
+  .decider-list { display: flex; flex-direction: column; gap: 3px; }
 
   .decider-row {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 2px 8px;
-    padding: 1px 5px;
+    padding: 2px 6px;
     border-left: 3px solid transparent;
     border-radius: 4px;
     font-size: 11.5px;
@@ -236,7 +236,7 @@
   }
 
   .panel-body {
-    padding: 10px 12px 12px;
+    padding: 8px 11px 8px;
     overflow: auto;
     min-height: 0;
     flex: 1 1 auto;
@@ -296,7 +296,7 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
     padding-right: 16px;
   }
 
@@ -305,7 +305,7 @@
   .map-region {
     border: 1px solid var(--line-strong);
     border-radius: 8px;
-    padding: 2px 6px 2px;
+    padding: 3px 7px;
     background: var(--region-fill);
     display: flex;
     flex-direction: column;
@@ -314,8 +314,9 @@
 
   .map-region.text, .map-region.data { background: var(--region-fill-alt); }
   .map-region.text, .map-region.data { flex: 0 0 auto; }
-  .map-region.stack { flex: 1 1 auto; min-height: 68px; overflow: auto; padding-bottom: 2px; }
-  .map-region.heap { flex: 0 0 auto; min-height: 30px; justify-content: flex-end; }
+  .map-region.stack { flex: 1 1 auto; min-height: 68px; overflow: auto; padding: 5px 7px 3px; }
+  .map-region.heap { flex: 0 0 auto; min-height: 28px; justify-content: flex-end; }
+  .map-region.heap.empty { justify-content: center; }
 
   .region-head { display: flex; align-items: baseline; gap: 7px; flex: 0 0 auto; line-height: 1.3; }
 
@@ -323,19 +324,24 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 12.5px;
     font-weight: 700;
+    line-height: 1.25;
     color: var(--ink);
-    border-bottom: 1px dotted var(--line-strong);
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 1px 8px;
+    cursor: help;
   }
 
-  .region-name:hover { border-bottom-style: solid; }
+  button.region-name:hover { border-color: var(--faint); }
   .region-gloss { font-size: 10.5px; color: var(--muted); }
   .region-grow { font-size: 10.5px; color: var(--faint); margin-left: auto; white-space: nowrap; }
   .region-head { flex-wrap: wrap; }
   .region-head .region-empty { margin: 0 0 0 auto; }
   .region-head .row { margin-left: auto; gap: 7px; padding: 0; }
 
-  .frames { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; }
-  .blocks { display: flex; flex-direction: column-reverse; gap: 3px; margin-top: 3px; }
+  .frames { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .blocks { display: flex; flex-direction: column-reverse; gap: 4px; margin-top: 5px; }
 
   .frame, .block {
     border: 1px solid var(--line-strong);
@@ -347,19 +353,19 @@
   .frame { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
   .frame.top { border-left: 3px solid var(--running); }
 
-  .thread-stacks { display: grid; gap: 3px; margin-top: 2px; align-items: start; }
-  .thread-stack .frames { gap: 1px; margin-top: 1px; }
+  .thread-stacks { display: grid; gap: 5px; margin-top: 6px; align-items: start; }
+  .thread-stack .frames { gap: 3px; margin-top: 4px; }
 
   .thread-stack {
     border: 1.5px solid var(--thread);
     border-radius: 7px;
     background: var(--thread-soft);
-    padding: 1px 4px 2px;
+    padding: 4px 6px;
     min-width: 0;
   }
 
   .thread-stack.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
-  .thread-name { display: block; font-size: 11px; font-weight: 800; color: var(--thread); letter-spacing: 0.03em; }
+  .thread-name { display: block; font-size: 11px; font-weight: 800; color: var(--thread); letter-spacing: 0.03em; margin-bottom: 4px; }
   .frame.thread { border-color: var(--thread); background: var(--card); }
 
   .line-threads { position: absolute; right: 5px; top: 1px; display: flex; gap: 3px; }
@@ -381,10 +387,10 @@
     border: 1.5px solid var(--thread);
     border-radius: 9px;
     background: var(--thread-soft);
-    padding: 4px 8px 5px;
+    padding: 6px 9px;
   }
 
-  .tcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--thread); margin-bottom: 2px; }
+  .tcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--thread); margin-bottom: 4px; }
   .tcb-card.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
   .frame-name { font-size: 11.5px; font-weight: 700; flex: 0 0 auto; }
   .frame-name .mono { font-size: 12px; }
@@ -420,19 +426,19 @@
     flex: 0 0 auto;
     border: 1px dashed var(--line-strong);
     border-radius: 8px;
-    padding: 1px 6px 2px;
-    min-height: 18px;
+    padding: 0 7px;
+    min-height: 16px;
     display: flex;
     align-items: center;
     gap: 7px;
     color: var(--muted);
   }
 
-  .free-band .region-name { color: var(--muted); border: 0; }
+  .free-band .region-name { color: var(--muted); background: transparent; border-color: var(--line); cursor: default; }
 
   .region-empty { font-size: 11px; color: var(--faint); margin-top: 3px; }
 
-  .region-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .region-rows { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
 
   .row {
     display: flex;
@@ -490,7 +496,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 8px;
-    padding: 0 2px 5px;
+    padding: 1px 2px 7px;
     border-bottom: 1px solid var(--line);
   }
 
@@ -499,14 +505,14 @@
   .cpu-owner.changed .label, .cpu-owner.changed .value { color: var(--accent); }
 
   .ctx-caption { display: block; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-top: 7px; }
-  .ctx-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; }
+  .ctx-rows { display: flex; flex-direction: column; gap: 3px; margin-top: 7px; }
 
   .ctx-row {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: 8px;
-    padding: 1px 4px;
+    padding: 2px 4px;
     border-radius: 3px;
     font-size: 12px;
   }
@@ -523,8 +529,8 @@
   .pcb-context {
     border: 1px solid var(--line-strong);
     border-radius: 6px;
-    padding: 1px 5px 2px;
-    margin-top: 2px;
+    padding: 3px 6px;
+    margin-top: 3px;
   }
 
   .pcb-context.empty { border-style: dashed; }
@@ -532,7 +538,7 @@
 
   .panel.occupancy .panel-body { display: flex; flex-direction: column; gap: 10px; }
 
-  .occ-block { border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 7px 6px; background: var(--region-fill); }
+  .occ-block { border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 8px; background: var(--region-fill); }
   .occ-block.swap, .occ-block.pending { border-style: dashed; background: var(--region-fill-alt); }
 
   .occ-head { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
@@ -540,7 +546,7 @@
   .occ-usage { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 650; }
   .occ-empty { margin-left: auto; font-size: 11px; color: var(--faint); }
 
-  .occ-bar { display: flex; gap: 3px; margin-top: 4px; height: 40px; }
+  .occ-bar { display: flex; gap: 4px; margin-top: 7px; height: 42px; }
 
   .occ-cell {
     min-width: 0;
@@ -606,14 +612,14 @@
   .pcb-card {
     border: 1.5px solid var(--line-strong);
     border-radius: 9px;
-    padding: 6px 8px 7px;
+    padding: 7px 9px;
   }
 
   .pcb-cards.side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: start; }
   .pcb-cards.side .pcb-card + .pcb-card { margin-top: 0; }
   .pcb-card + .pcb-card { margin-top: 8px; }
   .pcb-card.dim { opacity: 0.62; }
-  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 3px; }
+  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 5px; }
 
   .pcb-field {
     display: flex;
@@ -621,7 +627,7 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 1px 8px;
-    padding: 1px 4px;
+    padding: 2px 4px;
     border-radius: 3px;
     font-size: 12px;
   }
@@ -3017,6 +3023,7 @@ function blockBox(segment, changed) {
 function heapRegion(process, changed) {
   const region = element("section", "map-region heap");
   if (process.heap.length === 0) {
+    region.classList.add("empty");
     region.appendChild(regionHead(REGIONS.heap, element("p", "region-empty", UI_TEXT.heapEmpty)));
     return region;
   }

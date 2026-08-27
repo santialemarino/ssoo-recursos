@@ -412,11 +412,16 @@ mal pensado. Hay que arreglar el ejemplo, no agregar el concepto.
 
 ## Publicación
 
-El recurso **todavía no está enlazado** desde el índice de la raíz: aparece ahí
-como una tarjeta inerte con un `próximamente`. El archivo se abre igual entrando
-directo a `process-lifecycle/index.html`, que es como lo revisa la cátedra. Cuando
-la clase lo habilite, la tarjeta vuelve a ser un enlace y se saca la marca del
-`README.md` de la raíz.
+El recurso está **enlazado desde el índice de la raíz**, así que un estudiante que
+entra a la portada lo ve y lo abre.
+
+Si en algún momento hay que volver a esconderlo —o cuando entre un recurso nuevo
+que todavía no se dio en clase— el mecanismo es el de siempre: en `index.html` de
+la raíz la tarjeta pasa de `<a class="card" href="...">` a
+`<div class="card soon">` con un `<span class="soon-chip">próximamente</span>` en
+el nombre, y en el `README.md` de la raíz la fila lleva *(sin publicar todavía)*.
+El estilo de esa tarjeta inerte queda en el índice, listo para el próximo recurso.
+Nada de fechas ni de explicaciones: el `próximamente` alcanza.
 
 ---
 

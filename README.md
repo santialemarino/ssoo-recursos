@@ -12,7 +12,7 @@ clase.
 | Recurso | Qué es |
 |---|---|
 | [Ciclo de instrucción e interrupciones](instruction-cycle-interrupts/) | Un procesador simplificado que ejecuta programas cortos paso a paso: las cinco etapas del ciclo, los registros, la pila del sistema y cómo se atiende una interrupción. Nueve ejemplos en escalera, del programa lineal al cambio de contexto. |
-| [Procesos e hilos](process-lifecycle/) *(sin publicar todavía)* | Un proceso mirado por dentro, paso a paso: `text`, `data`, `heap` y `stack`, lo que cada llamada usa del stack, los estados, el cambio de contexto, la suspensión y el SWAP, los planificadores y los hilos. Ocho ejemplos en escalera, del programa contra el proceso a un proceso con tres hilos. |
+| [Procesos e hilos](process-lifecycle/) | Un proceso mirado por dentro, paso a paso: `text`, `data`, `heap` y `stack`, lo que cada llamada usa del stack, los estados, el cambio de contexto, la suspensión y el SWAP, los planificadores y los hilos. Ocho ejemplos en escalera, del programa contra el proceso a un proceso con tres hilos. |
 
 Cada recurso tiene su propio `README.md` al lado del `index.html`, con lo que hay
 que saber para editarlo: qué enseña, cómo cambiar un texto, cómo agregar un caso y
@@ -24,8 +24,9 @@ línea que dice qué es.
 Doble clic en su `index.html`. En la raíz hay un `index.html` que los lista todos,
 por si es más cómodo entrar desde ahí.
 
-Para mandárselo a alguien alcanza con mandar el archivo, o el link al repositorio
-si más adelante se publica en la web.
+Para mandárselo a alguien alcanza con el link: los recursos están publicados en
+https://santialemarino.github.io/ssoo-recursos/. También se puede mandar el
+archivo suelto, que anda igual sin internet.
 
 ## Cómo agregar un recurso
 
