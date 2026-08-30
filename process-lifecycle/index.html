@@ -96,12 +96,22 @@
   .filters button { padding: 3px 10px; font-size: 12.5px; }
   .filters button[aria-pressed="true"] { color: #fff; }
 
-  .counter-box { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--region-fill); }
-  .counter-box + .counter-box { margin-top: 8px; }
-  .counter-top { display: flex; align-items: baseline; gap: 8px; }
-  .counter-label { font-size: 11.5px; font-weight: 650; color: var(--ink-soft); line-height: 1.25; }
-  .counter-value { margin-left: auto; font-size: 20px; font-weight: 800; }
-  .counter-gloss { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .panel.counters .panel-body { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+
+  .counter-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+    background: var(--region-fill);
+  }
+
+  .counter-text { min-width: 0; }
+  .counter-label { display: block; font-size: 11.5px; font-weight: 650; color: var(--ink-soft); line-height: 1.25; }
+  .counter-value { margin-left: auto; font-size: 20px; font-weight: 800; line-height: 1; }
+  .counter-gloss { display: block; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 
   .decider-list { display: flex; flex-direction: column; gap: 3px; }
 
@@ -130,8 +140,9 @@
     font-weight: 700;
     letter-spacing: 0.03em;
     border: 1px solid;
-    border-radius: 4px;
-    padding: 0 5px;
+    border-radius: 5px;
+    padding: 2px 7px;
+    line-height: 1.3;
     white-space: nowrap;
   }
 
@@ -213,7 +224,7 @@
   .panel.memory > h2::before { background: var(--ink-soft); }
   .panel.pcb > h2::before { background: var(--pcb); }
 
-  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; }
+  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; white-space: nowrap; }
   .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
 
   .panel > h2 .file { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; letter-spacing: 0; color: var(--ink-soft); font-size: 12px; }
@@ -224,10 +235,12 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--ink-soft);
+    white-space: nowrap;
   }
 
   .panel > h2 .panel-note {
     margin-left: auto;
+    min-width: 0;
     text-transform: none;
     letter-spacing: 0;
     font-size: 10.5px;
@@ -342,7 +355,7 @@
   .region-head .row { margin-left: auto; gap: 7px; padding: 0; }
 
   .frames { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
-  .blocks { display: flex; flex-direction: column-reverse; gap: 4px; margin-top: 5px; }
+  .blocks { display: flex; flex-direction: column-reverse; gap: 5px; margin-top: 5px; }
 
   .frame, .block {
     border: 1px solid var(--line-strong);
@@ -377,8 +390,8 @@
     color: var(--thread);
     background: var(--thread-soft);
     border: 1px solid var(--thread);
-    border-radius: 4px;
-    padding: 0 4px;
+    border-radius: 5px;
+    padding: 1px 5px;
   }
 
   .thread-chip.current { background: var(--thread); color: #fff; }
@@ -427,8 +440,8 @@
     flex: 0 0 auto;
     border: 1px dashed var(--line-strong);
     border-radius: 8px;
-    padding: 0 7px;
-    min-height: 16px;
+    padding: 3px 7px;
+    min-height: 22px;
     display: flex;
     align-items: center;
     gap: 7px;
@@ -485,6 +498,7 @@
 
   .edge-label.active { fill: var(--marked); font-weight: 700; }
   .edge-leader { stroke: var(--line-strong); stroke-width: 0.7; opacity: 0.75; }
+  .edge-leader.active { stroke: var(--marked); opacity: 1; }
   .edge-leader.faded { opacity: 0.14; }
 
   .state-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; flex: 0 0 auto; }
@@ -525,7 +539,7 @@
 
   .cpu-empty { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 
-  .pcb-state { display: inline-block; padding: 0 7px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1.5px solid; }
+  .pcb-state { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; line-height: 1.3; border: 1.5px solid; }
 
   .pcb-context {
     border: 1px solid var(--line-strong);
@@ -535,6 +549,7 @@
   }
 
   .pcb-context.empty { border-style: dashed; }
+  .pcb-context.changed { border-color: var(--marked); }
   .pcb-context-empty { font-size: 10.5px; color: var(--muted); margin: 0; }
 
   .panel.occupancy .panel-body { display: flex; flex-direction: column; gap: 10px; }
@@ -547,7 +562,7 @@
   .occ-usage { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 650; }
   .occ-empty { margin-left: auto; font-size: 11px; color: var(--faint); }
 
-  .occ-bar { display: flex; gap: 4px; margin-top: 7px; height: 42px; }
+  .occ-bar { display: flex; gap: 6px; margin-top: 7px; height: 42px; }
 
   .occ-cell {
     min-width: 0;
@@ -571,10 +586,10 @@
 
   .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; }
 
-  .tl-lanes { display: flex; flex-direction: column; gap: 3px; }
+  .tl-lanes { display: flex; flex-direction: column; gap: 7px; }
   .tl-lane { display: flex; align-items: stretch; gap: 8px; }
   .tl-name { flex: 0 0 36px; text-align: right; font-size: 10.5px; color: var(--muted); font-weight: 700; align-self: center; }
-  .tl-track { flex: 1 1 auto; display: flex; gap: 2px; min-width: 0; height: 20px; }
+  .tl-track { flex: 1 1 auto; display: flex; gap: 5px; min-width: 0; height: 20px; }
 
   .tl-seg {
     min-width: 0;
@@ -633,6 +648,7 @@
     font-size: 12px;
   }
 
+  .pcb-field + .pcb-field { margin-top: 3px; }
   .pcb-field .name { color: var(--muted); font-size: 11px; font-weight: 650; }
   .pcb-field .val { font-weight: 700; }
   .pcb-field.changed { background: var(--marked-soft); }
@@ -704,10 +720,11 @@
 
   .compare { margin: 7px 0 0; overflow-x: auto; }
   .compare.full { grid-column: 1 / -1; margin: 0; }
-  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.22; }
-  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 2px 0; }
+  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.3; }
+  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 4px 0; }
   .compare th.head-region { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; font-size: 12px; color: var(--ink); letter-spacing: 0; }
-  .compare td { padding: 0 16px 0 0; vertical-align: top; }
+  .compare td { padding: 3px 16px 3px 0; vertical-align: top; }
+  .compare tr + tr td { border-top: 1px solid var(--line); }
   .compare td.label { color: var(--muted); }
 
   .progress-row { display: flex; align-items: center; gap: 10px; padding: 4px 12px 0; }
@@ -3198,7 +3215,45 @@ function svgNode(tag, attributes) {
   return node;
 }
 
-function edgeGeometry(edge) {
+const ARROW_HEADS = {
+  normal: { length: 8.5, halfWidth: 3.4 },
+  strong: { length: 11, halfWidth: 4.6 }
+};
+
+const ARROW_HEAD_OVERLAP = 1;
+
+function distanceBetween(a, b) {
+  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+}
+
+function alongLine(from, to, ratio) {
+  return { x: from.x + (to.x - from.x) * ratio, y: from.y + (to.y - from.y) * ratio };
+}
+
+function onQuadratic(start, control, end, t) {
+  const rest = 1 - t;
+  return {
+    x: rest * rest * start.x + 2 * rest * t * control.x + t * t * end.x,
+    y: rest * rest * start.y + 2 * rest * t * control.y + t * t * end.y
+  };
+}
+
+function quadraticStoppedBefore(start, control, end, gap) {
+  let low = 0;
+  let high = 1;
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const middle = (low + high) / 2;
+    if (distanceBetween(onQuadratic(start, control, end, middle), end) > gap) low = middle;
+    else high = middle;
+  }
+  const t = (low + high) / 2;
+  return {
+    at: onQuadratic(start, control, end, t),
+    control: alongLine(start, control, t)
+  };
+}
+
+function edgeGeometry(edge, head) {
   const from = stateBox(edge.from);
   const to = stateBox(edge.to);
   const dx = to.cx - from.cx;
@@ -3206,38 +3261,37 @@ function edgeGeometry(edge) {
   const length = Math.sqrt(dx * dx + dy * dy) || 1;
   const perpX = -dy / length;
   const perpY = dx / length;
-  const controlX = (from.cx + to.cx) / 2 + perpX * edge.bend;
-  const controlY = (from.cy + to.cy) / 2 + perpY * edge.bend;
-  const start = clipToBox(from, controlX, controlY);
-  const end = clipToBox(to, controlX, controlY);
-  const tipFromX = edge.bend === 0 ? start.x : controlX;
-  const tipFromY = edge.bend === 0 ? start.y : controlY;
-  const tipDx = end.x - tipFromX;
-  const tipDy = end.y - tipFromY;
-  const tipLength = Math.sqrt(tipDx * tipDx + tipDy * tipDy) || 1;
-  const dirX = tipDx / tipLength;
-  const dirY = tipDy / tipLength;
-  const baseX = end.x - dirX * 8;
-  const baseY = end.y - dirY * 8;
+  const control = {
+    x: (from.cx + to.cx) / 2 + perpX * edge.bend,
+    y: (from.cy + to.cy) / 2 + perpY * edge.bend
+  };
+  const start = clipToBox(from, control.x, control.y);
+  const end = clipToBox(to, control.x, control.y);
+  const curved = edge.bend !== 0;
+  const gap = Math.max(head.length - ARROW_HEAD_OVERLAP, 0);
+  const stopped = curved
+    ? quadraticStoppedBefore(start, control, end, gap)
+    : { at: alongLine(end, start, gap / (distanceBetween(start, end) || 1)), control: control };
+  const reach = distanceBetween(stopped.at, end) || 1;
+  const dirX = (end.x - stopped.at.x) / reach;
+  const dirY = (end.y - stopped.at.y) / reach;
+  const base = { x: end.x - dirX * head.length, y: end.y - dirY * head.length };
   const t = edge.at === undefined ? 0.5 : edge.at;
-  const midX = edge.bend === 0
-    ? start.x + (end.x - start.x) * t
-    : Math.pow(1 - t, 2) * start.x + 2 * (1 - t) * t * controlX + Math.pow(t, 2) * end.x;
-  const midY = edge.bend === 0
-    ? start.y + (end.y - start.y) * t
-    : Math.pow(1 - t, 2) * start.y + 2 * (1 - t) * t * controlY + Math.pow(t, 2) * end.y;
+  const anchor = curved ? onQuadratic(start, control, end, t) : alongLine(start, end, t);
   const nudgeX = edge.nudgeX || 0;
   const nudgeY = edge.nudgeY || 0;
   return {
-    anchorX: midX,
-    anchorY: midY,
-    path: edge.bend === 0
-      ? "M " + start.x + " " + start.y + " L " + end.x + " " + end.y
-      : "M " + start.x + " " + start.y + " Q " + controlX + " " + controlY + " " + end.x + " " + end.y,
-    arrow: end.x + "," + end.y + " " + (baseX - dirY * 3.6) + "," + (baseY + dirX * 3.6) + " " +
-      (baseX + dirY * 3.6) + "," + (baseY - dirX * 3.6),
-    midX: midX + nudgeX,
-    midY: midY + nudgeY,
+    anchorX: anchor.x,
+    anchorY: anchor.y,
+    path: curved
+      ? "M " + start.x + " " + start.y + " Q " + stopped.control.x + " " + stopped.control.y +
+        " " + stopped.at.x + " " + stopped.at.y
+      : "M " + start.x + " " + start.y + " L " + stopped.at.x + " " + stopped.at.y,
+    arrow: end.x + "," + end.y + " " +
+      (base.x - dirY * head.halfWidth) + "," + (base.y + dirX * head.halfWidth) + " " +
+      (base.x + dirY * head.halfWidth) + "," + (base.y - dirX * head.halfWidth),
+    midX: anchor.x + nudgeX,
+    midY: anchor.y + nudgeY,
     perpX: perpX,
     perpY: perpY
   };
@@ -3300,8 +3354,8 @@ function renderStates(snapshot) {
   STATE_EDGES.forEach(function (edge) {
     const id = edge.from + ">" + edge.to;
     if (example.transitions.indexOf(id) === -1) return;
-    const geometry = edgeGeometry(edge);
     const active = id === activeEdge;
+    const geometry = edgeGeometry(edge, active ? ARROW_HEADS.strong : ARROW_HEADS.normal);
     const faded = byDecider && view.filter !== "all" && view.filter !== edge.decider;
     const tone = byDecider ? DECIDERS[edge.decider].color : null;
     const path = svgNode("path", {
@@ -3322,7 +3376,7 @@ function renderStates(snapshot) {
     const distancia = Math.sqrt(Math.pow(spot.x - geometry.anchorX, 2) + Math.pow(spot.y - geometry.anchorY, 2));
     if (distancia > 15) {
       const leader = svgNode("line", {
-        class: "edge-leader" + (faded ? " faded" : ""),
+        class: "edge-leader" + (active && !byDecider ? " active" : "") + (faded ? " faded" : ""),
         x1: spot.x, y1: spot.y, x2: geometry.anchorX, y2: geometry.anchorY
       });
       if (tone) leader.style.stroke = tone;
@@ -3464,11 +3518,11 @@ function renderCounters(snapshot) {
   };
   UI_TEXT.counters.forEach(function (entry) {
     const box = element("div", "counter-box");
-    const top = element("div", "counter-top");
-    top.appendChild(element("span", "counter-label", entry.label));
-    top.appendChild(element("span", "counter-value mono", values[entry.key]));
-    box.appendChild(top);
-    box.appendChild(element("span", "counter-gloss", entry.gloss));
+    const text = element("div", "counter-text");
+    text.appendChild(element("span", "counter-label", entry.label));
+    text.appendChild(element("span", "counter-gloss", entry.gloss));
+    box.appendChild(text);
+    box.appendChild(element("span", "counter-value mono", values[entry.key]));
     body.appendChild(box);
   });
 }
@@ -3678,9 +3732,11 @@ function arrowPath(map, source, target) {
   const startY = from.top - mapBox.top + from.height / 2;
   const endX = to.right - mapBox.left + 4;
   const endY = to.top - mapBox.top + to.height / 2;
+  const headLength = 6;
+  const lineEndX = endX + headLength - ARROW_HEAD_OVERLAP;
   return {
-    points: startX + "," + startY + " " + channel + "," + startY + " " + channel + "," + endY + " " + endX + "," + endY,
-    head: endX + "," + endY + " " + (endX + 6) + "," + (endY - 4) + " " + (endX + 6) + "," + (endY + 4)
+    points: startX + "," + startY + " " + channel + "," + startY + " " + channel + "," + endY + " " + lineEndX + "," + endY,
+    head: endX + "," + endY + " " + (endX + headLength) + "," + (endY - 4) + " " + (endX + headLength) + "," + (endY + 4)
   };
 }
 
