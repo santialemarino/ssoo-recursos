@@ -18,8 +18,9 @@
 
     --running: #1d4ed8;
     --running-soft: #e8eefc;
-    --accent: #a85a06;
-    --accent-soft: #fdf0dc;
+    --pcb: #a85a06;
+    --marked: #1c2534;
+    --marked-soft: #e3e8f1;
     --pointer: #35404f;
     --alert: #c0392f;
     --alert-soft: #fbeae8;
@@ -70,7 +71,7 @@
   button:active:not([disabled]) { transform: translateY(1px); }
 
   button:focus-visible, [tabindex]:focus-visible {
-    outline: 3px solid var(--accent);
+    outline: 3px solid var(--marked);
     outline-offset: 2px;
   }
 
@@ -116,7 +117,7 @@
     transition: opacity var(--fast) ease-out;
   }
 
-  .decider-row.current { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 650; }
+  .decider-row.current { background: var(--marked-soft); border-left-color: var(--marked); font-weight: 650; }
   .decider-row.later { color: var(--faint); opacity: 0.55; }
   .decider-row.faded { opacity: 0.28; }
   .decider-step { color: var(--muted); font-size: 10.5px; min-width: 6ch; }
@@ -210,7 +211,7 @@
 
   .panel.source > h2::before { background: var(--running); }
   .panel.memory > h2::before { background: var(--ink-soft); }
-  .panel.pcb > h2::before { background: var(--accent); }
+  .panel.pcb > h2::before { background: var(--pcb); }
 
   .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; }
   .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
@@ -364,7 +365,7 @@
     min-width: 0;
   }
 
-  .thread-stack.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+  .thread-stack.changed { box-shadow: 0 0 0 2px var(--marked); border-color: var(--marked); }
   .thread-name { display: block; font-size: 11px; font-weight: 800; color: var(--thread); letter-spacing: 0.03em; margin-bottom: 4px; }
   .frame.thread { border-color: var(--thread); background: var(--card); }
 
@@ -391,7 +392,7 @@
   }
 
   .tcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--thread); margin-bottom: 4px; }
-  .tcb-card.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+  .tcb-card.changed { box-shadow: 0 0 0 2px var(--marked); border-color: var(--marked); }
   .frame-name { font-size: 11.5px; font-weight: 700; flex: 0 0 auto; }
   .frame-name .mono { font-size: 12px; }
   .frame-empty { font-size: 10.5px; color: var(--faint); }
@@ -453,10 +454,10 @@
   .row .rval { font-weight: 700; margin-left: auto; }
 
   .changed { animation: flash var(--fast) ease-out; }
-  .frame.changed, .block.changed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-  .var.changed, .row.changed { background: var(--accent-soft); border-color: var(--accent); }
-  .var.changed .vname, .row.changed .rname { color: var(--accent); }
-  .var.changed .vval, .row.changed .rval { color: var(--accent); }
+  .frame.changed, .block.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
+  .var.changed, .row.changed { background: var(--marked-soft); border-color: var(--marked); }
+  .var.changed .vname, .row.changed .rname { color: var(--marked); }
+  .var.changed .vval, .row.changed .rval { color: var(--marked); }
 
   .empty-state { font-size: 13px; color: var(--muted); margin: 0; }
 
@@ -467,11 +468,11 @@
   .state-node text { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
   .state-node .holders { font-size: 10px; font-weight: 700; }
   .state-edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
-  .state-edge.active { stroke: var(--accent); stroke-width: 2.6; }
+  .state-edge.active { stroke: var(--marked); stroke-width: 2.6; }
   .state-edge.strong { stroke-width: 3.2; }
   .state-edge.faded, .state-arrow.faded, .edge-label.faded { opacity: 0.16; }
   .state-arrow { fill: var(--line-strong); }
-  .state-arrow.active { fill: var(--accent); }
+  .state-arrow.active { fill: var(--marked); }
 
   .edge-label {
     font-size: 9.5px;
@@ -482,7 +483,7 @@
     stroke-linejoin: round;
   }
 
-  .edge-label.active { fill: var(--accent); font-weight: 700; }
+  .edge-label.active { fill: var(--marked); font-weight: 700; }
   .edge-leader { stroke: var(--line-strong); stroke-width: 0.7; opacity: 0.75; }
   .edge-leader.faded { opacity: 0.14; }
 
@@ -502,7 +503,7 @@
 
   .cpu-owner .label { font-size: 11px; color: var(--muted); font-weight: 650; }
   .cpu-owner .value { font-size: 15px; font-weight: 800; }
-  .cpu-owner.changed .label, .cpu-owner.changed .value { color: var(--accent); }
+  .cpu-owner.changed .label, .cpu-owner.changed .value { color: var(--marked); }
 
   .ctx-caption { display: block; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-top: 7px; }
   .ctx-rows { display: flex; flex-direction: column; gap: 3px; margin-top: 7px; }
@@ -519,8 +520,8 @@
 
   .ctx-row .name { color: var(--muted); font-size: 11px; font-weight: 650; }
   .ctx-row .val { font-weight: 700; }
-  .ctx-row.changed { background: var(--accent-soft); }
-  .ctx-row.changed .name, .ctx-row.changed .val { color: var(--accent); }
+  .ctx-row.changed { background: var(--marked-soft); }
+  .ctx-row.changed .name, .ctx-row.changed .val { color: var(--marked); }
 
   .cpu-empty { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 
@@ -566,7 +567,7 @@
   .occ-cell.free { border-style: dashed; background: transparent; }
   .occ-cell.free .who { font-size: 11px; font-weight: 650; color: var(--muted); }
   .occ-cell.spacer { border: 0; background: transparent; }
-  .occ-cell.changed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .occ-cell.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
 
   .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; }
 
@@ -600,7 +601,7 @@
     background: repeating-linear-gradient(135deg, var(--alert-soft) 0 5px, #f6d5d1 5px 10px);
   }
 
-  .tl-seg.fresh { box-shadow: 0 0 0 2px var(--accent); }
+  .tl-seg.fresh { box-shadow: 0 0 0 2px var(--marked); }
 
   .tl-legend { display: inline-flex; flex-wrap: wrap; gap: 2px 12px; }
   .tl-legend .item { display: inline-flex; align-items: center; gap: 4px; }
@@ -619,7 +620,7 @@
   .pcb-cards.side .pcb-card + .pcb-card { margin-top: 0; }
   .pcb-card + .pcb-card { margin-top: 8px; }
   .pcb-card.dim { opacity: 0.62; }
-  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 5px; }
+  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--pcb); margin-bottom: 5px; }
 
   .pcb-field {
     display: flex;
@@ -634,8 +635,8 @@
 
   .pcb-field .name { color: var(--muted); font-size: 11px; font-weight: 650; }
   .pcb-field .val { font-weight: 700; }
-  .pcb-field.changed { background: var(--accent-soft); }
-  .pcb-field.changed .name, .pcb-field.changed .val { color: var(--accent); }
+  .pcb-field.changed { background: var(--marked-soft); }
+  .pcb-field.changed .name, .pcb-field.changed .val { color: var(--marked); }
 
   footer { flex: 0 0 auto; display: block; min-height: 0; }
 
