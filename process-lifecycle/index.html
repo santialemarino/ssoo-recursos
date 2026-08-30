@@ -1083,7 +1083,7 @@ const TOOLTIPS = {
   },
   cambioDeContexto: {
     title: "Cambio de contexto",
-    body: "Sacar un proceso de la CPU y poner otro: guardar el contexto del que sale en su PCB, elegir al que entra, y cargar el contexto del que entra desde su PCB. Mientras eso pasa, no ejecuta ningún proceso."
+    body: "Copiar un contexto de un lado al otro: de la CPU al PCB del que sale, o del PCB a la CPU del que entra. Cambiar de proceso son dos, uno por cada lado, y mientras pasan no ejecuta ningún proceso."
   },
   quantum: {
     title: "Fin de quantum",
@@ -1624,7 +1624,7 @@ const EXAMPLES = [
       },
       {
         focus: "P1",
-        narration: "[[cambioDeContexto:Cambio de contexto]], paso 1 de 3: el sistema operativo copia el contexto que estaba en la CPU al PCB de P1. La CPU queda vacía.",
+        narration: "[[cambioDeContexto:Cambio de contexto]] 1: el sistema operativo copia el contexto que estaba en la CPU al PCB de P1. La CPU queda vacía.",
         note: "En el recurso anterior, el contexto se apilaba en la pila del sistema. Acá no: va a una estructura que el sistema operativo mantiene para cada proceso, y esa estructura es el [[pcb:PCB]].",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
@@ -1633,14 +1633,14 @@ const EXAMPLES = [
       },
       {
         focus: "P2",
-        narration: "Paso 2 de 3: el sistema operativo elige a quién le da la CPU. P2 está en READY, así que va P2.",
-        note: "Cómo lo elige no es tema de este recurso: por ahora, lo elige.",
+        narration: "El sistema operativo elige a quién le da la CPU. P2 está en READY, así que va P2.",
+        note: "Elegir no es un cambio de contexto: es la decisión que va en el medio de los dos. Cómo elige no es tema de este recurso: por ahora, lo elige.",
         ops: [{ op: "time.advance", units: 1, cpu: { kind: "overhead" } }]
       },
       {
         focus: "P2",
-        narration: "Paso 3 de 3: copia el contexto de P2 desde su PCB a la CPU, y P2 pasa a RUNNING. El casillero de contexto de P2 queda vacío, y el de P1 lleno: se invirtieron.",
-        note: "Los tres pasos juntos son el cambio de contexto. En la línea de tiempo son la banda roja: durante todo ese tiempo no ejecutó ningún proceso.",
+        narration: "Cambio de contexto 2: copia el contexto de P2 desde su PCB a la CPU, y P2 pasa a RUNNING. El casillero de contexto de P2 queda vacío, y el de P1 lleno: se invirtieron.",
+        note: "Cambiar de proceso son dos cambios de contexto: el del que sale y el del que entra. Entre los dos, la decisión de quién sigue. Los tres momentos juntos son la banda roja de la línea de tiempo: durante todo ese tiempo no ejecutó ningún proceso.",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
           { op: "context.load", process: "P2" },
@@ -1671,7 +1671,7 @@ const EXAMPLES = [
       },
       {
         focus: "P2",
-        narration: "Otro cambio de contexto, paso 1 de 3: el contexto de P2 se copia a su PCB y la CPU vuelve a quedar vacía.",
+        narration: "Empieza otro cambio de proceso. Primer cambio de contexto: el de P2 se copia a su PCB y la CPU vuelve a quedar vacía.",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
           { op: "context.save", process: "P2" }
@@ -1679,12 +1679,12 @@ const EXAMPLES = [
       },
       {
         focus: "P1",
-        narration: "Paso 2 de 3: elige a P1, que está en READY desde que terminó su I/O.",
+        narration: "Elige a P1, que está en READY desde que terminó su I/O.",
         ops: [{ op: "time.advance", units: 1, cpu: { kind: "overhead" } }]
       },
       {
         focus: "P1",
-        narration: "Paso 3 de 3: carga el contexto de P1 desde su PCB. Vuelve con el mismo IP y los mismos registros que tenía cuando se bloqueó.",
+        narration: "Segundo cambio de contexto: carga el de P1 desde su PCB. Vuelve con el mismo IP y los mismos registros que tenía cuando se bloqueó.",
         note: "Por eso el contexto se guarda: P1 sigue en la instrucción exacta donde había quedado, sin repetir ni saltear nada.",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
