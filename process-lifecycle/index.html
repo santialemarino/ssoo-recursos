@@ -1088,6 +1088,10 @@ const TOOLTIPS = {
   quantum: {
     title: "Fin de quantum",
     body: "Se terminó el tiempo que le tocaba en la CPU."
+  },
+  crearHilo: {
+    title: "crear_hilo",
+    body: "En C la función que hace esto se llama pthread_create, y la que espera a que un hilo termine, pthread_join. Acá el nombre va en castellano y con menos parámetros para que la sintaxis no tape lo que el ejemplo muestra."
   }
 };
 
@@ -1985,7 +1989,7 @@ const EXAMPLES = [
         line: 10,
         focus: "P1",
         thread: "H1",
-        narration: "crear_hilo arranca un hilo nuevo, H2, que va a ejecutar contar con 20. Aparecen *dos cosas y nada más*: un stack propio para H2 y un TCB.",
+        narration: "[[crearHilo:crear_hilo]] arranca un hilo nuevo, H2, que va a ejecutar contar con 20. Aparecen *dos cosas y nada más*: un stack propio para H2 y un TCB.",
         note: "El text, el data y el heap son los mismos de antes: no se duplicó ninguno. Ahí está la diferencia con el ejemplo 1, donde el segundo proceso necesitó una memoria entera.",
         ops: [
           { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)", vars: [{ name: "desde", value: "20" }] }] }
