@@ -2030,7 +2030,7 @@ const EXAMPLES = [
         focus: "P1",
         thread: "H1",
         narration: "H1 pide una I/O y se bloquea, así que la CPU pasa a otro hilo del mismo proceso. *El proceso sigue en RUNNING*: H2 y H3 todavía pueden ejecutar.",
-        note: "Un hilo bloqueado no bloquea al proceso. Eso es nuevo: hasta el ejemplo 5, cuando el proceso pedía una I/O no quedaba nadie adentro para seguir.",
+        note: "Un hilo bloqueado no bloquea al proceso, siempre que el sistema operativo sepa que ese hilo existe. Eso es nuevo: hasta el ejemplo 5, cuando el proceso pedía una I/O no quedaba nadie adentro para seguir.",
         ops: [
           { op: "thread.state", thread: "H1", value: "BLOCKED" },
           { op: "thread.state", thread: "H2", value: "RUNNING" }
@@ -2080,7 +2080,7 @@ const EXAMPLES = [
         focus: "P1",
         thread: "H3",
         narration: "H3 pide su I/O y se bloquea. Ahora sí: con los tres hilos bloqueados, *el proceso entero pasa a BLOCKED*, porque no queda nada suyo que pueda ejecutar.",
-        note: "Un text, un data, un heap; tres stacks y tres trazas. Eso es un proceso con hilos.",
+        note: "Un text, un data, un heap; tres stacks y tres trazas. Eso es un proceso con hilos. Todo lo que se vio acá dio por hecho que el sistema operativo conoce a los tres. El ejemplo 9 muestra qué pasa cuando no.",
         ops: [
           { op: "thread.state", thread: "H3", value: "BLOCKED" },
           { op: "state.set", process: "P1", value: "BLOCKED" }
