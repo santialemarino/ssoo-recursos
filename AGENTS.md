@@ -49,8 +49,9 @@ Resources in the same family share a **chassis**. They do not share a **canvas**
   has one of these, every other one gets it too: the same control set (primero /
   anterior / siguiente / último, plus play/pause where autoplay exists), a tooltip
   on every panel title, a closing card at the end of every example carrying the one
-  sentence to remember, the same keys (arrows, `Inicio`, `Fin`), and one favicon
-  for the whole repo.
+  sentence to remember, the same keys (arrows, `Inicio`, `Fin`), one row in the
+  header for whatever an example lets the student choose — a filter, a variant —
+  and never a second one, and one favicon for the whole repo.
 - **Canvas — derived, never inherited:** which panels are on screen, how much
   space each one gets, and what the unit of a step is. Every example answers
   three questions for itself: what is the unit of a step, what mutates that the
