@@ -552,6 +552,46 @@
   .pcb-context.changed { border-color: var(--marked); }
   .pcb-context-empty { font-size: 10.5px; color: var(--muted); margin: 0; }
 
+  .panel.visibility > h2::before { background: var(--thread); }
+
+  .panel.visibility .panel-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
+    gap: 8px;
+  }
+
+  .vis-band {
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    background: var(--region-fill);
+    padding: 7px 10px;
+  }
+
+  .vis-band-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .vis-band-naming { min-width: 0; }
+  .vis-band-name { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+  .vis-band-kind { display: block; font-size: 10.5px; color: var(--thread); font-weight: 650; margin-top: 1px; }
+  .vis-band-note { font-size: 10.5px; color: var(--muted); margin-left: auto; }
+  .vis-gloss { font-size: 10.5px; color: var(--muted); }
+  .vis-entries { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+
+  .vis-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    border: 1.5px solid var(--thread);
+    border-radius: 8px;
+    background: var(--thread-soft);
+    padding: 4px 9px;
+  }
+
+  .vis-entry.unseen { border-style: dashed; background: var(--card); }
+  .vis-entry.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked); }
+  .vis-name { font-size: 12.5px; font-weight: 800; color: var(--thread); }
+  .vis-line { border-top: 2px dashed var(--line-strong); }
+
   .panel.occupancy .panel-body { display: flex; flex-direction: column; gap: 10px; }
 
   .occ-block { border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 8px; background: var(--region-fill); }
@@ -584,7 +624,7 @@
   .occ-cell.spacer { border: 0; background: transparent; }
   .occ-cell.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
 
-  .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; }
+  .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
 
   .tl-lanes { display: flex; flex-direction: column; gap: 7px; }
   .tl-lane { display: flex; align-items: stretch; gap: 8px; }
@@ -688,10 +728,12 @@
 
   .narration-body.with-extras {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr);
-    gap: 6px 16px;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.25fr) minmax(240px, 0.7fr);
+    gap: 6px 18px;
     align-content: start;
   }
+
+  .narration-body.with-extras.no-compare { grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr); }
 
   .narration-extras { min-width: 0; min-height: 0; overflow-y: auto; }
   .narration-main { min-width: 0; }
@@ -719,7 +761,7 @@
   .takeaway .line { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
 
   .compare { margin: 7px 0 0; overflow-x: auto; }
-  .compare.full { grid-column: 1 / -1; margin: 0; }
+  .compare.full { grid-column: 2; grid-row: 1; margin: 0; }
   .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.3; }
   .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 4px 0; }
   .compare th.head-region { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; font-size: 12px; color: var(--ink); letter-spacing: 0; }
@@ -881,8 +923,10 @@ const UI_TEXT = {
     timeline: "Línea de tiempo",
     occupancy: "Ocupación de memoria",
     deciders: "Quién decidió cada transición",
-    counters: "Grados"
+    counters: "Grados",
+    visibility: "Qué ve el sistema operativo"
   },
+  variantLabel: "Ver el mismo programa con",
   firstStep: "Primero",
   prevStep: "Anterior",
   nextStep: "Siguiente",
@@ -938,6 +982,16 @@ const UI_TEXT = {
     empty: "Todavía no hubo ninguna transición.",
     filterLabel: "Ver las que decide",
     filterAll: "Todas"
+  },
+  visibility: {
+    kernelBand: "Lo que el sistema operativo tiene anotado",
+    processBand: "Lo que hay adentro del proceso",
+    kernelKind: "hilos de kernel (KLT)",
+    userKind: "hilos de usuario (ULT)",
+    hiddenNote: "No los ve",
+    sameNote: "Los mismos de abajo",
+    carrier: "K1",
+    carrierGloss: "sostiene a los tres"
   },
   tcbTitle: "TCB de {id}",
   tcbLabels: { state: "estado", line: "línea actual" },
@@ -1043,6 +1097,10 @@ const PANEL_TIPS = {
   counters: {
     title: "Grados",
     body: "Cuántos procesos hay en memoria, y cuántos ejecutan a la vez. El segundo nunca pasa de 1, porque hay una sola CPU."
+  },
+  visibility: {
+    title: "Qué ve el sistema operativo",
+    body: "Arriba, los hilos que el sistema operativo tiene anotados y entre los que puede elegir. Abajo, los que existen adentro del proceso. Cuando las dos listas no coinciden, la diferencia es lo que el sistema operativo no ve."
   }
 };
 
@@ -2116,6 +2174,189 @@ const EXAMPLES = [
       }],
       threadsTotal: 3
     }
+  },
+
+  {
+    number: 9,
+    title: "Lo que el sistema operativo ve",
+    short: "ULT vs KLT",
+    adds: "Agrega: que el sistema operativo sólo conoce a algunos hilos.",
+    subtitle: "El mismo programa del ejemplo 8, con hilos que el sistema operativo conoce y con hilos que no.",
+    program: "hilos",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "0.82fr 1.12fr 1.02fr", panels: ["source", "visibility", "timeline"] },
+    closing: "El sistema operativo sólo puede elegir entre lo que ve.",
+    compare: {
+      headers: ["", "el SO los conoce (KLT)", "el SO no los conoce (ULT)"],
+      rows: [
+        ["¿qué anota el sistema operativo?", "un hilo de kernel por cada uno", "un solo hilo de kernel para los tres"],
+        ["si uno pide una I/O", "el sistema operativo le da la CPU a otro hilo del proceso", "ninguno de sus pares puede seguir"],
+        ["cambiar de un hilo al otro", "pasa por el kernel", "se resuelve adentro del proceso, y sale más barato"],
+        ["con más de una CPU", "dos hilos del proceso pueden ejecutar a la vez", "no: el sistema operativo ve uno solo"]
+      ]
+    },
+    variants: [
+      {
+        variantLabel: "Hilos de kernel (KLT)",
+        kernelView: "threads",
+        steps: [
+          {
+            line: 4,
+            focus: "P1",
+            thread: "H1",
+            narration: "El mismo proceso del ejemplo 8, con sus tres hilos ya creados. Cada crear_hilo entró al kernel, y el sistema operativo anotó un hilo de kernel por cada uno. Arriba y abajo está la misma lista: los tres que existen son los tres que el sistema operativo conoce, y puede elegir entre cualquiera de ellos.",
+            note: "La memoria del proceso es la misma del ejemplo 8 y no cambia acá, así que el mapa no está en pantalla. Lo que importa ahora es quién conoce a quién.",
+            ops: [
+              { op: "process.add", id: "P1", pid: 41, data: [{ name: "total", value: "3" }] },
+              { op: "state.set", value: "RUNNING" },
+              { op: "thread.add", id: "H1", state: "RUNNING", line: 4, frames: [{ name: "contar(10)" }] },
+              { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)" }] },
+              { op: "thread.add", id: "H3", state: "READY", line: 3, frames: [{ name: "contar(30)" }] },
+              { op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }
+            ]
+          },
+          {
+            line: 5,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 tiene la CPU y avanza.",
+            ops: [{ op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 pide una I/O y se bloquea. El sistema operativo mira su lista, ve que H2 está listo, y le da la CPU.",
+            note: "Pudo elegir porque H2 estaba anotado. Retené eso: es lo único que va a cambiar en la otra variante.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "BLOCKED" },
+              { op: "thread.state", thread: "H2", value: "RUNNING" },
+              { op: "time.advance", units: 2, cpu: { kind: "busy", label: "H2" } }
+            ]
+          },
+          {
+            line: 5,
+            focus: "P1",
+            thread: "H2",
+            narration: "H2 avanza mientras H1 sigue esperando al disco.",
+            ops: [{ op: "time.advance", units: 3, cpu: { kind: "busy", label: "H2" } }]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H2",
+            narration: "H2 también pide una I/O. Queda H3, que el sistema operativo también tiene anotado, y la CPU pasa a él.",
+            ops: [
+              { op: "thread.state", thread: "H2", value: "BLOCKED" },
+              { op: "thread.state", thread: "H3", value: "RUNNING" },
+              { op: "time.advance", units: 3, cpu: { kind: "busy", label: "H3" } }
+            ]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H3",
+            narration: "H3 pide su I/O y se bloquea. Recién ahora, con los tres bloqueados, el proceso entero pasa a BLOCKED.",
+            note: "En toda la traza la CPU sólo se quedó sin nada que hacer al final, cuando ya no quedaba ningún hilo que pudiera ejecutar.",
+            ops: [
+              { op: "thread.state", thread: "H3", value: "BLOCKED" },
+              { op: "state.set", process: "P1", value: "BLOCKED" },
+              { op: "time.advance", units: 2, cpu: { kind: "idle" } }
+            ]
+          }
+        ],
+        expectedFinalState: {
+          processes: [{
+            id: "P1", frames: 0, heapBlocks: 0, data: { total: "3" }, state: "BLOCKED",
+            threads: { H1: "BLOCKED", H2: "BLOCKED", H3: "BLOCKED" }
+          }],
+          threadsTotal: 3,
+          timelineUnits: 16
+        }
+      },
+      {
+        variantLabel: "Hilos de usuario (ULT)",
+        kernelView: "process",
+        steps: [
+          {
+            line: 4,
+            focus: "P1",
+            thread: "H1",
+            narration: "El mismo código, línea por línea. Pero acá crear_hilo no entra al kernel: se resuelve adentro del proceso, sin que el sistema operativo se entere.",
+            note: "Mirá las dos listas. Abajo hay tres hilos de usuario. Arriba hay uno solo, K1: es un hilo de kernel, y es el único que el sistema operativo tiene anotado de este proceso. Los tres de abajo se turnan para correr arriba de K1, y para el sistema operativo no existen.",
+            ops: [
+              { op: "process.add", id: "P1", pid: 41, data: [{ name: "total", value: "3" }] },
+              { op: "state.set", value: "RUNNING" },
+              { op: "thread.add", id: "H1", state: "RUNNING", line: 4, frames: [{ name: "contar(10)" }] },
+              { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)" }] },
+              { op: "thread.add", id: "H3", state: "READY", line: 3, frames: [{ name: "contar(30)" }] },
+              { op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }
+            ]
+          },
+          {
+            line: 5,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 tiene la CPU y avanza, igual que en la otra variante. Hasta acá no se nota ninguna diferencia.",
+            ops: [{ op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 pide una I/O y se bloquea. Y con H1 se bloquea K1, que era el que lo estaba sosteniendo: para el sistema operativo, el que pidió la I/O fue K1.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "BLOCKED" },
+              { op: "state.set", process: "P1", value: "BLOCKED" }
+            ]
+          },
+          {
+            focus: "P1",
+            thread: "H1",
+            narration: "Y acá está la diferencia. H2 y H3 están listos: podrían ejecutar ya mismo. El sistema operativo no lo sabe. En su lista este proceso es K1, y K1 está bloqueado, así que no tiene nada de este proceso a lo que darle la CPU.",
+            note: "Ese rojo de la línea de tiempo es tiempo de CPU perdido con dos hilos listos esperando. En la otra variante, en este mismo momento, estaba ejecutando H2.",
+            ops: [{ op: "time.advance", units: 5, cpu: { kind: "idle" } }]
+          },
+          {
+            focus: "P1",
+            thread: "H1",
+            narration: "Termina la I/O.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "READY" },
+              { op: "state.set", process: "P1", value: "READY" },
+              { op: "time.advance", units: 1, cpu: { kind: "idle" } }
+            ]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "El sistema operativo vuelve a tener algo que ejecutar y le devuelve la CPU al proceso, que retoma por donde se había quedado: H1.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "RUNNING" },
+              { op: "state.set", process: "P1", value: "RUNNING" },
+              { op: "time.advance", units: 2, cpu: { kind: "busy", label: "H1" } }
+            ]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "Recién cuando H1 suelta la CPU van a poder avanzar sus pares. Los tres hilos existen, pero por afuera se ven como uno solo, y de a uno por vez.",
+            note: "Los dos recorridos tenían el mismo código y los mismos eventos. Lo único distinto era si el sistema operativo conocía a los tres hilos o a uno.",
+            ops: [{ op: "time.advance", units: 2, cpu: { kind: "busy", label: "H1" } }]
+          }
+        ],
+        expectedFinalState: {
+          processes: [{
+            id: "P1", frames: 0, heapBlocks: 0, data: { total: "3" }, state: "RUNNING",
+            threads: { H1: "RUNNING", H2: "READY", H3: "READY" }
+          }],
+          threadsTotal: 3,
+          timelineUnits: 16
+        }
+      }
+    ]
   }
 ];
 </script>
@@ -2471,12 +2712,13 @@ function diffCpu(before, after) {
 }
 
 function markChanges(snapshots, example) {
+  const fields = example.pcbFields || [];
   snapshots.forEach(function (snapshot, index) {
     const previous = index === 0 ? null : snapshots[index - 1];
     const changed = {};
     snapshot.processes.forEach(function (process) {
       const before = previous ? findProcess(previous.processes, process.id) : null;
-      changed[process.id] = diffProcess(before, process, example.pcbFields);
+      changed[process.id] = diffProcess(before, process, fields);
     });
     snapshot.changed = changed;
     snapshot.changedCpu = diffCpu(previous ? previous.cpu : null, snapshot.cpu);
@@ -2512,7 +2754,7 @@ function buildSnapshots(example) {
   return markChanges(snapshots, example);
 }
 
-function verifyExample(example, snapshots) {
+function verifyExample(example, snapshots, variantLabel) {
   const problems = [];
   const program = PROGRAMS[example.program] || null;
   const declaredStates = example.states || [];
@@ -2671,7 +2913,8 @@ function verifyExample(example, snapshots) {
   }
 
   if (problems.length > 0) {
-    console.error("Ejemplo " + example.number + ": " + problems.join("; "));
+    const name = "Ejemplo " + example.number + (variantLabel ? " (" + variantLabel + ")" : "");
+    console.error(name + ": " + problems.join("; "));
   }
 }
 
@@ -2698,20 +2941,34 @@ function deriveTransitions(snapshots) {
 
 
 
-const BUILT_EXAMPLES = EXAMPLES.map(function (example) {
+function buildVariant(example) {
   const snapshots = buildSnapshots(example);
   const mostProcesses = snapshots.reduce(function (most, snapshot) {
     return Math.max(most, snapshot.processes.length);
   }, 0);
   return {
     example: example,
+    label: example.variantLabel || null,
     snapshots: snapshots,
     transitions: deriveTransitions(snapshots),
     mostProcesses: mostProcesses
   };
+}
+
+const BUILT_EXAMPLES = EXAMPLES.map(function (example) {
+  return {
+    example: example,
+    variants: (example.variants || [{}]).map(function (variant) {
+      return buildVariant(Object.assign({}, example, variant));
+    })
+  };
 });
 
-BUILT_EXAMPLES.forEach(function (built) { verifyExample(built.example, built.snapshots); });
+BUILT_EXAMPLES.forEach(function (built) {
+  built.variants.forEach(function (variant) {
+    verifyExample(variant.example, variant.snapshots, variant.label);
+  });
+});
 </script>
 
 <script id="ui">
@@ -2748,7 +3005,8 @@ const PANELS = {
   timeline: { extras: ["note"], render: function (snapshot) { renderTimeline(snapshot); } },
   occupancy: { extras: [], render: function (snapshot) { renderOccupancy(snapshot); } },
   deciders: { extras: [], render: function (snapshot) { renderDeciders(snapshot); } },
-  counters: { extras: [], render: function (snapshot) { renderCounters(snapshot); } }
+  counters: { extras: [], render: function (snapshot) { renderCounters(snapshot); } },
+  visibility: { extras: [], render: function (snapshot) { renderVisibility(snapshot); } }
 };
 
 const panelRefs = {};
@@ -2756,13 +3014,15 @@ let canvasKey = "";
 
 const view = {
   exampleIndex: 0,
+  variantIndex: 0,
   stepIndex: 0,
   filter: "all",
   playing: false,
   timer: null
 };
 
-function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex].variants[view.variantIndex]; }
+function currentVariants() { return BUILT_EXAMPLES[view.exampleIndex].variants; }
 function currentExample() { return currentBuilt().example; }
 function currentSnapshots() { return currentBuilt().snapshots; }
 function currentSnapshot() { return currentSnapshots()[view.stepIndex]; }
@@ -2850,32 +3110,54 @@ function buildCanvas(example) {
   dom.main = fresh;
 }
 
-function renderFilter() {
-  const example = currentExample();
-  dom.filterRow.hidden = !example.filter;
-  if (!example.filter) return;
-  dom.filterLabel.textContent = UI_TEXT.deciders.filterLabel;
+function renderChoiceBar(label, options) {
+  dom.filterRow.hidden = false;
+  dom.filterLabel.textContent = label;
   dom.filterBar.textContent = "";
-  const options = [{ key: "all", label: UI_TEXT.deciders.filterAll, color: null }].concat(
+  options.forEach(function (option) {
+    const button = element("button", null, option.label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", option.active ? "true" : "false");
+    if (option.active) {
+      button.style.background = option.color;
+      button.style.borderColor = option.color;
+    }
+    button.addEventListener("click", option.pick);
+    dom.filterBar.appendChild(button);
+  });
+}
+
+function renderHeaderChoices() {
+  const variants = currentVariants();
+  if (variants.length > 1) {
+    renderChoiceBar(UI_TEXT.variantLabel, variants.map(function (variant, index) {
+      return {
+        label: variant.label,
+        active: index === view.variantIndex,
+        color: "var(--thread)",
+        pick: function () { selectVariant(index); }
+      };
+    }));
+    return;
+  }
+  const example = currentExample();
+  if (!example.filter) {
+    dom.filterRow.hidden = true;
+    return;
+  }
+  const options = [{ key: "all", label: UI_TEXT.deciders.filterAll, color: "var(--ink)" }].concat(
     Object.keys(DECIDERS).map(function (key) {
       return { key: key, label: DECIDERS[key].short, color: DECIDERS[key].color };
     })
   );
-  options.forEach(function (option) {
-    const button = element("button", null, option.label);
-    button.type = "button";
-    const active = view.filter === option.key;
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-    if (active) {
-      button.style.background = option.color || "var(--ink)";
-      button.style.borderColor = option.color || "var(--ink)";
-    }
-    button.addEventListener("click", function () {
-      view.filter = option.key;
-      render();
-    });
-    dom.filterBar.appendChild(button);
-  });
+  renderChoiceBar(UI_TEXT.deciders.filterLabel, options.map(function (option) {
+    return {
+      label: option.label,
+      active: view.filter === option.key,
+      color: option.color,
+      pick: function () { view.filter = option.key; render(); }
+    };
+  }));
 }
 
 function renderExampleList() {
@@ -2904,6 +3186,17 @@ function threadMarks(snapshot) {
   return marks;
 }
 
+function revealLine(body, row) {
+  const frame = body.getBoundingClientRect();
+  const line = row.getBoundingClientRect();
+  if (line.top >= frame.top && line.bottom <= frame.bottom) return;
+  const rows = Array.prototype.slice.call(body.querySelectorAll(".code-line"));
+  const anchor = rows.filter(function (candidate) {
+    return line.bottom - candidate.getBoundingClientRect().top <= frame.height;
+  })[0];
+  if (anchor) body.scrollTop += anchor.getBoundingClientRect().top - frame.top;
+}
+
 function renderSource(snapshot) {
   const refs = panelRefs.source;
   const program = PROGRAMS[currentExample().program];
@@ -2914,6 +3207,7 @@ function renderSource(snapshot) {
   refs.body.textContent = "";
   const marks = threadMarks(snapshot);
   const code = element("div", "source-code mono");
+  let current = null;
   program.lines.forEach(function (text, index) {
     const row = element("div", "code-line");
     const here = marks[index + 1] || [];
@@ -2930,9 +3224,11 @@ function renderSource(snapshot) {
       });
       row.appendChild(chips);
     }
+    if (snapshot.line === index + 1) current = row;
     code.appendChild(row);
   });
   refs.body.appendChild(code);
+  if (current) revealLine(refs.body, current);
 }
 
 function regionHead(region, trailing) {
@@ -3527,6 +3823,64 @@ function renderCounters(snapshot) {
   });
 }
 
+function visibilityEntry(label, state, gloss, unseen, marked) {
+  const box = element("div", "vis-entry");
+  if (unseen) box.classList.add("unseen");
+  if (marked) box.classList.add("changed");
+  box.appendChild(element("span", "vis-name mono", label));
+  const known = STATES[state];
+  if (known) {
+    const chip = element("span", "pcb-state mono", known.label);
+    chip.style.borderColor = known.color;
+    chip.style.background = known.soft;
+    chip.style.color = known.color;
+    box.appendChild(chip);
+  }
+  if (gloss) box.appendChild(element("span", "vis-gloss", gloss));
+  return box;
+}
+
+function visibilityBand(side, heading, kind, note, entries) {
+  const band = element("div", "vis-band " + side);
+  const head = element("div", "vis-band-head");
+  const naming = element("div", "vis-band-naming");
+  naming.appendChild(element("span", "vis-band-name", heading));
+  naming.appendChild(element("span", "vis-band-kind", kind));
+  head.appendChild(naming);
+  if (note) head.appendChild(element("span", "vis-band-note", note));
+  band.appendChild(head);
+  const list = element("div", "vis-entries");
+  entries.forEach(function (entry) { list.appendChild(entry); });
+  band.appendChild(list);
+  return band;
+}
+
+function renderVisibility(snapshot) {
+  const body = panelRefs.visibility.body;
+  const text = UI_TEXT.visibility;
+  body.textContent = "";
+  const process = snapshot.processes[0];
+  if (!process) {
+    body.appendChild(element("p", "empty-state", UI_TEXT.noProcess));
+    return;
+  }
+  const changed = snapshot.changed[process.id];
+  const known = currentExample().kernelView === "threads";
+  const kernelEntries = known
+    ? process.threads.map(function (thread) {
+        return visibilityEntry(thread.id, thread.state, null, false, changed.threads.indexOf(thread.id) !== -1);
+      })
+    : [visibilityEntry(text.carrier, process.state, text.carrierGloss, false, Boolean(changed.state))];
+  body.appendChild(visibilityBand("kernel", text.kernelBand, text.kernelKind,
+    known ? text.sameNote : null, kernelEntries));
+  body.appendChild(element("div", "vis-line"));
+  body.appendChild(visibilityBand("process", text.processBand, known ? text.kernelKind : text.userKind,
+    known ? null : text.hiddenNote,
+    process.threads.map(function (thread) {
+      return visibilityEntry(thread.id, thread.state, null, !known, changed.threads.indexOf(thread.id) !== -1);
+    })));
+}
+
 function renderDeciders(snapshot) {
   const body = panelRefs.deciders.body;
   const transitions = currentBuilt().transitions;
@@ -3703,6 +4057,7 @@ function renderNarration(snapshot) {
   const example = currentExample();
   dom.narration.textContent = "";
   dom.narration.classList.toggle("with-extras", snapshot.last);
+  dom.narration.classList.toggle("no-compare", snapshot.last && !example.compare);
   const main = element("div", "narration-main");
   const paragraph = element("p", "narration-text");
   renderRich(paragraph, snapshot.narration);
@@ -3714,13 +4069,14 @@ function renderNarration(snapshot) {
   }
   dom.narration.appendChild(main);
   if (!snapshot.last) return;
+  if (example.compare) {
+    const table = compareBlock(example.compare);
+    table.classList.add("full");
+    dom.narration.appendChild(table);
+  }
   const extras = element("div", "narration-extras");
   extras.appendChild(takeawayBlock(example.closing));
   dom.narration.appendChild(extras);
-  if (!example.compare) return;
-  const table = compareBlock(example.compare);
-  table.classList.add("full");
-  dom.narration.appendChild(table);
 }
 
 function arrowPath(map, source, target) {
@@ -3777,7 +4133,7 @@ function render() {
   dom.title.textContent = example.number + ". " + example.title;
   dom.subtitle.textContent = example.subtitle;
   dom.granularity.textContent = example.stepUnit;
-  renderFilter();
+  renderHeaderChoices();
   canvasPanels(example).forEach(function (id) { PANELS[id].render(snapshot); });
   renderNarration(snapshot);
   drawArrows();
@@ -3803,8 +4159,16 @@ function goTo(index) {
 function selectExample(index) {
   stopPlaying();
   view.exampleIndex = index;
+  view.variantIndex = 0;
   view.stepIndex = 0;
   view.filter = "all";
+  render();
+}
+
+function selectVariant(index) {
+  stopPlaying();
+  view.variantIndex = index;
+  view.stepIndex = 0;
   render();
 }
 
