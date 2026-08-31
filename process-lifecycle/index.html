@@ -10,7 +10,7 @@
     --ink: #10151d;
     --ink-soft: #35404f;
     --muted: #5f6877;
-    --faint: #838c9a;
+    --faint: #6b7484;
     --line: #e3e7ee;
     --line-strong: #c6ccd8;
     --page: #edf0f6;
@@ -264,7 +264,7 @@
     gap: 10px;
     align-items: baseline;
     line-height: 1.3;
-    padding: 0 6px 1px 4px;
+    padding: 0 6px 0 4px;
     border-left: 3px solid transparent;
     border-radius: 4px;
     font-size: 13.5px;
@@ -408,7 +408,7 @@
   .tcb-card.changed { box-shadow: 0 0 0 2px var(--marked); border-color: var(--marked); }
   .frame-name { font-size: 11.5px; font-weight: 700; flex: 0 0 auto; }
   .frame-name .mono { font-size: 12px; }
-  .frame-empty { font-size: 10.5px; color: var(--faint); }
+  .frame-empty { font-size: 10.5px; color: var(--muted); }
 
   .vars { display: flex; flex-wrap: wrap; gap: 5px; }
 
@@ -450,7 +450,7 @@
 
   .free-band .region-name { color: var(--muted); background: transparent; border-color: var(--line); cursor: default; }
 
-  .region-empty { font-size: 11px; color: var(--faint); margin-top: 3px; }
+  .region-empty { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
   .region-rows { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
 
@@ -600,7 +600,7 @@
   .occ-head { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
   .occ-name { font-size: 12.5px; font-weight: 700; color: var(--ink); }
   .occ-usage { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 650; }
-  .occ-empty { margin-left: auto; font-size: 11px; color: var(--faint); }
+  .occ-empty { margin-left: auto; font-size: 11px; color: var(--muted); }
 
   .occ-bar { display: flex; gap: 6px; margin-top: 7px; height: 42px; }
 
@@ -766,7 +766,7 @@
   .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.3; }
   .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 4px 0; }
   .compare th.head-region { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; font-size: 12px; color: var(--ink); letter-spacing: 0; }
-  .compare td { padding: 3px 16px 3px 0; vertical-align: top; }
+  .compare td { padding: 2px 16px 2px 0; vertical-align: top; }
   .compare tr + tr td { border-top: 1px solid var(--line); }
   .compare td.label { color: var(--muted); }
 

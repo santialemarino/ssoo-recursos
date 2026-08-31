@@ -530,9 +530,23 @@ completo y más claro, elegí más claro.**
   | Verde | Kernel: sus rutinas, el modo kernel, y las interrupciones habilitadas |
   | Rojo | Interrupciones: la que llega, lo que hace el hardware, y las interrupciones deshabilitadas |
   | Violeta | La pila y el SP |
-  | Ámbar | Lo que cambió en el paso actual |
+  | Ámbar | Un programa suspendido a mitad de instrucción, y el contador de instrucciones |
+  | Grafito | Lo que cambió en el paso actual |
 
   El rojo marca "acá se interrumpe", no "acá hay un error".
+
+- **Lo que cambió en un paso se marca con tinta, no con color.** Antes era ámbar.
+  Cada tono nombra una cosa del material, y "esto cambió recién" no es una cosa del
+  material: es información sobre el paso. La marca es acromática (`--marked` y
+  `--marked-soft`) y se lee mejor que cualquier tono en un proyector mediocre. El
+  recurso de procesos hace lo mismo, porque los roles de color son chasis.
+
+- **El gris de los rótulos secundarios se oscureció a `#6b7484`.** Estaba en
+  `#8c95a3`, que sobre blanco da 3,0:1 — por debajo del piso de 4,5:1 que pide la
+  skill— y lo usaban los títulos de panel, las direcciones de memoria, los nombres de
+  los registros y las banderas del PSW. Todo eso se lee, y se lee proyectado. Si
+  alguna vez se toca, verificar el contraste sobre el fondo más claro donde aparezca,
+  no sólo sobre blanco.
 
 - **El ejemplo 7 se aparta del planteo original en dos puntos**, los dos aprobados
   por la cátedra, y los dos por la misma razón: el set de instrucciones no puede

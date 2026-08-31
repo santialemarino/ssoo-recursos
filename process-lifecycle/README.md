@@ -473,6 +473,14 @@ afuera. No hay que "mejorarlo".
   | Gris oscuro | La flecha de un puntero a lo que apunta en el heap |
   | Neutros | Las cuatro regiones de memoria y las cajas de la barra de ocupación |
 
+- **El gris de los rótulos secundarios se oscureció a `#6b7484`.** Estaba en
+  `#838c9a`, que sobre blanco da 3,4:1 —por debajo del piso de 4,5:1 que pide la
+  skill— y lo usaban los títulos de panel, los números de línea, las glosas de las
+  regiones y los encabezados de las tablas. Todo eso se lee, y se lee proyectado. Las
+  frases enteras que estaban en ese gris —"Vacío: el programa no pidió memoria", "sin
+  variables locales"— pasaron a `--muted`, que es el rol de las oraciones; el gris más
+  claro queda sólo para rótulos de chapa. Si se toca, verificar el contraste sobre el
+  fondo más claro donde aparezca, no sólo sobre blanco.
 - **Lo que cambió en un paso no tiene color, tiene tinta.** Antes era ámbar. Cada
   tono de la paleta nombra una cosa del material —un estado, una región, un rol— y
   "esto cambió en este paso" no es una cosa del material: es información sobre el

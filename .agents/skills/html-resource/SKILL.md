@@ -65,7 +65,12 @@ The floor is a mediocre projector in a large hall, and a phone on the bus.
 - Semantic HTML: `<button>` for what gets clicked, `<table>` for tables, headings
   in order. No `<div onclick>`.
 - **High contrast.** Body text well above 4.5:1. No light grey on white for
-  anything that has to be read.
+  anything that has to be read. That includes the faintest role in the palette:
+  panel titles, line numbers, addresses, column headers and glosses are all read,
+  and a tertiary grey that looks tasteful on a laptop is often 3:1 and gone on a
+  projector. Check the faint role against the **lightest surface it actually sits
+  on**, not only against white, and check it with numbers rather than by eye —
+  every one of these was under the floor in both resources until it was measured.
 - **Generous type.** Body text no smaller than 16 px; anything projected and read
   from the back of the hall, considerably larger.
 - **Never information by colour alone.** Colour supports; text, position or an
