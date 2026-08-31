@@ -538,6 +538,18 @@ afuera. No hay que "mejorarlo".
   oraciones: uno para que termine la I/O y otro para que el sistema operativo le
   devuelva la CPU. Las dos variantes igual terminan en 16 unidades de tiempo, que es
   lo que hace comparables las dos líneas.
+- **Ningún rótulo de la línea de tiempo se corta a la mitad.** Un bloque angosto no
+  entra en el nombre de lo que pasa —"sin nada que ejecutar" mide 113 px y un bloque
+  de dos unidades en el ejemplo 9 mide 55—, así que después de dibujar cada carril el
+  recurso mide y decide: si el nombre completo entra, va completo; si no, el carril de
+  la CPU cae en `—`, que en este recurso ya quiere decir *nadie* (es lo que muestra el
+  panel de CPU cuando no hay contexto cargado); y si tampoco entra, el rótulo se
+  esconde. Los carriles de proceso **no** tienen ese respaldo: `—` sería mentira para
+  un estado, así que ahí el rótulo se esconde directo y el estado lo dicen el color, la
+  narración y los paneles de arriba. A 1280×720 no se esconde ninguno; a 390 px se
+  esconden seis, todos de estado. Si se cambia el texto de `shortKinds`, conviene
+  volver a mirarlo: es la única parte del recurso donde el largo de un texto cambia lo
+  que se ve.
 - **El panel de código se desplaza para que la línea actual siempre se vea.** Si el
   archivo no entra entero, el panel se corre lo mínimo necesario y siempre a una
   línea entera, nunca dejando media línea cortada arriba. Es el mismo mecanismo del

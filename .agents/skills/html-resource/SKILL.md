@@ -206,6 +206,16 @@ shape. The measure:
 Separate them; do not square the radii to join them. Two rows that changed are
 two facts, and joining them says they are one.
 
+**A label that does not fit is not a label.** In a proportional band — a timeline
+segment, a bar, an occupancy cell — the width comes from the data, so sooner or
+later a band is narrower than its own name. `text-overflow: ellipsis` will not save
+it: on a flex container it does nothing at all, and the text is sliced mid-letter.
+Measure after layout and choose: the full name if it fits, then a shorter form that
+still says the same thing, and otherwise nothing at all, with the meaning carried by
+the legend, the pattern and the `title`. Only fall back to a shorter form that is
+already true in the resource's own vocabulary — never invent an abbreviation, and
+never fall back on a band whose text is the information itself.
+
 **An arrow's line stops at its head, not at its tip.** Drawing the full line to
 the tip and laying the triangle over it leaves the stroke showing through the
 point, because the triangle narrows to nothing there and the stroke does not.

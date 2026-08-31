@@ -640,11 +640,12 @@
     justify-content: center;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
     font-size: 9.5px;
     font-weight: 700;
     padding: 0 3px;
   }
+
+  .tl-label { white-space: nowrap; }
 
   .tl-seg.none { border-style: dashed; border-color: var(--line); background: transparent; }
   .tl-seg.busy { border-color: var(--running); background: var(--running-soft); color: var(--running); }
@@ -2184,7 +2185,7 @@ const EXAMPLES = [
     subtitle: "El mismo programa del ejemplo 8, con hilos que el sistema operativo conoce y con hilos que no.",
     program: "hilos",
     stepUnit: "Un paso = una línea, o un evento",
-    canvas: { columns: "0.82fr 1.12fr 1.02fr", panels: ["source", "visibility", "timeline"] },
+    canvas: { columns: "0.80fr 0.98fr 1.18fr", panels: ["source", "visibility", "timeline"] },
     closing: "El sistema operativo sólo puede elegir entre lo que ve.",
     compare: {
       headers: ["", "el SO los conoce (KLT)", "el SO no los conoce (ULT)"],
@@ -2315,7 +2316,7 @@ const EXAMPLES = [
             thread: "H1",
             narration: "Y acá está la diferencia. H2 y H3 están listos: podrían ejecutar ya mismo. El sistema operativo no lo sabe. En su lista este proceso es K1, y K1 está bloqueado, así que no tiene nada de este proceso a lo que darle la CPU.",
             note: "Ese rojo de la línea de tiempo es tiempo de CPU perdido con dos hilos listos esperando. En la otra variante, en este mismo momento, estaba ejecutando H2.",
-            ops: [{ op: "time.advance", units: 5, cpu: { kind: "idle" } }]
+            ops: [{ op: "time.advance", units: 4, cpu: { kind: "idle" } }]
           },
           {
             focus: "P1",
@@ -2324,7 +2325,7 @@ const EXAMPLES = [
             ops: [
               { op: "thread.state", thread: "H1", value: "READY" },
               { op: "state.set", process: "P1", value: "READY" },
-              { op: "time.advance", units: 1, cpu: { kind: "idle" } }
+              { op: "time.advance", units: 2, cpu: { kind: "idle" } }
             ]
           },
           {
@@ -2994,6 +2995,7 @@ const dom = {
 };
 
 const AUTOPLAY_DELAY = 2800;
+const TIMELINE_LABEL_PADDING = 6;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const PANELS = {
@@ -3931,6 +3933,13 @@ function renderCpu(snapshot) {
   body.appendChild(contextRows(snapshot.cpu.context, snapshot.changedCpu.fields));
 }
 
+function timelineLabel(text, brief) {
+  const label = element("span", "tl-label", text);
+  label.dataset.full = text;
+  if (brief) label.dataset.brief = brief;
+  return label;
+}
+
 function timelineLane(name, segments, freshUnits, byState) {
   const lane = element("div", "tl-lane");
   lane.appendChild(element("span", "tl-name mono", name));
@@ -3947,15 +3956,15 @@ function timelineLane(name, segments, freshUnits, byState) {
       box.style.borderColor = state.color;
       box.style.background = state.soft;
       box.style.color = state.color;
-      box.textContent = state.label;
+      box.appendChild(timelineLabel(state.label, null));
       box.title = state.label;
     } else if (byState) {
       box.classList.add("none");
     } else if (kind === "busy") {
-      box.textContent = segment.label;
+      box.appendChild(timelineLabel(segment.label, null));
       box.title = fill(UI_TEXT.timeline.kinds.busy, { label: segment.label });
     } else {
-      box.textContent = UI_TEXT.timeline.shortKinds[kind];
+      box.appendChild(timelineLabel(UI_TEXT.timeline.shortKinds[kind], UI_TEXT.none));
       box.title = UI_TEXT.timeline.kinds[kind];
     }
     track.appendChild(box);
@@ -4012,6 +4021,24 @@ function renderTimeline(snapshot) {
     lanes.appendChild(timelineLane(process.id, segments, snapshot.freshUnits, true));
   });
   body.appendChild(lanes);
+  fitTimelineLabels();
+}
+
+function fitTimelineLabels() {
+  const segments = document.querySelectorAll(".tl-seg");
+  Array.prototype.forEach.call(segments, function (segment) {
+    const label = segment.querySelector(".tl-label");
+    if (!label) return;
+    const room = segment.clientWidth - TIMELINE_LABEL_PADDING;
+    label.hidden = false;
+    label.textContent = label.dataset.full;
+    if (label.offsetWidth <= room) return;
+    if (label.dataset.brief) {
+      label.textContent = label.dataset.brief;
+      if (label.offsetWidth <= room) return;
+    }
+    label.hidden = true;
+  });
 }
 
 function contextBlock(context, changed) {
@@ -4262,7 +4289,10 @@ document.addEventListener("focusin", function (event) {
   if (trigger) showTooltip(trigger);
 });
 
-window.addEventListener("resize", drawArrows);
+window.addEventListener("resize", function () {
+  drawArrows();
+  fitTimelineLabels();
+});
 
 dom.first.textContent = UI_TEXT.firstStep;
 dom.prev.textContent = UI_TEXT.prevStep;
