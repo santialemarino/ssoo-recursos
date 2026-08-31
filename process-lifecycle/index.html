@@ -10,7 +10,7 @@
     --ink: #10151d;
     --ink-soft: #35404f;
     --muted: #5f6877;
-    --faint: #838c9a;
+    --faint: #6b7484;
     --line: #e3e7ee;
     --line-strong: #c6ccd8;
     --page: #edf0f6;
@@ -18,8 +18,9 @@
 
     --running: #1d4ed8;
     --running-soft: #e8eefc;
-    --accent: #a85a06;
-    --accent-soft: #fdf0dc;
+    --pcb: #a85a06;
+    --marked: #1c2534;
+    --marked-soft: #e3e8f1;
     --pointer: #35404f;
     --alert: #c0392f;
     --alert-soft: #fbeae8;
@@ -70,7 +71,7 @@
   button:active:not([disabled]) { transform: translateY(1px); }
 
   button:focus-visible, [tabindex]:focus-visible {
-    outline: 3px solid var(--accent);
+    outline: 3px solid var(--marked);
     outline-offset: 2px;
   }
 
@@ -95,12 +96,22 @@
   .filters button { padding: 3px 10px; font-size: 12.5px; }
   .filters button[aria-pressed="true"] { color: #fff; }
 
-  .counter-box { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--region-fill); }
-  .counter-box + .counter-box { margin-top: 8px; }
-  .counter-top { display: flex; align-items: baseline; gap: 8px; }
-  .counter-label { font-size: 11.5px; font-weight: 650; color: var(--ink-soft); line-height: 1.25; }
-  .counter-value { margin-left: auto; font-size: 20px; font-weight: 800; }
-  .counter-gloss { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .panel.counters .panel-body { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+
+  .counter-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+    background: var(--region-fill);
+  }
+
+  .counter-text { min-width: 0; }
+  .counter-label { display: block; font-size: 11.5px; font-weight: 650; color: var(--ink-soft); line-height: 1.25; }
+  .counter-value { margin-left: auto; font-size: 20px; font-weight: 800; line-height: 1; }
+  .counter-gloss { display: block; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 
   .decider-list { display: flex; flex-direction: column; gap: 3px; }
 
@@ -116,7 +127,7 @@
     transition: opacity var(--fast) ease-out;
   }
 
-  .decider-row.current { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 650; }
+  .decider-row.current { background: var(--marked-soft); border-left-color: var(--marked); font-weight: 650; }
   .decider-row.later { color: var(--faint); opacity: 0.55; }
   .decider-row.faded { opacity: 0.28; }
   .decider-step { color: var(--muted); font-size: 10.5px; min-width: 6ch; }
@@ -129,8 +140,9 @@
     font-weight: 700;
     letter-spacing: 0.03em;
     border: 1px solid;
-    border-radius: 4px;
-    padding: 0 5px;
+    border-radius: 5px;
+    padding: 2px 7px;
+    line-height: 1.3;
     white-space: nowrap;
   }
 
@@ -160,7 +172,7 @@
   }
 
   .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
-  .examples button[aria-current="true"] .num { background: rgba(255, 255, 255, 0.22); color: #fff; }
+  .examples button[aria-current="true"] .num { background: rgba(0, 0, 0, 0.22); color: #fff; }
 
   main {
     flex: 1 1 auto;
@@ -210,9 +222,9 @@
 
   .panel.source > h2::before { background: var(--running); }
   .panel.memory > h2::before { background: var(--ink-soft); }
-  .panel.pcb > h2::before { background: var(--accent); }
+  .panel.pcb > h2::before { background: var(--pcb); }
 
-  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; }
+  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; white-space: nowrap; }
   .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
 
   .panel > h2 .file { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; letter-spacing: 0; color: var(--ink-soft); font-size: 12px; }
@@ -223,10 +235,12 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--ink-soft);
+    white-space: nowrap;
   }
 
   .panel > h2 .panel-note {
     margin-left: auto;
+    min-width: 0;
     text-transform: none;
     letter-spacing: 0;
     font-size: 10.5px;
@@ -250,7 +264,7 @@
     gap: 10px;
     align-items: baseline;
     line-height: 1.3;
-    padding: 0 6px 1px 4px;
+    padding: 0 6px 0 4px;
     border-left: 3px solid transparent;
     border-radius: 4px;
     font-size: 13.5px;
@@ -341,7 +355,7 @@
   .region-head .row { margin-left: auto; gap: 7px; padding: 0; }
 
   .frames { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
-  .blocks { display: flex; flex-direction: column-reverse; gap: 4px; margin-top: 5px; }
+  .blocks { display: flex; flex-direction: column-reverse; gap: 5px; margin-top: 5px; }
 
   .frame, .block {
     border: 1px solid var(--line-strong);
@@ -364,7 +378,7 @@
     min-width: 0;
   }
 
-  .thread-stack.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+  .thread-stack.changed { box-shadow: 0 0 0 2px var(--marked); border-color: var(--marked); }
   .thread-name { display: block; font-size: 11px; font-weight: 800; color: var(--thread); letter-spacing: 0.03em; margin-bottom: 4px; }
   .frame.thread { border-color: var(--thread); background: var(--card); }
 
@@ -376,8 +390,8 @@
     color: var(--thread);
     background: var(--thread-soft);
     border: 1px solid var(--thread);
-    border-radius: 4px;
-    padding: 0 4px;
+    border-radius: 5px;
+    padding: 1px 5px;
   }
 
   .thread-chip.current { background: var(--thread); color: #fff; }
@@ -391,10 +405,10 @@
   }
 
   .tcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--thread); margin-bottom: 4px; }
-  .tcb-card.changed { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+  .tcb-card.changed { box-shadow: 0 0 0 2px var(--marked); border-color: var(--marked); }
   .frame-name { font-size: 11.5px; font-weight: 700; flex: 0 0 auto; }
   .frame-name .mono { font-size: 12px; }
-  .frame-empty { font-size: 10.5px; color: var(--faint); }
+  .frame-empty { font-size: 10.5px; color: var(--muted); }
 
   .vars { display: flex; flex-wrap: wrap; gap: 5px; }
 
@@ -426,8 +440,8 @@
     flex: 0 0 auto;
     border: 1px dashed var(--line-strong);
     border-radius: 8px;
-    padding: 0 7px;
-    min-height: 16px;
+    padding: 3px 7px;
+    min-height: 22px;
     display: flex;
     align-items: center;
     gap: 7px;
@@ -436,7 +450,7 @@
 
   .free-band .region-name { color: var(--muted); background: transparent; border-color: var(--line); cursor: default; }
 
-  .region-empty { font-size: 11px; color: var(--faint); margin-top: 3px; }
+  .region-empty { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
   .region-rows { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
 
@@ -453,10 +467,10 @@
   .row .rval { font-weight: 700; margin-left: auto; }
 
   .changed { animation: flash var(--fast) ease-out; }
-  .frame.changed, .block.changed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-  .var.changed, .row.changed { background: var(--accent-soft); border-color: var(--accent); }
-  .var.changed .vname, .row.changed .rname { color: var(--accent); }
-  .var.changed .vval, .row.changed .rval { color: var(--accent); }
+  .frame.changed, .block.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
+  .var.changed, .row.changed { background: var(--marked-soft); border-color: var(--marked); }
+  .var.changed .vname, .row.changed .rname { color: var(--marked); }
+  .var.changed .vval, .row.changed .rval { color: var(--marked); }
 
   .empty-state { font-size: 13px; color: var(--muted); margin: 0; }
 
@@ -467,11 +481,11 @@
   .state-node text { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
   .state-node .holders { font-size: 10px; font-weight: 700; }
   .state-edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
-  .state-edge.active { stroke: var(--accent); stroke-width: 2.6; }
+  .state-edge.active { stroke: var(--marked); stroke-width: 2.6; }
   .state-edge.strong { stroke-width: 3.2; }
   .state-edge.faded, .state-arrow.faded, .edge-label.faded { opacity: 0.16; }
   .state-arrow { fill: var(--line-strong); }
-  .state-arrow.active { fill: var(--accent); }
+  .state-arrow.active { fill: var(--marked); }
 
   .edge-label {
     font-size: 9.5px;
@@ -482,8 +496,9 @@
     stroke-linejoin: round;
   }
 
-  .edge-label.active { fill: var(--accent); font-weight: 700; }
+  .edge-label.active { fill: var(--marked); font-weight: 700; }
   .edge-leader { stroke: var(--line-strong); stroke-width: 0.7; opacity: 0.75; }
+  .edge-leader.active { stroke: var(--marked); opacity: 1; }
   .edge-leader.faded { opacity: 0.14; }
 
   .state-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; flex: 0 0 auto; }
@@ -502,7 +517,7 @@
 
   .cpu-owner .label { font-size: 11px; color: var(--muted); font-weight: 650; }
   .cpu-owner .value { font-size: 15px; font-weight: 800; }
-  .cpu-owner.changed .label, .cpu-owner.changed .value { color: var(--accent); }
+  .cpu-owner.changed .label, .cpu-owner.changed .value { color: var(--marked); }
 
   .ctx-caption { display: block; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-top: 7px; }
   .ctx-rows { display: flex; flex-direction: column; gap: 3px; margin-top: 7px; }
@@ -519,12 +534,12 @@
 
   .ctx-row .name { color: var(--muted); font-size: 11px; font-weight: 650; }
   .ctx-row .val { font-weight: 700; }
-  .ctx-row.changed { background: var(--accent-soft); }
-  .ctx-row.changed .name, .ctx-row.changed .val { color: var(--accent); }
+  .ctx-row.changed { background: var(--marked-soft); }
+  .ctx-row.changed .name, .ctx-row.changed .val { color: var(--marked); }
 
   .cpu-empty { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 
-  .pcb-state { display: inline-block; padding: 0 7px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1.5px solid; }
+  .pcb-state { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; line-height: 1.3; border: 1.5px solid; }
 
   .pcb-context {
     border: 1px solid var(--line-strong);
@@ -534,7 +549,48 @@
   }
 
   .pcb-context.empty { border-style: dashed; }
+  .pcb-context.changed { border-color: var(--marked); }
   .pcb-context-empty { font-size: 10.5px; color: var(--muted); margin: 0; }
+
+  .panel.visibility > h2::before { background: var(--thread); }
+
+  .panel.visibility .panel-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
+    gap: 8px;
+  }
+
+  .vis-band {
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    background: var(--region-fill);
+    padding: 7px 10px;
+  }
+
+  .vis-band-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .vis-band-naming { min-width: 0; }
+  .vis-band-name { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+  .vis-band-kind { display: block; font-size: 10.5px; color: var(--thread); font-weight: 650; margin-top: 1px; }
+  .vis-band-note { font-size: 10.5px; color: var(--muted); margin-left: auto; }
+  .vis-gloss { font-size: 10.5px; color: var(--muted); }
+  .vis-entries { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+
+  .vis-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    border: 1.5px solid var(--thread);
+    border-radius: 8px;
+    background: var(--thread-soft);
+    padding: 4px 9px;
+  }
+
+  .vis-entry.unseen { border-style: dashed; background: var(--card); }
+  .vis-entry.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked); }
+  .vis-name { font-size: 12.5px; font-weight: 800; color: var(--thread); }
+  .vis-line { border-top: 2px dashed var(--line-strong); }
 
   .panel.occupancy .panel-body { display: flex; flex-direction: column; gap: 10px; }
 
@@ -544,9 +600,9 @@
   .occ-head { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
   .occ-name { font-size: 12.5px; font-weight: 700; color: var(--ink); }
   .occ-usage { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 650; }
-  .occ-empty { margin-left: auto; font-size: 11px; color: var(--faint); }
+  .occ-empty { margin-left: auto; font-size: 11px; color: var(--muted); }
 
-  .occ-bar { display: flex; gap: 4px; margin-top: 7px; height: 42px; }
+  .occ-bar { display: flex; gap: 6px; margin-top: 7px; height: 42px; }
 
   .occ-cell {
     min-width: 0;
@@ -566,14 +622,14 @@
   .occ-cell.free { border-style: dashed; background: transparent; }
   .occ-cell.free .who { font-size: 11px; font-weight: 650; color: var(--muted); }
   .occ-cell.spacer { border: 0; background: transparent; }
-  .occ-cell.changed { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .occ-cell.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
 
-  .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; }
+  .panel.timeline .panel-body { padding: 8px 12px 10px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
 
-  .tl-lanes { display: flex; flex-direction: column; gap: 3px; }
+  .tl-lanes { display: flex; flex-direction: column; gap: 7px; }
   .tl-lane { display: flex; align-items: stretch; gap: 8px; }
   .tl-name { flex: 0 0 36px; text-align: right; font-size: 10.5px; color: var(--muted); font-weight: 700; align-self: center; }
-  .tl-track { flex: 1 1 auto; display: flex; gap: 2px; min-width: 0; height: 20px; }
+  .tl-track { flex: 1 1 auto; display: flex; gap: 5px; min-width: 0; height: 20px; }
 
   .tl-seg {
     min-width: 0;
@@ -584,11 +640,12 @@
     justify-content: center;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
     font-size: 9.5px;
     font-weight: 700;
     padding: 0 3px;
   }
+
+  .tl-label { white-space: nowrap; }
 
   .tl-seg.none { border-style: dashed; border-color: var(--line); background: transparent; }
   .tl-seg.busy { border-color: var(--running); background: var(--running-soft); color: var(--running); }
@@ -600,7 +657,7 @@
     background: repeating-linear-gradient(135deg, var(--alert-soft) 0 5px, #f6d5d1 5px 10px);
   }
 
-  .tl-seg.fresh { box-shadow: 0 0 0 2px var(--accent); }
+  .tl-seg.fresh { box-shadow: 0 0 0 2px var(--marked); }
 
   .tl-legend { display: inline-flex; flex-wrap: wrap; gap: 2px 12px; }
   .tl-legend .item { display: inline-flex; align-items: center; gap: 4px; }
@@ -619,7 +676,7 @@
   .pcb-cards.side .pcb-card + .pcb-card { margin-top: 0; }
   .pcb-card + .pcb-card { margin-top: 8px; }
   .pcb-card.dim { opacity: 0.62; }
-  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 5px; }
+  .pcb-card h3 { font-size: 11px; letter-spacing: 0.04em; color: var(--pcb); margin-bottom: 5px; }
 
   .pcb-field {
     display: flex;
@@ -632,10 +689,11 @@
     font-size: 12px;
   }
 
+  .pcb-field + .pcb-field { margin-top: 3px; }
   .pcb-field .name { color: var(--muted); font-size: 11px; font-weight: 650; }
   .pcb-field .val { font-weight: 700; }
-  .pcb-field.changed { background: var(--accent-soft); }
-  .pcb-field.changed .name, .pcb-field.changed .val { color: var(--accent); }
+  .pcb-field.changed { background: var(--marked-soft); }
+  .pcb-field.changed .name, .pcb-field.changed .val { color: var(--marked); }
 
   footer { flex: 0 0 auto; display: block; min-height: 0; }
 
@@ -671,10 +729,12 @@
 
   .narration-body.with-extras {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr);
-    gap: 6px 16px;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.25fr) minmax(240px, 0.7fr);
+    gap: 6px 18px;
     align-content: start;
   }
+
+  .narration-body.with-extras.no-compare { grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr); }
 
   .narration-extras { min-width: 0; min-height: 0; overflow-y: auto; }
   .narration-main { min-width: 0; }
@@ -702,11 +762,12 @@
   .takeaway .line { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
 
   .compare { margin: 7px 0 0; overflow-x: auto; }
-  .compare.full { grid-column: 1 / -1; margin: 0; }
-  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.22; }
-  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 2px 0; }
+  .compare.full { grid-column: 2; grid-row: 1; margin: 0; }
+  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.3; }
+  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 4px 0; }
   .compare th.head-region { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: none; font-size: 12px; color: var(--ink); letter-spacing: 0; }
-  .compare td { padding: 0 16px 0 0; vertical-align: top; }
+  .compare td { padding: 2px 16px 2px 0; vertical-align: top; }
+  .compare tr + tr td { border-top: 1px solid var(--line); }
   .compare td.label { color: var(--muted); }
 
   .progress-row { display: flex; align-items: center; gap: 10px; padding: 4px 12px 0; }
@@ -863,8 +924,10 @@ const UI_TEXT = {
     timeline: "Línea de tiempo",
     occupancy: "Ocupación de memoria",
     deciders: "Quién decidió cada transición",
-    counters: "Grados"
+    counters: "Grados",
+    visibility: "Qué ve el sistema operativo"
   },
+  variantLabel: "Ver el mismo programa con",
   firstStep: "Primero",
   prevStep: "Anterior",
   nextStep: "Siguiente",
@@ -921,6 +984,16 @@ const UI_TEXT = {
     filterLabel: "Ver las que decide",
     filterAll: "Todas"
   },
+  visibility: {
+    kernelBand: "Lo que el sistema operativo tiene anotado",
+    processBand: "Lo que hay adentro del proceso",
+    kernelKind: "hilos de kernel (KLT)",
+    userKind: "hilos de usuario (ULT)",
+    hiddenNote: "No los ve",
+    sameNote: "Los mismos de abajo",
+    carrier: "K1",
+    carrierGloss: "sostiene a los tres"
+  },
   tcbTitle: "TCB de {id}",
   tcbLabels: { state: "estado", line: "línea actual" },
   threadStacksNote: "un stack por hilo",
@@ -958,11 +1031,11 @@ const STATES = {
   TERMINATED: { label: "TERMINATED", gloss: "terminado", color: "#5b6472", soft: "#eef0f4", x: 350, y: 158 },
   "READY SUSPENDED": {
     label: "READY SUSPENDED", gloss: "listo, fuera de memoria",
-    color: "#a06000", soft: "#fdf1d8", x: 80, y: 268
+    color: "#8a6a00", soft: "#fcf3ce", x: 80, y: 268
   },
   "BLOCKED SUSPENDED": {
     label: "BLOCKED SUSPENDED", gloss: "en espera, fuera de memoria",
-    color: "#b5510a", soft: "#fdeadb", x: 300, y: 268
+    color: "#a04d05", soft: "#fce0cc", x: 300, y: 268
   }
 };
 
@@ -1000,7 +1073,7 @@ const PANEL_TIPS = {
   },
   pcb: {
     title: "PCB",
-    body: "La ficha que el sistema operativo tiene de cada proceso. No está en la memoria del proceso: está en la del sistema operativo."
+    body: "La ficha que el sistema operativo tiene de cada proceso. La arma, la escribe y la lee él: el programa no la toca."
   },
   states: {
     title: "Estados",
@@ -1025,6 +1098,10 @@ const PANEL_TIPS = {
   counters: {
     title: "Grados",
     body: "Cuántos procesos hay en memoria, y cuántos ejecutan a la vez. El segundo nunca pasa de 1, porque hay una sola CPU."
+  },
+  visibility: {
+    title: "Qué ve el sistema operativo",
+    body: "Arriba, los hilos que el sistema operativo tiene anotados y entre los que puede elegir. Abajo, los que existen adentro del proceso. Cuando las dos listas no coinciden, la diferencia es lo que el sistema operativo no ve."
   }
 };
 
@@ -1055,7 +1132,7 @@ const TOOLTIPS = {
   },
   pcb: {
     title: "PCB",
-    body: "La estructura donde el sistema operativo anota todo lo que sabe de un proceso. Hay una por proceso, y no vive en la memoria del proceso sino en la del sistema operativo."
+    body: "La estructura donde el sistema operativo anota todo lo que sabe de un proceso. Hay una por proceso, y la mantiene el sistema operativo: el programa no la ve ni la puede tocar."
   },
   pid: {
     title: "PID",
@@ -1083,11 +1160,15 @@ const TOOLTIPS = {
   },
   cambioDeContexto: {
     title: "Cambio de contexto",
-    body: "Sacar un proceso de la CPU y poner otro: guardar el contexto del que sale en su PCB, elegir al que entra, y cargar el contexto del que entra desde su PCB. Mientras eso pasa, no ejecuta ningún proceso."
+    body: "Copiar un contexto de un lado al otro: de la CPU al PCB del que sale, o del PCB a la CPU del que entra. Cambiar de proceso son dos, uno por cada lado, y mientras pasan no ejecuta ningún proceso."
   },
   quantum: {
     title: "Fin de quantum",
     body: "Se terminó el tiempo que le tocaba en la CPU."
+  },
+  crearHilo: {
+    title: "crear_hilo",
+    body: "En C la función que hace esto se llama pthread_create, y la que espera a que un hilo termine, pthread_join. Acá el nombre va en castellano y con menos parámetros para que la sintaxis no tape lo que el ejemplo muestra."
   }
 };
 
@@ -1624,7 +1705,7 @@ const EXAMPLES = [
       },
       {
         focus: "P1",
-        narration: "[[cambioDeContexto:Cambio de contexto]], paso 1 de 3: el sistema operativo copia el contexto que estaba en la CPU al PCB de P1. La CPU queda vacía.",
+        narration: "[[cambioDeContexto:Cambio de contexto]] 1: el sistema operativo copia el contexto que estaba en la CPU al PCB de P1. La CPU queda vacía.",
         note: "En el recurso anterior, el contexto se apilaba en la pila del sistema. Acá no: va a una estructura que el sistema operativo mantiene para cada proceso, y esa estructura es el [[pcb:PCB]].",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
@@ -1633,14 +1714,14 @@ const EXAMPLES = [
       },
       {
         focus: "P2",
-        narration: "Paso 2 de 3: el sistema operativo elige a quién le da la CPU. P2 está en READY, así que va P2.",
-        note: "Cómo lo elige no es tema de este recurso: por ahora, lo elige.",
+        narration: "El sistema operativo elige a quién le da la CPU. P2 está en READY, así que va P2.",
+        note: "Elegir no es un cambio de contexto: es la decisión que va en el medio de los dos. Cómo elige no es tema de este recurso: por ahora, lo elige.",
         ops: [{ op: "time.advance", units: 1, cpu: { kind: "overhead" } }]
       },
       {
         focus: "P2",
-        narration: "Paso 3 de 3: copia el contexto de P2 desde su PCB a la CPU, y P2 pasa a RUNNING. El casillero de contexto de P2 queda vacío, y el de P1 lleno: se invirtieron.",
-        note: "Los tres pasos juntos son el cambio de contexto. En la línea de tiempo son la banda roja: durante todo ese tiempo no ejecutó ningún proceso.",
+        narration: "Cambio de contexto 2: copia el contexto de P2 desde su PCB a la CPU, y P2 pasa a RUNNING. El casillero de contexto de P2 queda vacío, y el de P1 lleno: se invirtieron.",
+        note: "Cambiar de proceso son dos cambios de contexto: el del que sale y el del que entra. Entre los dos, la decisión de quién sigue. Los tres momentos juntos son la banda roja de la línea de tiempo: durante todo ese tiempo no ejecutó ningún proceso.",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
           { op: "context.load", process: "P2" },
@@ -1671,7 +1752,7 @@ const EXAMPLES = [
       },
       {
         focus: "P2",
-        narration: "Otro cambio de contexto, paso 1 de 3: el contexto de P2 se copia a su PCB y la CPU vuelve a quedar vacía.",
+        narration: "Empieza otro cambio de proceso. Primer cambio de contexto: el de P2 se copia a su PCB y la CPU vuelve a quedar vacía.",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
           { op: "context.save", process: "P2" }
@@ -1679,12 +1760,12 @@ const EXAMPLES = [
       },
       {
         focus: "P1",
-        narration: "Paso 2 de 3: elige a P1, que está en READY desde que terminó su I/O.",
+        narration: "Elige a P1, que está en READY desde que terminó su I/O.",
         ops: [{ op: "time.advance", units: 1, cpu: { kind: "overhead" } }]
       },
       {
         focus: "P1",
-        narration: "Paso 3 de 3: carga el contexto de P1 desde su PCB. Vuelve con el mismo IP y los mismos registros que tenía cuando se bloqueó.",
+        narration: "Segundo cambio de contexto: carga el de P1 desde su PCB. Vuelve con el mismo IP y los mismos registros que tenía cuando se bloqueó.",
         note: "Por eso el contexto se guarda: P1 sigue en la instrucción exacta donde había quedado, sin repetir ni saltear nada.",
         ops: [
           { op: "time.advance", units: 1, cpu: { kind: "overhead" } },
@@ -1985,7 +2066,7 @@ const EXAMPLES = [
         line: 10,
         focus: "P1",
         thread: "H1",
-        narration: "crear_hilo arranca un hilo nuevo, H2, que va a ejecutar contar con 20. Aparecen *dos cosas y nada más*: un stack propio para H2 y un TCB.",
+        narration: "[[crearHilo:crear_hilo]] arranca un hilo nuevo, H2, que va a ejecutar contar con 20. Aparecen *dos cosas y nada más*: un stack propio para H2 y un TCB.",
         note: "El text, el data y el heap son los mismos de antes: no se duplicó ninguno. Ahí está la diferencia con el ejemplo 1, donde el segundo proceso necesitó una memoria entera.",
         ops: [
           { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)", vars: [{ name: "desde", value: "20" }] }] }
@@ -2030,7 +2111,7 @@ const EXAMPLES = [
         focus: "P1",
         thread: "H1",
         narration: "H1 pide una I/O y se bloquea, así que la CPU pasa a otro hilo del mismo proceso. *El proceso sigue en RUNNING*: H2 y H3 todavía pueden ejecutar.",
-        note: "Un hilo bloqueado no bloquea al proceso. Eso es nuevo: hasta el ejemplo 5, cuando el proceso pedía una I/O no quedaba nadie adentro para seguir.",
+        note: "Un hilo bloqueado no bloquea al proceso, siempre que el sistema operativo sepa que ese hilo existe. Eso es nuevo: hasta el ejemplo 5, cuando el proceso pedía una I/O no quedaba nadie adentro para seguir.",
         ops: [
           { op: "thread.state", thread: "H1", value: "BLOCKED" },
           { op: "thread.state", thread: "H2", value: "RUNNING" }
@@ -2080,7 +2161,7 @@ const EXAMPLES = [
         focus: "P1",
         thread: "H3",
         narration: "H3 pide su I/O y se bloquea. Ahora sí: con los tres hilos bloqueados, *el proceso entero pasa a BLOCKED*, porque no queda nada suyo que pueda ejecutar.",
-        note: "Un text, un data, un heap; tres stacks y tres trazas. Eso es un proceso con hilos.",
+        note: "Un text, un data, un heap; tres stacks y tres trazas. Eso es un proceso con hilos. Todo lo que se vio acá dio por hecho que el sistema operativo conoce a los tres. El ejemplo 9 muestra qué pasa cuando no.",
         ops: [
           { op: "thread.state", thread: "H3", value: "BLOCKED" },
           { op: "state.set", process: "P1", value: "BLOCKED" }
@@ -2094,6 +2175,189 @@ const EXAMPLES = [
       }],
       threadsTotal: 3
     }
+  },
+
+  {
+    number: 9,
+    title: "Lo que el sistema operativo ve",
+    short: "ULT vs KLT",
+    adds: "Agrega: que el sistema operativo sólo conoce a algunos hilos.",
+    subtitle: "El mismo programa del ejemplo 8, con hilos que el sistema operativo conoce y con hilos que no.",
+    program: "hilos",
+    stepUnit: "Un paso = una línea, o un evento",
+    canvas: { columns: "0.80fr 0.98fr 1.18fr", panels: ["source", "visibility", "timeline"] },
+    closing: "El sistema operativo sólo puede elegir entre lo que ve.",
+    compare: {
+      headers: ["", "el SO los conoce (KLT)", "el SO no los conoce (ULT)"],
+      rows: [
+        ["¿qué anota el sistema operativo?", "un hilo de kernel por cada uno", "un solo hilo de kernel para los tres"],
+        ["si uno pide una I/O", "el sistema operativo le da la CPU a otro hilo del proceso", "ninguno de sus pares puede seguir"],
+        ["cambiar de un hilo al otro", "pasa por el kernel", "se resuelve adentro del proceso, y sale más barato"],
+        ["con más de una CPU", "dos hilos del proceso pueden ejecutar a la vez", "no: el sistema operativo ve uno solo"]
+      ]
+    },
+    variants: [
+      {
+        variantLabel: "Hilos de kernel (KLT)",
+        kernelView: "threads",
+        steps: [
+          {
+            line: 4,
+            focus: "P1",
+            thread: "H1",
+            narration: "El mismo proceso del ejemplo 8, con sus tres hilos ya creados. Cada crear_hilo entró al kernel, y el sistema operativo anotó un hilo de kernel por cada uno. Arriba y abajo está la misma lista: los tres que existen son los tres que el sistema operativo conoce, y puede elegir entre cualquiera de ellos.",
+            note: "La memoria del proceso es la misma del ejemplo 8 y no cambia acá, así que el mapa no está en pantalla. Lo que importa ahora es quién conoce a quién.",
+            ops: [
+              { op: "process.add", id: "P1", pid: 41, data: [{ name: "total", value: "3" }] },
+              { op: "state.set", value: "RUNNING" },
+              { op: "thread.add", id: "H1", state: "RUNNING", line: 4, frames: [{ name: "contar(10)" }] },
+              { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)" }] },
+              { op: "thread.add", id: "H3", state: "READY", line: 3, frames: [{ name: "contar(30)" }] },
+              { op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }
+            ]
+          },
+          {
+            line: 5,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 tiene la CPU y avanza.",
+            ops: [{ op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 pide una I/O y se bloquea. El sistema operativo mira su lista, ve que H2 está listo, y le da la CPU.",
+            note: "Pudo elegir porque H2 estaba anotado. Retené eso: es lo único que va a cambiar en la otra variante.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "BLOCKED" },
+              { op: "thread.state", thread: "H2", value: "RUNNING" },
+              { op: "time.advance", units: 2, cpu: { kind: "busy", label: "H2" } }
+            ]
+          },
+          {
+            line: 5,
+            focus: "P1",
+            thread: "H2",
+            narration: "H2 avanza mientras H1 sigue esperando al disco.",
+            ops: [{ op: "time.advance", units: 3, cpu: { kind: "busy", label: "H2" } }]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H2",
+            narration: "H2 también pide una I/O. Queda H3, que el sistema operativo también tiene anotado, y la CPU pasa a él.",
+            ops: [
+              { op: "thread.state", thread: "H2", value: "BLOCKED" },
+              { op: "thread.state", thread: "H3", value: "RUNNING" },
+              { op: "time.advance", units: 3, cpu: { kind: "busy", label: "H3" } }
+            ]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H3",
+            narration: "H3 pide su I/O y se bloquea. Recién ahora, con los tres bloqueados, el proceso entero pasa a BLOCKED.",
+            note: "En toda la traza la CPU sólo se quedó sin nada que hacer al final, cuando ya no quedaba ningún hilo que pudiera ejecutar.",
+            ops: [
+              { op: "thread.state", thread: "H3", value: "BLOCKED" },
+              { op: "state.set", process: "P1", value: "BLOCKED" },
+              { op: "time.advance", units: 2, cpu: { kind: "idle" } }
+            ]
+          }
+        ],
+        expectedFinalState: {
+          processes: [{
+            id: "P1", frames: 0, heapBlocks: 0, data: { total: "3" }, state: "BLOCKED",
+            threads: { H1: "BLOCKED", H2: "BLOCKED", H3: "BLOCKED" }
+          }],
+          threadsTotal: 3,
+          timelineUnits: 16
+        }
+      },
+      {
+        variantLabel: "Hilos de usuario (ULT)",
+        kernelView: "process",
+        steps: [
+          {
+            line: 4,
+            focus: "P1",
+            thread: "H1",
+            narration: "El mismo código, línea por línea. Pero acá crear_hilo no entra al kernel: se resuelve adentro del proceso, sin que el sistema operativo se entere.",
+            note: "Mirá las dos listas. Abajo hay tres hilos de usuario. Arriba hay uno solo, K1: es un hilo de kernel, y es el único que el sistema operativo tiene anotado de este proceso. Los tres de abajo se turnan para correr arriba de K1, y para el sistema operativo no existen.",
+            ops: [
+              { op: "process.add", id: "P1", pid: 41, data: [{ name: "total", value: "3" }] },
+              { op: "state.set", value: "RUNNING" },
+              { op: "thread.add", id: "H1", state: "RUNNING", line: 4, frames: [{ name: "contar(10)" }] },
+              { op: "thread.add", id: "H2", state: "READY", line: 3, frames: [{ name: "contar(20)" }] },
+              { op: "thread.add", id: "H3", state: "READY", line: 3, frames: [{ name: "contar(30)" }] },
+              { op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }
+            ]
+          },
+          {
+            line: 5,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 tiene la CPU y avanza, igual que en la otra variante. Hasta acá no se nota ninguna diferencia.",
+            ops: [{ op: "time.advance", units: 3, cpu: { kind: "busy", label: "H1" } }]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "H1 pide una I/O y se bloquea. Y con H1 se bloquea K1, que era el que lo estaba sosteniendo: para el sistema operativo, el que pidió la I/O fue K1.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "BLOCKED" },
+              { op: "state.set", process: "P1", value: "BLOCKED" }
+            ]
+          },
+          {
+            focus: "P1",
+            thread: "H1",
+            narration: "Y acá está la diferencia. H2 y H3 están listos: podrían ejecutar ya mismo. El sistema operativo no lo sabe. En su lista este proceso es K1, y K1 está bloqueado, así que no tiene nada de este proceso a lo que darle la CPU.",
+            note: "Ese rojo de la línea de tiempo es tiempo de CPU perdido con dos hilos listos esperando. En la otra variante, en este mismo momento, estaba ejecutando H2.",
+            ops: [{ op: "time.advance", units: 4, cpu: { kind: "idle" } }]
+          },
+          {
+            focus: "P1",
+            thread: "H1",
+            narration: "Termina la I/O.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "READY" },
+              { op: "state.set", process: "P1", value: "READY" },
+              { op: "time.advance", units: 2, cpu: { kind: "idle" } }
+            ]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "El sistema operativo vuelve a tener algo que ejecutar y le devuelve la CPU al proceso, que retoma por donde se había quedado: H1.",
+            ops: [
+              { op: "thread.state", thread: "H1", value: "RUNNING" },
+              { op: "state.set", process: "P1", value: "RUNNING" },
+              { op: "time.advance", units: 2, cpu: { kind: "busy", label: "H1" } }
+            ]
+          },
+          {
+            line: 6,
+            focus: "P1",
+            thread: "H1",
+            narration: "Recién cuando H1 suelta la CPU van a poder avanzar sus pares. Los tres hilos existen, pero por afuera se ven como uno solo, y de a uno por vez.",
+            note: "Los dos recorridos tenían el mismo código y los mismos eventos. Lo único distinto era si el sistema operativo conocía a los tres hilos o a uno.",
+            ops: [{ op: "time.advance", units: 2, cpu: { kind: "busy", label: "H1" } }]
+          }
+        ],
+        expectedFinalState: {
+          processes: [{
+            id: "P1", frames: 0, heapBlocks: 0, data: { total: "3" }, state: "RUNNING",
+            threads: { H1: "RUNNING", H2: "READY", H3: "READY" }
+          }],
+          threadsTotal: 3,
+          timelineUnits: 16
+        }
+      }
+    ]
   }
 ];
 </script>
@@ -2449,12 +2713,13 @@ function diffCpu(before, after) {
 }
 
 function markChanges(snapshots, example) {
+  const fields = example.pcbFields || [];
   snapshots.forEach(function (snapshot, index) {
     const previous = index === 0 ? null : snapshots[index - 1];
     const changed = {};
     snapshot.processes.forEach(function (process) {
       const before = previous ? findProcess(previous.processes, process.id) : null;
-      changed[process.id] = diffProcess(before, process, example.pcbFields);
+      changed[process.id] = diffProcess(before, process, fields);
     });
     snapshot.changed = changed;
     snapshot.changedCpu = diffCpu(previous ? previous.cpu : null, snapshot.cpu);
@@ -2490,7 +2755,7 @@ function buildSnapshots(example) {
   return markChanges(snapshots, example);
 }
 
-function verifyExample(example, snapshots) {
+function verifyExample(example, snapshots, variantLabel) {
   const problems = [];
   const program = PROGRAMS[example.program] || null;
   const declaredStates = example.states || [];
@@ -2649,7 +2914,8 @@ function verifyExample(example, snapshots) {
   }
 
   if (problems.length > 0) {
-    console.error("Ejemplo " + example.number + ": " + problems.join("; "));
+    const name = "Ejemplo " + example.number + (variantLabel ? " (" + variantLabel + ")" : "");
+    console.error(name + ": " + problems.join("; "));
   }
 }
 
@@ -2676,20 +2942,34 @@ function deriveTransitions(snapshots) {
 
 
 
-const BUILT_EXAMPLES = EXAMPLES.map(function (example) {
+function buildVariant(example) {
   const snapshots = buildSnapshots(example);
   const mostProcesses = snapshots.reduce(function (most, snapshot) {
     return Math.max(most, snapshot.processes.length);
   }, 0);
   return {
     example: example,
+    label: example.variantLabel || null,
     snapshots: snapshots,
     transitions: deriveTransitions(snapshots),
     mostProcesses: mostProcesses
   };
+}
+
+const BUILT_EXAMPLES = EXAMPLES.map(function (example) {
+  return {
+    example: example,
+    variants: (example.variants || [{}]).map(function (variant) {
+      return buildVariant(Object.assign({}, example, variant));
+    })
+  };
 });
 
-BUILT_EXAMPLES.forEach(function (built) { verifyExample(built.example, built.snapshots); });
+BUILT_EXAMPLES.forEach(function (built) {
+  built.variants.forEach(function (variant) {
+    verifyExample(variant.example, variant.snapshots, variant.label);
+  });
+});
 </script>
 
 <script id="ui">
@@ -2715,6 +2995,7 @@ const dom = {
 };
 
 const AUTOPLAY_DELAY = 2800;
+const TIMELINE_LABEL_PADDING = 6;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const PANELS = {
@@ -2726,7 +3007,8 @@ const PANELS = {
   timeline: { extras: ["note"], render: function (snapshot) { renderTimeline(snapshot); } },
   occupancy: { extras: [], render: function (snapshot) { renderOccupancy(snapshot); } },
   deciders: { extras: [], render: function (snapshot) { renderDeciders(snapshot); } },
-  counters: { extras: [], render: function (snapshot) { renderCounters(snapshot); } }
+  counters: { extras: [], render: function (snapshot) { renderCounters(snapshot); } },
+  visibility: { extras: [], render: function (snapshot) { renderVisibility(snapshot); } }
 };
 
 const panelRefs = {};
@@ -2734,13 +3016,15 @@ let canvasKey = "";
 
 const view = {
   exampleIndex: 0,
+  variantIndex: 0,
   stepIndex: 0,
   filter: "all",
   playing: false,
   timer: null
 };
 
-function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex].variants[view.variantIndex]; }
+function currentVariants() { return BUILT_EXAMPLES[view.exampleIndex].variants; }
 function currentExample() { return currentBuilt().example; }
 function currentSnapshots() { return currentBuilt().snapshots; }
 function currentSnapshot() { return currentSnapshots()[view.stepIndex]; }
@@ -2828,32 +3112,54 @@ function buildCanvas(example) {
   dom.main = fresh;
 }
 
-function renderFilter() {
-  const example = currentExample();
-  dom.filterRow.hidden = !example.filter;
-  if (!example.filter) return;
-  dom.filterLabel.textContent = UI_TEXT.deciders.filterLabel;
+function renderChoiceBar(label, options) {
+  dom.filterRow.hidden = false;
+  dom.filterLabel.textContent = label;
   dom.filterBar.textContent = "";
-  const options = [{ key: "all", label: UI_TEXT.deciders.filterAll, color: null }].concat(
+  options.forEach(function (option) {
+    const button = element("button", null, option.label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", option.active ? "true" : "false");
+    if (option.active) {
+      button.style.background = option.color;
+      button.style.borderColor = option.color;
+    }
+    button.addEventListener("click", option.pick);
+    dom.filterBar.appendChild(button);
+  });
+}
+
+function renderHeaderChoices() {
+  const variants = currentVariants();
+  if (variants.length > 1) {
+    renderChoiceBar(UI_TEXT.variantLabel, variants.map(function (variant, index) {
+      return {
+        label: variant.label,
+        active: index === view.variantIndex,
+        color: "var(--thread)",
+        pick: function () { selectVariant(index); }
+      };
+    }));
+    return;
+  }
+  const example = currentExample();
+  if (!example.filter) {
+    dom.filterRow.hidden = true;
+    return;
+  }
+  const options = [{ key: "all", label: UI_TEXT.deciders.filterAll, color: "var(--ink)" }].concat(
     Object.keys(DECIDERS).map(function (key) {
       return { key: key, label: DECIDERS[key].short, color: DECIDERS[key].color };
     })
   );
-  options.forEach(function (option) {
-    const button = element("button", null, option.label);
-    button.type = "button";
-    const active = view.filter === option.key;
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-    if (active) {
-      button.style.background = option.color || "var(--ink)";
-      button.style.borderColor = option.color || "var(--ink)";
-    }
-    button.addEventListener("click", function () {
-      view.filter = option.key;
-      render();
-    });
-    dom.filterBar.appendChild(button);
-  });
+  renderChoiceBar(UI_TEXT.deciders.filterLabel, options.map(function (option) {
+    return {
+      label: option.label,
+      active: view.filter === option.key,
+      color: option.color,
+      pick: function () { view.filter = option.key; render(); }
+    };
+  }));
 }
 
 function renderExampleList() {
@@ -2882,6 +3188,17 @@ function threadMarks(snapshot) {
   return marks;
 }
 
+function revealLine(body, row) {
+  const frame = body.getBoundingClientRect();
+  const line = row.getBoundingClientRect();
+  if (line.top >= frame.top && line.bottom <= frame.bottom) return;
+  const rows = Array.prototype.slice.call(body.querySelectorAll(".code-line"));
+  const anchor = rows.filter(function (candidate) {
+    return line.bottom - candidate.getBoundingClientRect().top <= frame.height;
+  })[0];
+  if (anchor) body.scrollTop += anchor.getBoundingClientRect().top - frame.top;
+}
+
 function renderSource(snapshot) {
   const refs = panelRefs.source;
   const program = PROGRAMS[currentExample().program];
@@ -2892,6 +3209,7 @@ function renderSource(snapshot) {
   refs.body.textContent = "";
   const marks = threadMarks(snapshot);
   const code = element("div", "source-code mono");
+  let current = null;
   program.lines.forEach(function (text, index) {
     const row = element("div", "code-line");
     const here = marks[index + 1] || [];
@@ -2908,9 +3226,11 @@ function renderSource(snapshot) {
       });
       row.appendChild(chips);
     }
+    if (snapshot.line === index + 1) current = row;
     code.appendChild(row);
   });
   refs.body.appendChild(code);
+  if (current) revealLine(refs.body, current);
 }
 
 function regionHead(region, trailing) {
@@ -3193,7 +3513,45 @@ function svgNode(tag, attributes) {
   return node;
 }
 
-function edgeGeometry(edge) {
+const ARROW_HEADS = {
+  normal: { length: 8.5, halfWidth: 3.4 },
+  strong: { length: 11, halfWidth: 4.6 }
+};
+
+const ARROW_HEAD_OVERLAP = 1;
+
+function distanceBetween(a, b) {
+  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+}
+
+function alongLine(from, to, ratio) {
+  return { x: from.x + (to.x - from.x) * ratio, y: from.y + (to.y - from.y) * ratio };
+}
+
+function onQuadratic(start, control, end, t) {
+  const rest = 1 - t;
+  return {
+    x: rest * rest * start.x + 2 * rest * t * control.x + t * t * end.x,
+    y: rest * rest * start.y + 2 * rest * t * control.y + t * t * end.y
+  };
+}
+
+function quadraticStoppedBefore(start, control, end, gap) {
+  let low = 0;
+  let high = 1;
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const middle = (low + high) / 2;
+    if (distanceBetween(onQuadratic(start, control, end, middle), end) > gap) low = middle;
+    else high = middle;
+  }
+  const t = (low + high) / 2;
+  return {
+    at: onQuadratic(start, control, end, t),
+    control: alongLine(start, control, t)
+  };
+}
+
+function edgeGeometry(edge, head) {
   const from = stateBox(edge.from);
   const to = stateBox(edge.to);
   const dx = to.cx - from.cx;
@@ -3201,38 +3559,37 @@ function edgeGeometry(edge) {
   const length = Math.sqrt(dx * dx + dy * dy) || 1;
   const perpX = -dy / length;
   const perpY = dx / length;
-  const controlX = (from.cx + to.cx) / 2 + perpX * edge.bend;
-  const controlY = (from.cy + to.cy) / 2 + perpY * edge.bend;
-  const start = clipToBox(from, controlX, controlY);
-  const end = clipToBox(to, controlX, controlY);
-  const tipFromX = edge.bend === 0 ? start.x : controlX;
-  const tipFromY = edge.bend === 0 ? start.y : controlY;
-  const tipDx = end.x - tipFromX;
-  const tipDy = end.y - tipFromY;
-  const tipLength = Math.sqrt(tipDx * tipDx + tipDy * tipDy) || 1;
-  const dirX = tipDx / tipLength;
-  const dirY = tipDy / tipLength;
-  const baseX = end.x - dirX * 8;
-  const baseY = end.y - dirY * 8;
+  const control = {
+    x: (from.cx + to.cx) / 2 + perpX * edge.bend,
+    y: (from.cy + to.cy) / 2 + perpY * edge.bend
+  };
+  const start = clipToBox(from, control.x, control.y);
+  const end = clipToBox(to, control.x, control.y);
+  const curved = edge.bend !== 0;
+  const gap = Math.max(head.length - ARROW_HEAD_OVERLAP, 0);
+  const stopped = curved
+    ? quadraticStoppedBefore(start, control, end, gap)
+    : { at: alongLine(end, start, gap / (distanceBetween(start, end) || 1)), control: control };
+  const reach = distanceBetween(stopped.at, end) || 1;
+  const dirX = (end.x - stopped.at.x) / reach;
+  const dirY = (end.y - stopped.at.y) / reach;
+  const base = { x: end.x - dirX * head.length, y: end.y - dirY * head.length };
   const t = edge.at === undefined ? 0.5 : edge.at;
-  const midX = edge.bend === 0
-    ? start.x + (end.x - start.x) * t
-    : Math.pow(1 - t, 2) * start.x + 2 * (1 - t) * t * controlX + Math.pow(t, 2) * end.x;
-  const midY = edge.bend === 0
-    ? start.y + (end.y - start.y) * t
-    : Math.pow(1 - t, 2) * start.y + 2 * (1 - t) * t * controlY + Math.pow(t, 2) * end.y;
+  const anchor = curved ? onQuadratic(start, control, end, t) : alongLine(start, end, t);
   const nudgeX = edge.nudgeX || 0;
   const nudgeY = edge.nudgeY || 0;
   return {
-    anchorX: midX,
-    anchorY: midY,
-    path: edge.bend === 0
-      ? "M " + start.x + " " + start.y + " L " + end.x + " " + end.y
-      : "M " + start.x + " " + start.y + " Q " + controlX + " " + controlY + " " + end.x + " " + end.y,
-    arrow: end.x + "," + end.y + " " + (baseX - dirY * 3.6) + "," + (baseY + dirX * 3.6) + " " +
-      (baseX + dirY * 3.6) + "," + (baseY - dirX * 3.6),
-    midX: midX + nudgeX,
-    midY: midY + nudgeY,
+    anchorX: anchor.x,
+    anchorY: anchor.y,
+    path: curved
+      ? "M " + start.x + " " + start.y + " Q " + stopped.control.x + " " + stopped.control.y +
+        " " + stopped.at.x + " " + stopped.at.y
+      : "M " + start.x + " " + start.y + " L " + stopped.at.x + " " + stopped.at.y,
+    arrow: end.x + "," + end.y + " " +
+      (base.x - dirY * head.halfWidth) + "," + (base.y + dirX * head.halfWidth) + " " +
+      (base.x + dirY * head.halfWidth) + "," + (base.y - dirX * head.halfWidth),
+    midX: anchor.x + nudgeX,
+    midY: anchor.y + nudgeY,
     perpX: perpX,
     perpY: perpY
   };
@@ -3295,8 +3652,8 @@ function renderStates(snapshot) {
   STATE_EDGES.forEach(function (edge) {
     const id = edge.from + ">" + edge.to;
     if (example.transitions.indexOf(id) === -1) return;
-    const geometry = edgeGeometry(edge);
     const active = id === activeEdge;
+    const geometry = edgeGeometry(edge, active ? ARROW_HEADS.strong : ARROW_HEADS.normal);
     const faded = byDecider && view.filter !== "all" && view.filter !== edge.decider;
     const tone = byDecider ? DECIDERS[edge.decider].color : null;
     const path = svgNode("path", {
@@ -3317,7 +3674,7 @@ function renderStates(snapshot) {
     const distancia = Math.sqrt(Math.pow(spot.x - geometry.anchorX, 2) + Math.pow(spot.y - geometry.anchorY, 2));
     if (distancia > 15) {
       const leader = svgNode("line", {
-        class: "edge-leader" + (faded ? " faded" : ""),
+        class: "edge-leader" + (active && !byDecider ? " active" : "") + (faded ? " faded" : ""),
         x1: spot.x, y1: spot.y, x2: geometry.anchorX, y2: geometry.anchorY
       });
       if (tone) leader.style.stroke = tone;
@@ -3459,13 +3816,71 @@ function renderCounters(snapshot) {
   };
   UI_TEXT.counters.forEach(function (entry) {
     const box = element("div", "counter-box");
-    const top = element("div", "counter-top");
-    top.appendChild(element("span", "counter-label", entry.label));
-    top.appendChild(element("span", "counter-value mono", values[entry.key]));
-    box.appendChild(top);
-    box.appendChild(element("span", "counter-gloss", entry.gloss));
+    const text = element("div", "counter-text");
+    text.appendChild(element("span", "counter-label", entry.label));
+    text.appendChild(element("span", "counter-gloss", entry.gloss));
+    box.appendChild(text);
+    box.appendChild(element("span", "counter-value mono", values[entry.key]));
     body.appendChild(box);
   });
+}
+
+function visibilityEntry(label, state, gloss, unseen, marked) {
+  const box = element("div", "vis-entry");
+  if (unseen) box.classList.add("unseen");
+  if (marked) box.classList.add("changed");
+  box.appendChild(element("span", "vis-name mono", label));
+  const known = STATES[state];
+  if (known) {
+    const chip = element("span", "pcb-state mono", known.label);
+    chip.style.borderColor = known.color;
+    chip.style.background = known.soft;
+    chip.style.color = known.color;
+    box.appendChild(chip);
+  }
+  if (gloss) box.appendChild(element("span", "vis-gloss", gloss));
+  return box;
+}
+
+function visibilityBand(side, heading, kind, note, entries) {
+  const band = element("div", "vis-band " + side);
+  const head = element("div", "vis-band-head");
+  const naming = element("div", "vis-band-naming");
+  naming.appendChild(element("span", "vis-band-name", heading));
+  naming.appendChild(element("span", "vis-band-kind", kind));
+  head.appendChild(naming);
+  if (note) head.appendChild(element("span", "vis-band-note", note));
+  band.appendChild(head);
+  const list = element("div", "vis-entries");
+  entries.forEach(function (entry) { list.appendChild(entry); });
+  band.appendChild(list);
+  return band;
+}
+
+function renderVisibility(snapshot) {
+  const body = panelRefs.visibility.body;
+  const text = UI_TEXT.visibility;
+  body.textContent = "";
+  const process = snapshot.processes[0];
+  if (!process) {
+    body.appendChild(element("p", "empty-state", UI_TEXT.noProcess));
+    return;
+  }
+  const changed = snapshot.changed[process.id];
+  const known = currentExample().kernelView === "threads";
+  const kernelEntries = known
+    ? process.threads.map(function (thread) {
+        return visibilityEntry(thread.id, thread.state, null, false, changed.threads.indexOf(thread.id) !== -1);
+      })
+    : [visibilityEntry(text.carrier, process.state, text.carrierGloss, false, Boolean(changed.state))];
+  body.appendChild(visibilityBand("kernel", text.kernelBand, text.kernelKind,
+    known ? text.sameNote : null, kernelEntries));
+  body.appendChild(element("div", "vis-line"));
+  body.appendChild(visibilityBand("process", text.processBand, known ? text.kernelKind : text.userKind,
+    known ? null : text.hiddenNote,
+    process.threads.map(function (thread) {
+      return visibilityEntry(thread.id, thread.state, null, !known, changed.threads.indexOf(thread.id) !== -1);
+    })));
 }
 
 function renderDeciders(snapshot) {
@@ -3518,6 +3933,13 @@ function renderCpu(snapshot) {
   body.appendChild(contextRows(snapshot.cpu.context, snapshot.changedCpu.fields));
 }
 
+function timelineLabel(text, brief) {
+  const label = element("span", "tl-label", text);
+  label.dataset.full = text;
+  if (brief) label.dataset.brief = brief;
+  return label;
+}
+
 function timelineLane(name, segments, freshUnits, byState) {
   const lane = element("div", "tl-lane");
   lane.appendChild(element("span", "tl-name mono", name));
@@ -3534,15 +3956,15 @@ function timelineLane(name, segments, freshUnits, byState) {
       box.style.borderColor = state.color;
       box.style.background = state.soft;
       box.style.color = state.color;
-      box.textContent = state.label;
+      box.appendChild(timelineLabel(state.label, null));
       box.title = state.label;
     } else if (byState) {
       box.classList.add("none");
     } else if (kind === "busy") {
-      box.textContent = segment.label;
+      box.appendChild(timelineLabel(segment.label, null));
       box.title = fill(UI_TEXT.timeline.kinds.busy, { label: segment.label });
     } else {
-      box.textContent = UI_TEXT.timeline.shortKinds[kind];
+      box.appendChild(timelineLabel(UI_TEXT.timeline.shortKinds[kind], UI_TEXT.none));
       box.title = UI_TEXT.timeline.kinds[kind];
     }
     track.appendChild(box);
@@ -3599,6 +4021,24 @@ function renderTimeline(snapshot) {
     lanes.appendChild(timelineLane(process.id, segments, snapshot.freshUnits, true));
   });
   body.appendChild(lanes);
+  fitTimelineLabels();
+}
+
+function fitTimelineLabels() {
+  const segments = document.querySelectorAll(".tl-seg");
+  Array.prototype.forEach.call(segments, function (segment) {
+    const label = segment.querySelector(".tl-label");
+    if (!label) return;
+    const room = segment.clientWidth - TIMELINE_LABEL_PADDING;
+    label.hidden = false;
+    label.textContent = label.dataset.full;
+    if (label.offsetWidth <= room) return;
+    if (label.dataset.brief) {
+      label.textContent = label.dataset.brief;
+      if (label.offsetWidth <= room) return;
+    }
+    label.hidden = true;
+  });
 }
 
 function contextBlock(context, changed) {
@@ -3644,6 +4084,7 @@ function renderNarration(snapshot) {
   const example = currentExample();
   dom.narration.textContent = "";
   dom.narration.classList.toggle("with-extras", snapshot.last);
+  dom.narration.classList.toggle("no-compare", snapshot.last && !example.compare);
   const main = element("div", "narration-main");
   const paragraph = element("p", "narration-text");
   renderRich(paragraph, snapshot.narration);
@@ -3655,13 +4096,14 @@ function renderNarration(snapshot) {
   }
   dom.narration.appendChild(main);
   if (!snapshot.last) return;
+  if (example.compare) {
+    const table = compareBlock(example.compare);
+    table.classList.add("full");
+    dom.narration.appendChild(table);
+  }
   const extras = element("div", "narration-extras");
   extras.appendChild(takeawayBlock(example.closing));
   dom.narration.appendChild(extras);
-  if (!example.compare) return;
-  const table = compareBlock(example.compare);
-  table.classList.add("full");
-  dom.narration.appendChild(table);
 }
 
 function arrowPath(map, source, target) {
@@ -3673,9 +4115,11 @@ function arrowPath(map, source, target) {
   const startY = from.top - mapBox.top + from.height / 2;
   const endX = to.right - mapBox.left + 4;
   const endY = to.top - mapBox.top + to.height / 2;
+  const headLength = 6;
+  const lineEndX = endX + headLength - ARROW_HEAD_OVERLAP;
   return {
-    points: startX + "," + startY + " " + channel + "," + startY + " " + channel + "," + endY + " " + endX + "," + endY,
-    head: endX + "," + endY + " " + (endX + 6) + "," + (endY - 4) + " " + (endX + 6) + "," + (endY + 4)
+    points: startX + "," + startY + " " + channel + "," + startY + " " + channel + "," + endY + " " + lineEndX + "," + endY,
+    head: endX + "," + endY + " " + (endX + headLength) + "," + (endY - 4) + " " + (endX + headLength) + "," + (endY + 4)
   };
 }
 
@@ -3716,7 +4160,7 @@ function render() {
   dom.title.textContent = example.number + ". " + example.title;
   dom.subtitle.textContent = example.subtitle;
   dom.granularity.textContent = example.stepUnit;
-  renderFilter();
+  renderHeaderChoices();
   canvasPanels(example).forEach(function (id) { PANELS[id].render(snapshot); });
   renderNarration(snapshot);
   drawArrows();
@@ -3742,8 +4186,16 @@ function goTo(index) {
 function selectExample(index) {
   stopPlaying();
   view.exampleIndex = index;
+  view.variantIndex = 0;
   view.stepIndex = 0;
   view.filter = "all";
+  render();
+}
+
+function selectVariant(index) {
+  stopPlaying();
+  view.variantIndex = index;
+  view.stepIndex = 0;
   render();
 }
 
@@ -3837,7 +4289,10 @@ document.addEventListener("focusin", function (event) {
   if (trigger) showTooltip(trigger);
 });
 
-window.addEventListener("resize", drawArrows);
+window.addEventListener("resize", function () {
+  drawArrows();
+  fitTimelineLabels();
+});
 
 dom.first.textContent = UI_TEXT.firstStep;
 dom.prev.textContent = UI_TEXT.prevStep;

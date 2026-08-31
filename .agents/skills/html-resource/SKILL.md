@@ -65,7 +65,12 @@ The floor is a mediocre projector in a large hall, and a phone on the bus.
 - Semantic HTML: `<button>` for what gets clicked, `<table>` for tables, headings
   in order. No `<div onclick>`.
 - **High contrast.** Body text well above 4.5:1. No light grey on white for
-  anything that has to be read.
+  anything that has to be read. That includes the faintest role in the palette:
+  panel titles, line numbers, addresses, column headers and glosses are all read,
+  and a tertiary grey that looks tasteful on a laptop is often 3:1 and gone on a
+  projector. Check the faint role against the **lightest surface it actually sits
+  on**, not only against white, and check it with numbers rather than by eye —
+  every one of these was under the floor in both resources until it was measured.
 - **Generous type.** Body text no smaller than 16 px; anything projected and read
   from the back of the hall, considerably larger.
 - **Never information by colour alone.** Colour supports; text, position or an
@@ -166,11 +171,65 @@ sober and default:
 - Light background, one primary colour, and colour used consistently within the
   resource — each colour role always means the same thing.
 - No gradients, no heavy shadows, no glassmorphism, no emoji in the UI.
+- **Colour names a thing; ink says it changed.** Every hue in a resource stands
+  for something in the material — a state, a region, a role. "This changed in
+  this step" is not one of those things, and a resource that spends a hue on it
+  collides with the material sooner or later, because the material keeps claiming
+  hues and the marker cannot move out of the way. Mark the step's change
+  achromatically instead: a near-black ring, a neutral fill, the text one step
+  darker. It survives a bad projector better than any hue, and it frees the whole
+  palette to mean what it says.
 - Contrast and type size matter more than any aesthetic decision.
 
 When a course palette or typeface exists, document it here and unify the published
 resources. Until then, if a new resource picks colours, say so explicitly when
 delivering it, so nobody naturalises a decision no one made.
+
+## Spacing, marks and arrows
+
+Three defects keep shipping because nothing said not to. They are cheap to avoid
+and expensive to find once the page is full.
+
+**Every box that draws a border pads on all four sides.** A pill, a badge or a
+band written `padding: 0 8px` has its text touching its own border top and
+bottom, and on a projector that reads as a rendering fault rather than as a
+choice. If a box has a border, a background or a radius, it gets vertical padding
+too — checked at the smallest font size it is ever used at.
+
+**A mark needs room around it.** When a row, a cell or a block can be *marked* —
+filled, ringed or outlined to say it changed in this step — the list that holds
+it needs a gap wide enough that two marked neighbours never touch. A ring drawn
+with `box-shadow` takes no layout space, which is exactly why this gets missed: a
+2 px ring in a 2 px gap lands precisely on its neighbour and the two read as one
+shape. The measure:
+
+- one facing side can be marked: `gap >= ring + 3px`
+- both facing sides can be marked: `gap >= 2 * ring + 3px`
+- a mark that is only a background fill still needs a gap, or two marked rows
+  merge into a single block with a notch where their radii meet
+
+Separate them; do not square the radii to join them. Two rows that changed are
+two facts, and joining them says they are one.
+
+**A label that does not fit is not a label.** In a proportional band — a timeline
+segment, a bar, an occupancy cell — the width comes from the data, so sooner or
+later a band is narrower than its own name. `text-overflow: ellipsis` will not save
+it: on a flex container it does nothing at all, and the text is sliced mid-letter.
+Measure after layout and choose: the full name if it fits, then a shorter form that
+still says the same thing, and otherwise nothing at all, with the meaning carried by
+the legend, the pattern and the `title`. Only fall back to a shorter form that is
+already true in the resource's own vocabulary — never invent an abbreviation, and
+never fall back on a band whose text is the information itself.
+
+**An arrow's line stops at its head, not at its tip.** Drawing the full line to
+the tip and laying the triangle over it leaves the stroke showing through the
+point, because the triangle narrows to nothing there and the stroke does not.
+Compute the head first, end the line at the head's base — overlapping by about a
+pixel so no seam shows — and take the head's direction from base to tip, so the
+base sits square to the line that arrives. On a curve, split the curve at the
+base instead of shortening the endpoint: the control point has to move with it. A
+head that stays fixed while the stroke thickens stops reading as a head, so scale
+it with the stroke.
 
 ## Verification before delivering
 
@@ -182,3 +241,6 @@ delivering it, so nobody naturalises a decision no one made.
 6. Nothing breaks with `prefers-reduced-motion` on.
 7. If it has steps or states: a full pass forward and back leaves the initial state
    identical.
+8. Every badge, pill and band: its content is not touching its own border. Every
+   list whose rows can be marked: two marked neighbours do not touch. Every
+   arrow: no stroke shows through the tip.

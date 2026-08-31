@@ -3,9 +3,10 @@
 Un proceso mirado por dentro, **paso a paso**. Según lo que enseñe cada ejemplo, en
 pantalla aparecen la fuente con la línea actual, el mapa de memoria del proceso
 (`text`, `data`, `heap`, `stack`), el PCB, el diagrama de estados, el contexto
-cargado en la CPU, una línea de tiempo, la ocupación de memoria o la lista de
-transiciones. Siempre hay una narración de lo que pasó en el paso. El estudiante
-avanza y retrocede; no escribe código.
+cargado en la CPU, una línea de tiempo, la ocupación de memoria, la lista de
+transiciones o las dos listas de hilos que el ejemplo 9 compara. Siempre hay una
+narración de lo que pasó en el paso. El estudiante avanza y retrocede; no escribe
+código.
 
 Se abre haciendo doble clic en `index.html`. No necesita internet ni instalar
 nada.
@@ -20,7 +21,7 @@ se puede tocar. Si vas a modificar `index.html`, leelo antes.
 
 ---
 
-## Los ocho ejemplos
+## Los nueve ejemplos
 
 | # | Ejemplo | Qué enseña |
 |---|---|---|
@@ -32,10 +33,12 @@ se puede tocar. Si vas a modificar `index.html`, leelo antes.
 | 6 | No entran todos | Suspensión, SWAP, y qué distingue a los dos estados suspendidos |
 | 7 | ¿Quién decidió esto? | Los tres planificadores, y las transiciones que no decide ninguno |
 | 8 | El mismo programa, con hilos | Qué se duplica cuando hay hilos y qué no |
+| 9 | Lo que el sistema operativo ve | Que el sistema operativo sólo puede elegir entre los hilos que conoce |
 
 Cada ejemplo agrega **un solo concepto** y da por sabido todo lo anterior. Cada
 uno termina con una frase de cierre, en letra grande, que es lo que el estudiante
-se tiene que llevar. Son 96 pasos en total.
+se tiene que llevar. Son 109 pasos en total, contando las dos variantes del
+ejemplo 9.
 
 ---
 
@@ -67,8 +70,9 @@ Las tres preguntas que responde cada ejemplo, y sus respuestas:
 | 6 | evento | la ocupación de memoria y quién está afuera | Ocupación + Estados + 4 PCB. **Sin línea de tiempo**: el tema es el lugar, no el tiempo |
 | 7 | ninguna nueva: relee la traza del 6 | la anotación de la traza, no el estado | Transiciones + Estados + Grados, con filtro por planificador |
 | 8 | línea, o evento | un solo `text`/`data`/`heap` y tres `stack`; tres trazas | Código fuente con tres marcas + mapa (vuelve, es el tema) + PCB con 3 TCB |
+| 9 | línea, o evento | quién tiene la CPU, y la distancia entre lo que el sistema operativo tiene anotado y lo que hay adentro del proceso | Código fuente + Qué ve el sistema operativo + Línea de tiempo. **Sin mapa ni PCB** |
 
-Tres decisiones de canvas que conviene entender antes de cambiarlas:
+Cuatro decisiones de canvas que conviene entender antes de cambiarlas:
 
 - **En el 4 el mapa de memoria se va.** No cambia en todo el ejemplo, y el espacio
   lo necesita el diagrama de estados. La narración del primer paso lo dice.
@@ -80,6 +84,16 @@ Tres decisiones de canvas que conviene entender antes de cambiarlas:
   estados de los TCB (nunca hay dos en RUNNING) y la narración. Si la cátedra
   prefiere ver el intercalado como banda de tiempo, hay que sacar otra cosa del
   canvas: no entran las dos.
+- **En el 9 no están ni el mapa ni el PCB, y la línea de tiempo no va a lo ancho.**
+  El mapa es idéntico al del 8 y no cambia en todo el ejemplo —un hilo de usuario
+  tiene su propio stack igual que uno de kernel—, así que no gana nada estando; la
+  narración del primer paso lo dice. El PCB tampoco va: la banda de arriba de *Qué
+  ve el sistema operativo* **es** lo que el sistema operativo tiene anotado, y
+  ponerlo al lado sería decir lo mismo dos veces. La línea de tiempo se probó a lo
+  ancho, como en el 4 y el 5, y no entró: con una fila entera para ella el panel de
+  código no llegaba a mostrar el archivo completo, y que el archivo sea *el mismo*
+  en las dos variantes es la premisa del ejemplo. Queda como tercera columna, más
+  angosta pero entera.
 
 Por qué está escrito acá con este detalle: el planteo original de este recurso
 heredó la grilla de paneles del recurso hermano sin justificarla. Sirve para los
@@ -93,15 +107,16 @@ paneles no incluía un panel de CPU, y el ejemplo 5 lo necesitaba.
 
 | Panel | Muestra | Lo usan |
 |---|---|---|
-| Código fuente | el programa, con la línea actual resaltada; en el 8, una marca por hilo | 1, 2, 3, 4, 8 |
+| Código fuente | el programa, con la línea actual resaltada; en el 8 y el 9, una marca por hilo | 1, 2, 3, 4, 8, 9 |
 | Memoria del proceso | `text` / `data` / `heap` / libre / `stack`, con su contenido | 1, 2, 3, 8 |
-| PCB | los campos que ese ejemplo declara, con los que cambiaron en ámbar; en el 8, además un TCB por hilo | todos |
+| PCB | los campos que ese ejemplo declara, con los que cambiaron marcados; en el 8, además un TCB por hilo | 1 a 8 |
 | Estados | el diagrama, qué proceso está en cada estado, y la última transición marcada | 4, 5, 6, 7 |
 | CPU | el contexto que está cargado en este momento, y de quién es | 5 |
-| Línea de tiempo | un carril de CPU y uno por proceso; en rojo, el tiempo en que no ejecuta nadie | 4, 5 |
+| Línea de tiempo | un carril de CPU y uno por proceso; en rojo, el tiempo en que no ejecuta nadie | 4, 5, 9 |
 | Ocupación de memoria | la barra de memoria, el SWAP y los que esperan entrar | 6 |
 | Quién decidió cada transición | la traza entera del 6, una fila por transición, con su decisor | 7 |
 | Grados | multiprogramación y multiprocesamiento, en vivo | 7 |
+| Qué ve el sistema operativo | dos bandas separadas por una línea de puntos: arriba los hilos que el sistema operativo tiene anotados, abajo los que existen adentro del proceso | 9 |
 | Narración | un párrafo por paso, más una nota cuando hace falta | todos |
 
 El mapa de memoria se lee de abajo hacia arriba, como en el pizarrón: `text`
@@ -120,6 +135,22 @@ abajo del diagrama. Nunca al revés: la glosa no reemplaza al nombre.
 Cada título de panel tiene un globito que dice qué muestra ese panel. Es lo que
 reemplaza al interruptor de glosas que había antes: para un estudiante solo, saber
 qué es cada panel vale más que poder apagar cuatro palabras.
+
+El panel **Qué ve el sistema operativo**, que sólo usa el ejemplo 9, son dos bandas
+con una línea de puntos en el medio. Arriba, los hilos que el sistema operativo
+tiene anotados y entre los que puede elegir; abajo, los que existen adentro del
+proceso. La línea del medio es la línea de visión, y nada la cruza. Cuando el
+sistema operativo no ve un hilo, ese hilo se dibuja con el borde punteado: no
+estrena ningún color, porque el violeta ya quiere decir *hilo* en todo el recurso y
+los estados salen de `STATES` como en cualquier otro panel. Cada banda dice además
+de qué tipo son sus hilos —`hilos de kernel (KLT)` o `hilos de usuario (ULT)`—, que
+es la única diferencia entre las dos variantes cuando las dos listas coinciden.
+
+En la variante de hilos de usuario la banda de arriba tiene una sola entrada,
+llamada **K1**, y es un hilo de kernel: los tres hilos de usuario se turnan para
+correr arriba de él. Está nombrado a propósito y no como "el hilo del proceso":
+cuando en la clase de planificación aparezca la notación `KLT1 ULT1A`, el estudiante
+ya tiene los dos niveles vistos juntos y con nombre.
 
 El diagrama de estados **crece y no se mueve**: cada ejemplo declara qué estados y
 qué transiciones dibuja, y las posiciones están fijas en `STATES`, así que cuando
@@ -240,12 +271,44 @@ Los de `wide` van en una fila abajo, a todo el ancho. Además:
   recurso lo verifica op por op.
 - `dimInactive: true` — atenúa lo que no es del proceso en foco.
 - `addressNote: true` — aclara en el encabezado que las direcciones son de ejemplo.
-- `compare` — la tabla de cierre de los ejemplos 3 y 8.
+- `compare` — la tabla de cierre de los ejemplos 3, 8 y 9.
+- `variants` — las variantes del ejemplo; ver más abajo (solo el 9).
+- `kernelView` — `"threads"` o `"process"`: qué dibuja la banda de arriba del panel
+  *Qué ve el sistema operativo* (solo el 9).
+
+### Las variantes de un ejemplo
+
+Un ejemplo puede correr la misma traza de más de una manera. El ejemplo 9 es el
+primero de este recurso que lo usa, y está calcado del ejemplo 7 del recurso
+hermano para que el control se reconozca:
+
+```js
+variants: [
+  { variantLabel: "Hilos de kernel (KLT)", kernelView: "threads", steps: [...], expectedFinalState: {...} },
+  { variantLabel: "Hilos de usuario (ULT)", kernelView: "process", steps: [...], expectedFinalState: {...} }
+]
+```
+
+Cada variante se mezcla sobre el ejemplo con `Object.assign`, así que hereda todo lo
+que no redefine —el programa, el canvas, la tabla de cierre, la frase de cierre— y
+redefine lo que le toca. Tiene su propia lista de pasos y su propio
+`expectedFinalState`, y el recurso verifica las dos por separado al abrirse.
+
+El selector va en la misma fila del encabezado que usa el filtro del ejemplo 7: es
+la única ranura de elección del chasis y no se agrega otra. Un ejemplo con variantes
+no puede además tener filtro, y ninguno lo necesita. Cambiar de variante vuelve al
+paso 1 de la variante nueva; no hay estado que sobreviva al cambio, porque cada
+variante tiene sus propios snapshots calculados de antemano.
+
+`kernelView` es lo único que el panel *Qué ve el sistema operativo* mira para
+decidir qué dibuja arriba: con `"threads"` la banda de arriba repite los hilos del
+proceso, con `"process"` muestra una sola entrada con el estado del proceso.
 
 ### Lo que el recurso verifica solo al abrirse
 
-Al final de cada ejemplo hay un `expectedFinalState`. **No es decorativo**: al
-abrir la página el recurso corre los ocho ejemplos enteros y avisa por la consola
+Al final de cada ejemplo —de cada **variante**, si tiene— hay un
+`expectedFinalState`. **No es decorativo**: al abrir la página el recurso corre las
+diez trazas enteras y avisa por la consola
 del navegador si algo no da. Chequea procesos, llamadas en curso, pedidos vivos, valor
 de cada variable global, estado final, ubicación final, hilos y sus estados,
 profundidad máxima del stack, unidades de tiempo, quién quedó con la CPU y cuántas
@@ -280,7 +343,8 @@ Es la forma de darse cuenta de que un ejemplo quedó mal escrito.
   lo que pertenece a un hilo.
 - **Un solo procesador y ejecución estrictamente secuencial.** No hay paralelismo
   real en ningún ejemplo, ni lo va a haber. En el 8, nunca hay dos hilos en
-  RUNNING al mismo tiempo.
+  RUNNING al mismo tiempo. La tabla de cierre del 9 menciona qué pasaría con más de
+  una CPU, en una fila, redactada para no prometer que se vaya a ver.
 - **`fin de quantum` es una etiqueta y nada más.** La única explicación permitida
   es "el tiempo que le tocaba".
 - **La palabra *planificador* no aparece antes del ejemplo 7.** Hasta ahí, las
@@ -307,7 +371,10 @@ globitos:
 
 - Ningún algoritmo de planificación con nombre. El 7 dice qué decide cada
   planificador, nunca cómo elige.
-- Hilos de usuario contra hilos de kernel, bibliotecas de hilos.
+- Cómo se administran los hilos de usuario adentro del proceso. El ejemplo 9
+  muestra **que** el sistema operativo no los ve y qué se pierde con eso; no dice
+  quién los hace turnarse, ni con qué criterio, ni nombra el componente que los
+  maneja. Ver *qué no va en el ejemplo 9*, más abajo.
 - Nada de sincronización: secciones críticas, condiciones de carrera, semáforos,
   mutex, atomicidad.
 - Memoria virtual, paginación, fallos de página, direcciones lógicas contra
@@ -323,12 +390,47 @@ globitos:
 Si un ejemplo nuevo necesita algo de esta lista para funcionar, el ejemplo está
 mal pensado. Hay que arreglar el ejemplo, no agregar el concepto.
 
+### Qué no va en el ejemplo 9
+
+El ejemplo 9 se acerca al borde de lo que la materia ya dio, así que su techo está
+escrito acá aparte. **Nada de esto va en el ejemplo 9**, ni en la narración, ni en
+las notas, ni en los globitos, ni en la tabla de cierre, ni en los rótulos de los
+paneles:
+
+- *jacketing*, envoltorios, y cualquier mecanismo por el que una llamada bloqueante
+  se convierta en no bloqueante;
+- que un hilo de usuario le ceda el turno a otro, y cualquier criterio con el que
+  eso se decida;
+- cualquier algoritmo de planificación con nombre, y el reparto por turnos entre
+  pares;
+- la palabra **biblioteca**, y el nombre de cualquier componente que administre
+  hilos de usuario;
+- **más de un hilo de kernel por proceso.** La variante de hilos de usuario es tres
+  hilos de usuario sobre **uno solo** de kernel, y se queda así. Un reparto mixto es
+  el planteo de una clase posterior y abre justo la pregunta que todavía no se puede
+  contestar.
+
+Todo eso se enseña en una clase posterior, y este recurso lo mira dos semanas antes.
+
+Y una que se omite por otro motivo: **el paralelismo entre hilos pares.** Los cinco
+ejemplos anteriores establecieron que hay una sola CPU; mostrarlo necesitaría una
+segunda. Aparece **sólo** como una fila de la tabla de cierre, redactada de manera
+que no promete una demostración.
+
+Hay además una decisión de la traza que existe para no pasarse del techo: **cuando
+termina la I/O en la variante de hilos de usuario, retoma H1.** No H2, ni una
+elección entre los dos. Si retomara cualquier otro, el ejemplo habría mostrado una
+decisión de planificación entre hilos de usuario, que es exactamente lo que queda
+afuera. No hay que "mejorarlo".
+
 ---
 
 ## Decisiones que conviene revisar
 
 - **La narración la escribió un agente y todavía no la revisó nadie de la
-  cátedra.** Es lo primero que hay que leer línea por línea, los 96 pasos.
+  cátedra.** Es lo primero que hay que leer línea por línea, los 109 pasos. Los
+  textos del ejemplo 9 vinieron redactados por la cátedra y se pegaron tal cual; el
+  resto sigue sin revisar.
 - **No se dice *marco*, ni *frame*, ni *bloque*.** Ninguna de las tres aparece en
   la página. Las tres nombran cosas que una clase posterior vuelve a definir
   (marcos de página, bloques de disco), y el recurso hermano sostiene esa línea sin
@@ -364,21 +466,42 @@ mal pensado. Hay que arreglar el ejemplo, no agregar el concepto.
   | Color | Qué significa, siempre |
   |---|---|
   | Azul | Lo que se está ejecutando ahora: la línea actual, la llamada de arriba, la CPU ocupada |
-  | Ámbar | Lo que cambió en este paso |
   | Rojo | Tiempo en el que no ejecuta ningún proceso, y el estado `BLOCKED` |
   | Violeta | Todo lo que pertenece a un hilo: su stack, su TCB, su marca en la fuente |
+  | Ámbar | El PCB: el punto de su panel y el título de cada ficha |
+  | Grafito | Lo que cambió en este paso: el anillo, el borde y el texto de lo marcado |
   | Gris oscuro | La flecha de un puntero a lo que apunta en el heap |
   | Neutros | Las cuatro regiones de memoria y las cajas de la barra de ocupación |
+
+- **El gris de los rótulos secundarios se oscureció a `#6b7484`.** Estaba en
+  `#838c9a`, que sobre blanco da 3,4:1 —por debajo del piso de 4,5:1 que pide la
+  skill— y lo usaban los títulos de panel, los números de línea, las glosas de las
+  regiones y los encabezados de las tablas. Todo eso se lee, y se lee proyectado. Las
+  frases enteras que estaban en ese gris —"Vacío: el programa no pidió memoria", "sin
+  variables locales"— pasaron a `--muted`, que es el rol de las oraciones; el gris más
+  claro queda sólo para rótulos de chapa. Si se toca, verificar el contraste sobre el
+  fondo más claro donde aparezca, no sólo sobre blanco.
+- **Lo que cambió en un paso no tiene color, tiene tinta.** Antes era ámbar. Cada
+  tono de la paleta nombra una cosa del material —un estado, una región, un rol— y
+  "esto cambió en este paso" no es una cosa del material: es información sobre el
+  paso. Cuando los dos estados suspendidos se separaron en amarillo y naranja no
+  quedó ningún tono libre para la marca, y el ámbar chocaba justo en los ejemplos 6
+  y 7, donde esos estados importan. Ahora la marca es acromática (`--marked` y
+  `--marked-soft`): un anillo casi negro, un relleno neutro y el texto un paso más
+  oscuro. Además se lee mejor que cualquier tono en un proyector mediocre. El mismo
+  cambio está hecho en el recurso hermano, porque los roles de color son chasis.
 
 - **Los colores de los cuatro decisores del ejemplo 7 los elegí yo** y no salen de
   ningún apunte: azul marino para el de largo plazo, verde petróleo para el de
   mediano, magenta para el de corto, gris para "nadie". Están fuera de la paleta
   de estados a propósito, para que no se confundan con ellos. Cada fila y cada
   botón del filtro dicen el nombre además del color.
-- **Los dos amarillos/naranjas de los estados suspendidos** (`#a06000` y
-  `#b5510a`) son oscuros para que se lean sobre blanco. El apunte dice "amarillo"
-  y "naranja"; si la cátedra los quiere más brillantes, hay que revisar el
-  contraste del texto.
+- **Los dos amarillos/naranjas de los estados suspendidos** son oscuros para que se
+  lean sobre blanco. El apunte dice "amarillo" y "naranja". Ojo con el efecto
+  colateral: una versión anterior los oscureció tanto que quedaron del mismo tono, y
+  son justo los dos estados que el ejemplo 6 existe para separar. Si se tocan, hay
+  que verificar las dos cosas por separado: que cada uno se lea sobre blanco y que
+  se distingan entre sí de un vistazo.
 - **El contexto se muestra como `IP`, `AX` y `SP`**, con valores de ejemplo. Son
   los nombres del recurso hermano, a propósito: el ejemplo 5 es el que empalma con
   él. No se explica cómo una línea de C deja un valor en `AX`.
@@ -386,9 +509,11 @@ mal pensado. Hay que arreglar el ejemplo, no agregar el concepto.
   incrementa una global y la imprime". Imprimir es una llamada, y una llamada
   ocupa lugar en el stack: sería meter el concepto del ejemplo 2 en el ejemplo 1.
 - **El ejemplo 8 usa `crear_hilo(contar, 20)`**, que no es una función real de C.
-  Es un nombre genérico a propósito: nombrar una biblioteca de hilos está fuera
-  del alcance. Si la cátedra prefiere el nombre real, es un cambio de una línea en
-  `PROGRAMS`.
+  Es un nombre genérico a propósito: nombrar una biblioteca de hilos está fuera del
+  alcance, y la firma real de `pthread_create` —puntero a función, argumento como
+  `void*`, parámetro de salida— taparía lo que el ejemplo muestra. El puente al
+  nombre real está en el tooltip `crearHilo`, que nombra `pthread_create` y
+  `pthread_join` sin nombrar ninguna biblioteca.
 - **En el ejemplo 8 hay tres hilos y tres stacks, y uno de los tres es el hilo
   principal** (el que corre `main`, llamado H1). El planteo pedía "tres stacks":
   hacer que `main` cree tres hilos más daría cuatro, y esconder el stack de `main`
@@ -400,6 +525,12 @@ mal pensado. Hay que arreglar el ejemplo, no agregar el concepto.
   `BLOCKED`.** Existe en el diagrama completo del apunte, pero esta traza no la
   usa y, dibujada, apiña esa zona. Si la cátedra la quiere siempre visible, se
   agrega a `transitions`.
+- **La flecha `RUNNING → READY` (fin de quantum) está atribuida al planificador de
+  corto plazo.** La cursada le asigna al corto plazo sólo `READY → RUNNING`, así que
+  esto es una extensión: el que expropia es el de corto plazo, y el fin de quantum es
+  la interrupción de reloj más la decisión de sacarlo. Ninguna traza del recurso usa
+  esa transición; se ve únicamente si se filtra por planificador en el ejemplo 7. Si
+  alguna vez hay que revisarlo, revisarlo con la cátedra, no por cuenta propia.
 - **El campo `estado` del PCB aparece en el ejemplo 4** y el `contexto` en el 5, no
   antes.
 - **En el ejemplo 1 no se atenúa ningún proceso**, y la etiqueta "activo en este
@@ -407,6 +538,34 @@ mal pensado. Hay que arreglar el ejemplo, no agregar el concepto.
 - **El ejemplo 4 le da a `READY` cero unidades de tiempo** entre que termina la
   I/O y que le devuelven la CPU: no pasó tiempo medible. El diagrama sí muestra
   `READY` en ese paso.
+- **En el ejemplo 9 la variante de hilos de usuario tiene un paso más que la de
+  kernel.** El planteo tenía las dos en seis, con un solo paso para "termina la I/O
+  y le devuelven la CPU al proceso". Eso sería `BLOCKED → RUNNING` en un paso, que es
+  exactamente la transición que el ejemplo 4 se ocupa de decir que no existe
+  ("READY, no RUNNING"). El paso se partió en dos por la frontera de sus propias
+  oraciones: uno para que termine la I/O y otro para que el sistema operativo le
+  devuelva la CPU. Las dos variantes igual terminan en 16 unidades de tiempo, que es
+  lo que hace comparables las dos líneas.
+- **Ningún rótulo de la línea de tiempo se corta a la mitad.** Un bloque angosto no
+  entra en el nombre de lo que pasa —"sin nada que ejecutar" mide 113 px y un bloque
+  de dos unidades en el ejemplo 9 mide 55—, así que después de dibujar cada carril el
+  recurso mide y decide: si el nombre completo entra, va completo; si no, el carril de
+  la CPU cae en `—`, que en este recurso ya quiere decir *nadie* (es lo que muestra el
+  panel de CPU cuando no hay contexto cargado); y si tampoco entra, el rótulo se
+  esconde. Los carriles de proceso **no** tienen ese respaldo: `—` sería mentira para
+  un estado, así que ahí el rótulo se esconde directo y el estado lo dicen el color, la
+  narración y los paneles de arriba. A 1280×720 no se esconde ninguno; a 390 px se
+  esconden seis, todos de estado. Si se cambia el texto de `shortKinds`, conviene
+  volver a mirarlo: es la única parte del recurso donde el largo de un texto cambia lo
+  que se ve.
+- **El panel de código se desplaza para que la línea actual siempre se vea.** Si el
+  archivo no entra entero, el panel se corre lo mínimo necesario y siempre a una
+  línea entera, nunca dejando media línea cortada arriba. Es el mismo mecanismo del
+  recurso hermano.
+- **En el paso de cierre la narración va en tres columnas**: el texto, la tabla de
+  comparación y la placa "para llevarse". Antes la tabla iba abajo a todo el ancho,
+  y esa fila de más era la que hacía que en los ejemplos 3, 8 y 9 el pie se comiera
+  el alto de los paneles.
 
 ---
 
@@ -428,11 +587,16 @@ Nada de fechas ni de explicaciones: el `próximamente` alcanza.
 ## Verificación antes de publicar un cambio
 
 1. Abrirlo con doble clic, sin servidor y sin internet. Funciona igual.
-2. La consola del navegador limpia, en los ocho ejemplos.
+2. La consola del navegador limpia, en los nueve ejemplos y en las dos variantes
+   del 9.
 3. Ningún `expectedFinalState` ni invariante reportado en la consola.
 4. Recorrer cada ejemplo entero para adelante y después entero para atrás: cada
-   paso intermedio se ve exactamente igual en los dos sentidos.
-5. A 1280×720 (el proyector del aula) entra todo, sin scroll, en los 96 pasos.
+   paso intermedio se ve exactamente igual en los dos sentidos. En el 9, las dos
+   variantes, y además cambiar de variante a mitad de camino y volver: no queda
+   estado de una en la otra.
+5. A 1280×720 (el proyector del aula) entra todo, sin scroll, en los 109 pasos.
+   Ojo con el paso de cierre: el pie crece con la placa y la tabla, y los paneles de
+   arriba pierden ese alto.
 6. **Lo mismo con el sistema en "reducir movimiento".** El pie de página se estira
    con el texto, así que un cambio de copy puede hacer que algo deje de entrar, y
    conviene mirarlo en los dos modos.
@@ -444,3 +608,8 @@ Nada de fechas ni de explicaciones: el `próximamente` alcanza.
 10. Nada trata al estudiante de vos.
 11. Si se tocó el canvas de un ejemplo: la unidad del paso sigue declarada y
     visible, y ningún panel quedó en pantalla sin ser tema ni cambiar.
+12. Ninguna chapita, pastilla o banda tiene su texto pegado al propio borde, y dos
+    filas marcadas seguidas no se tocan. Las flechas del diagrama de estados
+    terminan en la punta: la línea no asoma del otro lado.
+13. Ninguno de los términos de *qué no va en el ejemplo 9* aparece en ese ejemplo,
+    empezando por la palabra `biblioteca`.
