@@ -56,6 +56,11 @@ case:
   English**, like the commits they describe. The repo's first PRs drifted between
   English and Spanish; a PR is process, not student-facing material, so it follows
   the commit rule and not the `README.md` exception.
+- **Do not hard-wrap the PR body.** One line per paragraph and per list item, however
+  long. GitHub renders a single newline inside a PR body as a line break, so a body
+  wrapped at 80-ish columns — the way every file in this repo is written — breaks at
+  each of those columns instead of flowing, and reads as if the text were shifted.
+  This is the one place where the repo's wrapping habit is wrong.
 - Body: which resource it touches, what the change teaches, and **specifically
   what to review**. If there is new student-facing text, list it so it can be
   reviewed line by line.
