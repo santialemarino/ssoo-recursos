@@ -135,6 +135,16 @@ What follows from that:
 - A panel is on screen when it is the subject of the example, or when it changes
   during the example. **Panels may leave.** When one leaves, the narration says so
   once, in one clause. Nothing is on screen because it was introduced earlier.
+
+- **What is derived is the layout, never the rhythm.** Which panels are on screen,
+  how much room each gets, how tall a row is when there are more rows — all of that
+  is canvas and is derived per example. The spacing *inside* a panel is not: the gap
+  between a heading and its rule, between the rule and its content, between one
+  block and the next. Those are chassis, and they are identical in every example.
+  Deriving them looks exactly like a bug — the examples that got the tighter values
+  read as the ones nobody fixed yet. If a crowded example does not fit with the
+  shared rhythm, the fix is fewer or wider blocks, not a tighter rhythm for that
+  example.
 - Weight is part of the answer. The subject gets the space; context gets a strip.
 - The unit of a step is declared per example and shown on screen. It never
   changes silently.
