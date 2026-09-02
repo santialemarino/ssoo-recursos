@@ -52,7 +52,10 @@ it — a complete new resource, or a large rewrite of a published one. In that
 case:
 
 - Branch: `type/kebab-case-description`.
-- PR title: the description in sentence case, no type prefix.
+- PR title: the description in sentence case, no type prefix. **Title and body in
+  English**, like the commits they describe. The repo's first PRs drifted between
+  English and Spanish; a PR is process, not student-facing material, so it follows
+  the commit rule and not the `README.md` exception.
 - Body: which resource it touches, what the change teaches, and **specifically
   what to review**. If there is new student-facing text, list it so it can be
   reviewed line by line.

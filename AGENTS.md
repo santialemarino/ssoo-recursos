@@ -85,9 +85,12 @@ this section.
   bundler, no npm dependency, no runtime network calls, no `localStorage` or
   persistence of any kind. It has to work over `file://`.
 - **English for code and process** — identifiers, file and folder names, skills,
-  these context files, commit messages. **Spanish (Argentine, voseante) for
-  anything a student reads**, plus `README.md` files, which are descriptive
-  material for the teaching staff.
+  these context files, commit messages, and pull request titles and bodies.
+  **Spanish (Argentine, voseante) for anything a student reads**, plus `README.md`
+  files, which are descriptive material for the teaching staff. A pull request
+  describes a change to whoever reviews it, like a commit message does, so it is
+  process and goes in English — even though the reviewer is a member of the
+  teaching staff.
 - Every user-visible string lives in the resource's data block, never hardcoded
   in engine or render code.
 - Student-facing text is reviewed by a member of the teaching staff before it

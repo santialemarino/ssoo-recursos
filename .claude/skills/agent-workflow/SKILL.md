@@ -39,7 +39,8 @@ Resource folders sit at the repo root, one per resource, so the published URL is
 Two languages, and the split is not negotiable:
 
 - **English** — everything read as code or process: identifiers, file and folder
-  names, skills, `CLAUDE.md`, `AGENTS.md`, commit messages.
+  names, skills, `CLAUDE.md`, `AGENTS.md`, commit messages, and pull request titles
+  and bodies.
 - **Spanish (Argentine, voseante)** — everything a *student* reads: every
   user-visible string in a resource. Also `README.md` files, which are
   descriptive material for the teaching staff.
