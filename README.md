@@ -12,6 +12,7 @@ clase.
 | Recurso | Qué es |
 |---|---|
 | [Ciclo de instrucción e interrupciones](instruction-cycle-interrupts/) | Un procesador simplificado que ejecuta programas cortos paso a paso: las cinco etapas del ciclo, los registros, la pila del sistema y cómo se atiende una interrupción. Nueve ejemplos en escalera, del programa lineal al cambio de contexto. |
+| [Planificación de procesos](cpu-scheduling/) *(sin publicar)* | El estudiante arma el diagrama de Gantt instante por instante y el recurso le corrige cada columna, mostrándole la respuesta correcta y por qué es esa. FIFO, SJF, HRRN, Round Robin, Virtual Round Robin, colas multinivel con feedback, hilos con y sin jacketing, dos procesadores y swap. Diecisiete ejemplos en escalera, y uno final para reconocer el algoritmo mirando el diagrama. |
 | [Procesos e hilos](process-lifecycle/) | Un proceso mirado por dentro, paso a paso: `text`, `data`, `heap` y `stack`, lo que cada llamada usa del stack, los estados, el cambio de contexto, la suspensión y el SWAP, los planificadores y los hilos. Nueve ejemplos en escalera, del programa contra el proceso a los hilos que el sistema operativo no ve. |
 
 Cada recurso tiene su propio `README.md` al lado del `index.html`, con lo que hay

@@ -1,0 +1,2534 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23b45309%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%229.5%22%20width%3D%2213%22%20height%3D%2213%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%2F%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M13%209.5V5M19%209.5V5M13%2027v-4.5M19%2027v-4.5M9.5%2013H5M9.5%2019H5M27%2013h-4.5M27%2019h-4.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<title>Planificación de procesos</title>
+<style>
+  :root {
+    --ink: #10151d;
+    --ink-soft: #35404f;
+    --muted: #5f6877;
+    --faint: #6b7484;
+    --line: #e3e7ee;
+    --line-strong: #c6ccd8;
+    --page: #edf0f6;
+    --card: #ffffff;
+
+    --running: #1d4ed8;
+    --running-soft: #e8eefc;
+    --blocked: #c0392f;
+    --blocked-soft: #fbeae8;
+    --ready: #1a7a3f;
+    --ready-soft: #e6f4ec;
+    --term: #5b6472;
+    --term-soft: #eef0f4;
+    --rsusp: #8a6a00;
+    --rsusp-soft: #fcf3ce;
+    --bsusp: #a04d05;
+    --bsusp-soft: #fce0cc;
+
+    --marked: #1c2534;
+    --marked-soft: #e3e8f1;
+    --region-fill: #fbfcfe;
+    --region-fill-alt: #f2f5f9;
+
+    --radius: 11px;
+    --shadow: 0 1px 2px rgba(16, 21, 29, 0.05), 0 1px 8px rgba(16, 21, 29, 0.04);
+    --fast: 160ms;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--page);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 9px 14px 11px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 640; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
+  }
+
+  button:hover:not([disabled]) { border-color: var(--faint); }
+  button:active:not([disabled]) { transform: translateY(1px); }
+
+  button:focus-visible, [tabindex]:focus-visible, select:focus-visible {
+    outline: 3px solid var(--marked);
+    outline-offset: 2px;
+  }
+
+  button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  header { display: flex; flex-direction: column; gap: 7px; flex: 0 0 auto; }
+
+  .head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
+
+  .head-row .spacer { flex: 1; }
+
+  .examples { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+  .group-cap {
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 4px 0 8px;
+  }
+
+  .examples > .group-cap:first-child { padding-left: 0; }
+
+  .examples button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    font-size: 12.5px;
+    line-height: 1.2;
+    min-width: 28px;
+    justify-content: center;
+  }
+
+  .examples button .short { display: none; font-weight: 650; }
+  .examples button[aria-current="true"] .short { display: inline; }
+  .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
+
+  .toggle-label { font-size: 12.5px; color: var(--muted); }
+
+  .switch { display: flex; gap: 5px; flex-wrap: wrap; }
+  .switch button { padding: 4px 12px; font-size: 12.5px; font-weight: 620; }
+  .switch button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
+
+  main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(236px, 0.58fr) minmax(0, 1.2fr) minmax(0, 0.94fr);
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+    grid-template-areas:
+      "statement chart chart"
+      "statement state decision";
+    gap: 9px;
+  }
+
+  main.solo {
+    grid-template-areas:
+      "statement chart chart"
+      "statement state state";
+  }
+
+  main.quiz {
+    grid-template-columns: minmax(224px, 0.5fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas:
+      "statement chart chart"
+      "state     state decision";
+  }
+
+  main.quiz.answered {
+    grid-template-areas:
+      "statement chart chart"
+      "state     state state";
+  }
+
+  main.quiz.answered .elim { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); align-content: start; gap: 10px; }
+  main.quiz.answered .elim-note { grid-column: 1 / -1; }
+
+  .panel.statement { grid-area: statement; }
+  .panel.gantt { grid-area: chart; }
+  .panel.state { grid-area: state; }
+  .panel.decision { grid-area: decision; }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .panel > h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    font-size: 11.5px;
+    font-weight: 720;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 9px 14px 3px;
+    flex: 0 0 auto;
+  }
+
+  .panel > h2::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    background: var(--line-strong);
+    flex: 0 0 auto;
+  }
+
+  .panel.statement > h2::before { background: var(--muted); }
+  .panel.gantt > h2::before { background: var(--running); }
+  .panel.state > h2::before { background: var(--ready); }
+  .panel.decision > h2::before { background: var(--marked); }
+
+  .panel-title {
+    border-bottom: 1px dotted var(--running);
+    cursor: help;
+  }
+
+  .panel-when {
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--muted);
+  }
+
+  .panel-body { padding: 9px 14px 10px; overflow: auto; min-height: 0; flex: 1 1 auto; }
+
+  .statement-scroll { overflow-x: auto; }
+  .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .statement-table th, .statement-table td { padding: 5px 7px; text-align: center; border-bottom: 1px solid var(--line); }
+  .statement-table.dense th, .statement-table.dense td { padding: 3px 6px; }
+  .statement-table th { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.03em; }
+  .statement-table td:first-child, .statement-table th:first-child { text-align: left; font-weight: 700; }
+  .statement-table tbody tr:last-child td { border-bottom: none; }
+  .statement-table .burst-io { color: var(--blocked); }
+  .statement-table .burst-cpu { color: var(--running); }
+  .statement-table .spent { text-decoration: line-through; color: var(--muted); }
+
+  .params { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+
+  .param {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--region-fill-alt);
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--ink-soft);
+  }
+
+  .param b { font-weight: 750; }
+
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 18px; padding-top: 7px; border-top: 1px solid var(--line); flex: 0 0 auto; }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-soft); }
+  .legend-item b { font-weight: 750; }
+  .legend-item .eq { color: var(--muted); }
+  .legend-swatch { width: 16px; height: 14px; border-radius: 3px; border: 1px solid var(--line-strong); flex: 0 0 auto; }
+
+  .gantt-body { display: flex; flex-direction: column; gap: 6px; }
+  .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
+
+  .gantt-grid { display: grid; gap: 7px; padding: 3px; width: max-content; min-width: 100%; }
+
+  .gantt-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-right: 9px;
+    font-size: 13px;
+    font-weight: 750;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .gantt-label .owner { font-size: 10.5px; font-weight: 650; color: var(--muted); }
+
+  .gantt-cell {
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--region-fill);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    color: var(--faint);
+    transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out;
+  }
+
+  .gantt-cell.blank { color: transparent; }
+  .s-running { background: var(--running-soft); border-color: var(--running); color: var(--running); }
+  .s-blocked { background: var(--blocked-soft); border-color: var(--blocked); color: var(--blocked); }
+  .s-ready { background: var(--ready-soft); border-color: var(--ready); color: var(--ready); }
+  .s-term { background: var(--term-soft); border-color: var(--term); color: var(--term); }
+  .s-rsusp { background: var(--rsusp-soft); border-color: var(--rsusp); color: var(--rsusp); }
+  .s-bsusp { background: var(--bsusp-soft); border-color: var(--bsusp); color: var(--bsusp); }
+  .gantt-cell.future { background: var(--card); border-style: dashed; border-color: var(--line); }
+  .gantt-cell.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
+  .gantt-cell.now { box-shadow: 0 0 0 2px var(--marked); }
+  .gantt-cell.preview { border-style: dashed; border-width: 2px; }
+  .gantt-grid.dense .gantt-cell { height: 20px; }
+  main.quiz .gantt-grid { gap: 4px; }
+  main.quiz .gantt-cell { height: 23px; }
+
+  .gantt-axis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 650;
+    color: var(--ink-soft);
+    padding-top: 2px;
+  }
+
+  .gantt-axis.origin { justify-content: flex-end; padding-right: 9px; color: var(--muted); }
+  .gantt-axis.now { color: var(--marked); font-weight: 800; }
+
+  .state-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; align-content: start; }
+
+  .queue-rows { display: flex; flex-direction: column; gap: 4px; }
+  .queue-row { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
+
+  .queue-row .lvl {
+    flex: 0 0 auto;
+    min-width: 52px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .queue-row .flag { font-size: 11px; font-weight: 700; color: var(--bsusp); }
+
+  .state-block { min-width: 0; }
+  .state-block.full { grid-column: 1 / -1; }
+
+  .block-head {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .block-head .what {
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .block-head .gloss { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .block-head .flag, .queue-row .flag { font-size: 11px; font-weight: 700; color: var(--bsusp); }
+  .block-head .flag { margin-left: auto; }
+
+  .queue-list { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .queue-list .sep { font-size: 13px; color: var(--muted); font-weight: 800; }
+
+  .queue-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border: 1px solid var(--ready);
+    border-radius: 7px;
+    background: var(--ready-soft);
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--ready);
+  }
+
+  .queue-chip .note {
+    font-size: 11.5px;
+    font-weight: 750;
+    line-height: 1.25;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .queue-chip.plus { border-color: var(--running); background: var(--running-soft); color: var(--running); border-width: 2px; }
+  .queue-chip.dev { border-color: var(--blocked); background: var(--blocked-soft); color: var(--blocked); }
+  .queue-chip.mem { border-color: var(--line-strong); background: var(--region-fill-alt); color: var(--ink-soft); }
+
+  .queue-empty { font-size: 12.5px; color: var(--muted); }
+
+  .dev-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 3px 9px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--region-fill);
+    font-size: 13px;
+  }
+
+  .dev-card + .dev-card { margin-top: 3px; }
+  .dev-card .dev-name { font-weight: 700; color: var(--ink-soft); flex: 1 1 auto; }
+  .dev-card .dev-free { color: var(--muted); font-size: 12.5px; }
+  .dev-card .waiting-for { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); flex: 1 1 100%; }
+
+  .event-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .event-list li {
+    font-size: 12.5px;
+    color: var(--ink);
+    padding: 2px 8px;
+    border-left: 3px solid var(--marked);
+    background: var(--marked-soft);
+    border-radius: 0 5px 5px 0;
+  }
+
+  .selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2px 18px; }
+
+  .selector { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 9px; padding: 3px 0; }
+
+  .selector .label-col { flex: 0 0 90px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+  .selector .name {
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .choices { display: flex; flex-wrap: wrap; gap: 4px; }
+  .choices button { padding: 4px 10px; font-size: 13px; font-weight: 640; min-width: 36px; }
+  .choices button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
+  .choices button[aria-pressed="true"].st-running { background: var(--running); border-color: var(--running); }
+  .choices button[aria-pressed="true"].st-blocked { background: var(--blocked); border-color: var(--blocked); }
+  .choices button[aria-pressed="true"].st-bsusp { background: var(--bsusp); border-color: var(--bsusp); }
+  .choices button[aria-pressed="true"].st-rsusp { background: var(--rsusp); border-color: var(--rsusp); }
+  .choices button:disabled { opacity: 1; cursor: default; }
+  .choices button.was-wrong { text-decoration: line-through; color: var(--muted); border-color: var(--line-strong); }
+
+  .selector .verdict { font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+
+  .selector.bad .name { color: var(--ink); }
+
+  .decision-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 11px; padding-top: 9px; border-top: 1px solid var(--line); }
+
+  .score { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .quiz-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 5px; }
+
+  .quiz-options button { text-align: left; padding: 6px 11px; font-size: 13.5px; font-weight: 620; }
+  .quiz-options button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
+  .quiz-options button:disabled { opacity: 1; cursor: default; }
+  .quiz-options button.is-answer { border-color: var(--marked); border-width: 2px; background: var(--marked-soft); color: var(--ink); font-weight: 720; }
+  .quiz-options button.is-picked { background: var(--region-fill-alt); }
+  .quiz-options .mark { float: right; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.03em; }
+
+  .elim { display: flex; flex-direction: column; gap: 3px; }
+
+  .elim-card {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--marked);
+    border-radius: 0 7px 7px 0;
+    padding: 3px 10px;
+    background: var(--region-fill);
+  }
+
+  .elim-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .elim-when { font-size: 10.5px; font-weight: 750; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); flex: 0 0 auto; }
+  .elim-who { font-size: 13px; font-weight: 750; color: var(--ink); }
+  .elim-why { font-size: 12.5px; color: var(--ink-soft); margin-top: 0; }
+  .elim-note { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+  footer { flex: 0 0 auto; }
+
+  .narration-panel { display: flex; flex-direction: column; }
+
+  .narration-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 7px 14px 2px;
+  }
+
+  .narration-head .title { font-weight: 660; font-size: 14.5px; }
+  .narration-head .subtitle { font-size: 13px; color: var(--muted); flex: 1; min-width: 160px; }
+
+  .narration-head .granularity {
+    align-self: center;
+    font-size: 11px;
+    color: var(--ink-soft);
+    background: var(--region-fill-alt);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 9px;
+  }
+
+  .narration-body { padding: 2px 14px 5px; min-height: 38px; }
+  .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
+  .narration-note { font-size: 13.5px; color: var(--muted); margin: 3px 0 0; }
+
+  .takeaway {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 2px 0 0;
+    padding: 5px 11px;
+    border: 1px solid var(--running);
+    border-left-width: 4px;
+    border-radius: 0 8px 8px 0;
+    background: var(--running-soft);
+  }
+
+  .takeaway .tag {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--running);
+  }
+
+  .takeaway .line { font-size: 15px; font-weight: 700; color: var(--ink); }
+
+  .progress-row { display: flex; align-items: center; gap: 9px; padding: 0 14px; }
+  .progress-track { flex: 1; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--running); border-radius: 999px; transform-origin: left center; transition: transform var(--fast) ease-out; }
+  .progress { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px 8px; }
+  .controls .spacer { flex: 1; }
+  .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
+  .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
+  .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
+  .small { padding: 6px 11px; font-size: 13px; font-weight: 620; }
+
+  #tooltip {
+    position: fixed;
+    z-index: 40;
+    display: none;
+    max-width: 330px;
+    padding: 8px 11px;
+    border-radius: 8px;
+    background: var(--marked);
+    color: #fff;
+    font-size: 12.5px;
+    line-height: 1.4;
+    box-shadow: 0 6px 22px rgba(16, 21, 29, 0.24);
+  }
+
+  #tooltip.open { display: block; }
+  #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  .term {
+    border-bottom: 1px dotted var(--running);
+    cursor: help;
+    font-weight: 620;
+  }
+
+  em { font-style: normal; font-weight: 700; }
+
+  @media (max-width: 900px) {
+    body { height: auto; overflow: auto; }
+    .state-grid { grid-template-columns: minmax(0, 1fr); }
+
+    main, main.solo, main.quiz {
+      grid-template-columns: 1fr;
+      grid-template-rows: none;
+      grid-template-areas: "statement" "chart" "state" "decision";
+    }
+    .panel-body { overflow: visible; }
+    .narration-head { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .controls .big, .controls .small { flex: 1 1 auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Planificación de procesos</h1>
+  <div class="head-row">
+    <nav class="examples" id="exampleList" aria-label="Ejemplos"></nav>
+    <span class="spacer"></span>
+    <span class="toggle-label" id="modeLabel"></span>
+    <div class="switch" id="modeBar" role="group" aria-labelledby="modeLabel"></div>
+  </div>
+  <div class="head-row" id="variantRow" hidden>
+    <span class="toggle-label" id="variantLabel"></span>
+    <div class="switch" id="variantBar" role="group" aria-labelledby="variantLabel"></div>
+  </div>
+</header>
+
+<main>
+  <section class="panel statement">
+    <h2><span class="panel-title" data-tip="statement" tabindex="0" id="statementTitle"></span></h2>
+    <div class="panel-body" id="statementPanel"></div>
+  </section>
+  <section class="panel gantt">
+    <h2><span class="panel-title" data-tip="gantt" tabindex="0" id="ganttTitle"></span></h2>
+    <div class="panel-body gantt-body">
+      <div class="grid-scroll" id="ganttPanel"></div>
+      <div class="legend" id="ganttLegend"></div>
+    </div>
+  </section>
+  <section class="panel state">
+    <h2><span class="panel-title" data-tip="state" tabindex="0" id="stateTitle"></span></h2>
+    <div class="panel-body" id="statePanel"></div>
+  </section>
+  <section class="panel decision" id="decisionPanel">
+    <h2><span class="panel-title" data-tip="decision" tabindex="0" id="decisionTitle"></span><span class="panel-when" id="decisionWhen"></span></h2>
+    <div class="panel-body" id="decisionBody"></div>
+  </section>
+</main>
+
+<footer>
+  <section class="panel narration-panel">
+    <div class="narration-head">
+      <span class="title" id="exampleTitle"></span>
+      <span class="subtitle" id="exampleSubtitle"></span>
+      <span class="granularity" id="granularityNote"></span>
+    </div>
+    <div class="narration-body" id="narrationPanel" aria-live="polite"></div>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="controls">
+      <button type="button" class="small" id="firstStep"></button>
+      <button type="button" class="big" id="prevStep"></button>
+      <button type="button" class="big primary" id="nextStep"></button>
+      <button type="button" class="small" id="lastStep"></button>
+      <button type="button" class="small" id="playPause"></button>
+      <span class="spacer"></span>
+      <span class="score" id="score"></span>
+    </div>
+  </section>
+</footer>
+
+<div id="tooltip" role="tooltip"></div>
+
+<script id="data">
+const UI_TEXT = {
+  progress: "instante {current} de {total}",
+  modeLabel: "Modo",
+  modes: { solve: "Resolver", watch: "Ver" },
+  groups: { base: "Base", hilos: "Hilos", cierre: "Cierre" },
+  firstStep: "Primero",
+  prevStep: "Anterior",
+  nextStep: "Siguiente",
+  lastStep: "Último",
+  play: "Reproducir",
+  pause: "Pausar",
+  none: "nadie",
+  stepUnit: "Un paso = un instante",
+  takeawayTag: "Para llevarse",
+  score: "aciertos: {ok} de {total}",
+  panels: {
+    statement: "Enunciado",
+    gantt: "Diagrama",
+    state: "Estado del instante",
+    decision: "Tu decisión",
+    quiz: "¿Qué algoritmo era?"
+  },
+  statement: {
+    process: "Proceso",
+    arrival: "Llegada",
+    cpu: "CPU",
+    io: "I/O",
+    estPrev: "Est. ant.",
+    realPrev: "Real ant.",
+    est: "Est.",
+    dash: "—"
+  },
+  params: {
+    algorithm: "Algoritmo",
+    quantum: "Quantum",
+    alpha: "α",
+    degree: "Grado de multiprogramación",
+    devices: "Dispositivos",
+    cpus: "Procesadores",
+    outOfMemory: "Fuera de memoria",
+    kltAlgorithm: "KLT",
+    ultAlgorithm: "ULT",
+    queueHigh: "Q1 · más prioridad",
+    queueLow: "Q2",
+    jacketing: "Jacketing",
+    yes: "sí",
+    no: "no"
+  },
+  legend: { equals: "=" },
+  cells: { running: "CPU", blocked: "I/O", ready: "LISTO", term: "FIN", rsusp: "R/S", bsusp: "B/S" },
+  queues: {
+    ready: "Cola de listos",
+    readyBoth: "Colas de listos",
+    levelKlt: "KLT",
+    levelUlt: "ULT · {klt}",
+    devices: "Dispositivos",
+    deviceQueue: "Esperando",
+    events: "Qué pasó en este instante",
+    memory: "En memoria",
+    empty: "vacía",
+    noEvents: "Nada nuevo.",
+    kltBlocked: "KLT bloqueado",
+    free: "libre",
+    criterion: {
+      sjf: "ráfaga restante",
+      sjfP: "ráfaga restante",
+      sjfEst: "estimación",
+      hrrn: "razón (S+W)/S",
+      vrr: "Q entero · Q+ lo que sobró",
+      feedback: "en qué cola está"
+    }
+  },
+  decision: {
+    prompt: "instante {from} → {to}",
+    confirm: "Confirmar",
+    same: "Igual que el instante anterior",
+    ok: "bien",
+    bad: "era {p}",
+    pending: "Mirá el estado del instante, elegí quién ocupa cada recurso y confirmá la columna."
+  },
+  events: {
+    arrive: "Llega {p}",
+    create: "Se crea {p}",
+    ioStart: "{p} empieza su I/O",
+    ioStartOn: "{p} empieza su I/O en {v}",
+    ioEnd: "{p} termina su I/O",
+    ioEndBoth: "Terminan las dos I/O",
+    ioWait: "{p} pide el dispositivo, que está ocupado",
+    ioGet: "{p} consigue el dispositivo",
+    exit: "{p} termina",
+    quantum: "A {p} se le acaba el quantum",
+    quantumLeft: "{p} se va a I/O con {v} de quantum sin usar",
+    leftoverOver: "A {p} se le acaba el quantum que le quedaba",
+    toReadyPlus: "{p} vuelve de I/O y entra en Ready+",
+    demote: "{p} baja a {v}",
+    promote: "{p} vuelve de I/O y sube a {v}",
+    preempt: "{p} desaloja a {v}",
+    suspend: "No hay lugar: {p} queda suspendido y su I/O sigue",
+    readySusp: "{p} queda READY SUSPENDED: listo, pero fuera de memoria",
+    admit: "Se libera lugar y {p} vuelve a memoria",
+    kltBlock: "{p} pide I/O y bloquea a {v} entero",
+    kltBlockJacket: "{p} pide I/O, pero {v} sigue listo",
+    kltNoRunnable: "{v} se queda sin ULT para correr y se bloquea",
+    kltUnblock: "{p} se desbloquea",
+    libDispatch: "La biblioteca de {v} pone a {p}",
+    ultFinish: "{p} no tiene más ráfagas: termina",
+    idle: "Nadie usa la CPU"
+  },
+  reasons: {
+    fifo: "FIFO le da la CPU a {p}: es el primero de la cola.",
+    sjf: "SJF le da la CPU a {p}: su ráfaga restante ({v}) es la más corta de la cola.",
+    sjfP: "SJF le da la CPU a {p}: su ráfaga restante ({v}) es la más corta de la cola.",
+    sjfEst: "SJF le da la CPU a {p}: su estimación ({v}) es la más corta de la cola.",
+    hrrn: "HRRN le da la CPU a {p}: su razón de respuesta ({v}) es la más alta de la cola.",
+    rr: "Round Robin le da la CPU a {p}: es el primero de la cola.",
+    vrr: "VRR le da la CPU a {p}: es el primero de la cola y Ready+ está vacía.",
+    vrrPlus: "VRR le da la CPU a {p}: está en Ready+, que va antes que Ready.",
+    feedback: "Feedback le da la CPU a {p}: {v} tiene prioridad.",
+    keeps: "{p} sigue en la CPU: nada la interrumpe.",
+    idle: "La CPU queda libre: no hay nadie listo para usarla.",
+    twoLevel: "El sistema operativo elige a {v}; adentro, su biblioteca elige a {p}.",
+    devTake: "{p} arranca su I/O en {v}.",
+    devTakeOne: "{p} arranca su I/O.",
+    devFree: "{v} queda libre.",
+    devWait: "{p} pidió el dispositivo, pero lo tiene {q}: espera, y no ocupa la CPU."
+  },
+  quiz: {
+    prompt: "Este diagrama ya está resuelto. ¿Con qué algoritmo se armó?",
+    check: "Responder",
+    correct: "Bien: era {p}.",
+    wrong: "Era {p}.",
+    isAnswer: "era este",
+    yourPick: "elegiste este",
+    elimPanel: "Qué descarta a cada uno",
+    elimWhen: "instante {t}",
+    tie: "Ojo con estos dos",
+    next: "Siguiente diagrama",
+    chartOf: "Diagrama {n} de {total}"
+  }
+};
+
+const TOOLTIPS = {
+  rafaga: { title: "Ráfaga", body: "Un tramo seguido de trabajo. Una ráfaga de CPU es lo que el proceso quiere ejecutar antes de pedir una I/O; una ráfaga de I/O es lo que tarda el dispositivo." },
+  desalojo: { title: "Desalojo", body: "Sacarle la CPU a un proceso que todavía no terminó su ráfaga, porque el planificador decidió que le toca a otro." },
+  quantum: { title: "Quantum", body: "El tiempo máximo seguido que un proceso puede tener la CPU. Cuando se le acaba, vuelve a la cola aunque no haya terminado." },
+  readyPlus: { title: "Ready+", body: "Una cola de listos con más prioridad que la normal. En VRR entran ahí los que se fueron a I/O antes de gastar todo su quantum, y vuelven a usar sólo lo que les quedaba." },
+  estimador: { title: "Estimador", body: "El planificador no sabe cuánto va a durar la próxima ráfaga, así que la estima a partir de las anteriores: est(n+1) = α·real(n) + (1−α)·est(n)." },
+  razon: { title: "Razón de respuesta", body: "(S+W)/S, con S la próxima ráfaga de CPU y W lo que el proceso ya lleva esperando en la cola. Cuanto más espera, más sube." },
+  klt: { title: "KLT", body: "Un hilo de kernel. Es lo que el sistema operativo conoce y entre lo que elige: los procesos no compiten, compiten sus KLT." },
+  ult: { title: "ULT", body: "Un hilo de usuario. El sistema operativo no lo ve; lo maneja una biblioteca adentro del proceso, con su propio algoritmo." },
+  jacketing: { title: "Jacketing", body: "Envolver la llamada de I/O para que el KLT no se bloquee: mientras un ULT espera el dispositivo, la biblioteca pone a correr otro ULT del mismo KLT." },
+  medioPlazo: { title: "Planificador de mediano plazo", body: "El que decide qué procesos están en memoria: a quién suspender cuando no hay lugar y a quién dejar volver cuando se libera." },
+  suspendido: { title: "Suspendido", body: "Un proceso que el sistema operativo sacó de memoria. Si estaba esperando una I/O queda en BLOCKED SUSPENDED; cuando esa I/O termina pasa a READY SUSPENDED, y sigue afuera hasta que haya lugar." }
+};
+
+const PANEL_TIPS = {
+  statement: { title: "Enunciado", body: "La tabla de procesos con su llegada y sus ráfagas, el algoritmo y los parámetros." },
+  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero que dice n es el intervalo de n−1 a n, igual que cuando lo dibujás a mano." },
+  state: { title: "Estado del instante", body: "Cómo queda el sistema después de las llegadas y los fines de I/O, y justo antes de que el planificador elija. Con esto alcanza para justificar la decisión." },
+  decision: { title: "Tu decisión", body: "Un selector por recurso. Elegí quién ocupa cada uno durante este instante y confirmá la columna entera." },
+  quiz: { title: "¿Qué algoritmo era?", body: "Un diagrama ya resuelto de un ejemplo anterior. Acá el trabajo es al revés: mirar el resultado y reconocer la regla que lo produjo." },
+  elim: { title: "Qué descarta a cada uno", body: "Para cada algoritmo que no era, el instante donde el diagrama lo deja afuera. Es la única parte del recurso que explica por eliminación, porque acá eliminar es el ejercicio." }
+};
+
+const STATES = {
+  running: { key: "running", css: "s-running", label: "RUNNING" },
+  blocked: { key: "blocked", css: "s-blocked", label: "BLOCKED" },
+  ready: { key: "ready", css: "s-ready", label: "READY" },
+  term: { key: "term", css: "s-term", label: "TERMINATED" },
+  rsusp: { key: "rsusp", css: "s-rsusp", label: "READY SUSPENDED" },
+  bsusp: { key: "bsusp", css: "s-bsusp", label: "BLOCKED SUSPENDED" }
+};
+
+const ALGORITHMS = {
+  fifo: { label: "FIFO", reason: "fifo", annotated: false },
+  sjf: { label: "SJF sin desalojo", reason: "sjf", annotated: true },
+  sjfP: { label: "SJF con desalojo", reason: "sjfP", annotated: true },
+  sjfEst: { label: "SJF con estimadores", reason: "sjfEst", annotated: true },
+  hrrn: { label: "HRRN", reason: "hrrn", annotated: true },
+  rr: { label: "Round Robin", reason: "rr", annotated: false },
+  vrr: { label: "Virtual Round Robin", reason: "vrr", annotated: true },
+  feedback: { label: "Colas multinivel con feedback", reason: "feedback", annotated: true }
+};
+
+const DEFAULT_RESOURCES = [
+  { id: "cpu", kind: "cpu", label: "CPU", short: "CPU" },
+  { id: "io", kind: "device", label: "Dispositivo", short: "I/O" }
+];
+
+const EXAMPLES = [
+  {
+    number: 1, id: "A1", group: "base",
+    title: "Empecemos: FIFO",
+    short: "FIFO",
+    subtitle: "Cómo se lee el tablero, y por qué el que está corriendo se queda.",
+    closing: "FIFO no le saca la CPU a nadie.",
+    algorithm: "fifo",
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 2 }, { k: "io", v: 2 }, { k: "cpu", v: 2 }] },
+      { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 3 }] }
+    ] },
+    ends: { A: 7, B: 5 },
+    trace: [
+      { cpu: "A", io: null, ready: "A,B", ev: [] },
+      { cpu: "A", io: null, ready: "B", ev: [] },
+      { cpu: "B", io: "A", ready: "B", ev: [["ioStart", "A"]] },
+      { cpu: "B", io: "A", ready: "", ev: [] },
+      { cpu: "B", io: null, ready: "A", ev: [["ioEnd", "A"]], key: true,
+        reason: "A ya volvió de su I/O y está en la cola, pero la CPU sigue siendo de B. FIFO no [[desalojo:desaloja]]: el que empezó una ráfaga la termina." },
+      { cpu: "A", io: null, ready: "A", ev: [["exit", "B"]] },
+      { cpu: "A", io: null, ready: "", ev: [] }
+    ]
+  },
+  {
+    number: 2, id: "A2", group: "base",
+    title: "El dispositivo es uno solo",
+    short: "Un dispositivo",
+    subtitle: "Las I/O se hacen de a una, y el que espera no ocupa la CPU.",
+    closing: "El que espera el dispositivo no ocupa la CPU.",
+    algorithm: "fifo",
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 2 }, { k: "io", v: 4 }, { k: "cpu", v: 1 }] },
+      { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 3 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] }
+    ] },
+    ends: { A: 7, B: 9 },
+    trace: [
+      { cpu: "A", io: null, ready: "A,B", ev: [] },
+      { cpu: "A", io: null, ready: "B", ev: [] },
+      { cpu: "B", io: "A", ready: "B", ev: [["ioStart", "A"]] },
+      { cpu: "B", io: "A", ready: "", ev: [] },
+      { cpu: "B", io: "A", ready: "", ev: [] },
+      { cpu: null, io: "A", ready: "", devq: "B", waiting: ["B"], ev: [["ioWait", "B"], ["idle"]], key: true,
+        reason: "B terminó su [[rafaga:ráfaga]] y quiere el dispositivo, pero lo tiene A hasta el 6. B espera, y la CPU queda libre: esperar un dispositivo no es usar la CPU. El casillero de B queda vacío porque no está ocupando nada." },
+      { cpu: "A", io: "B", ready: "A", ev: [["ioEnd", "A"], ["ioGet", "B"]] },
+      { cpu: null, io: "B", ready: "", ev: [["exit", "A"], ["idle"]] },
+      { cpu: "B", io: null, ready: "B", ev: [["ioEnd", "B"]] }
+    ]
+  },
+  {
+    number: 3, id: "A3", group: "base",
+    title: "Dos dispositivos",
+    short: "Dos dispositivos",
+    subtitle: "La misma regla que antes, con dos dispositivos en vez de uno.",
+    closing: "Dos dispositivos, dos I/O al mismo tiempo.",
+    algorithm: "fifo",
+    resources: [
+      { id: "cpu", kind: "cpu", label: "CPU", short: "CPU" },
+      { id: "prn", kind: "device", label: "Impresora", short: "IMP" },
+      { id: "rou", kind: "device", label: "Router", short: "ROU" }
+    ],
+    table: { kind: "process", rows: [
+      { id: "K1", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 1, dev: "prn" }, { k: "cpu", v: 1 }, { k: "io", v: 3, dev: "rou" }] },
+      { id: "K2", arrival: 3, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2, dev: "prn" }, { k: "cpu", v: 1 }] }
+    ] },
+    ends: { K1: 6, K2: 7 },
+    trace: [
+      { cpu: "K1", prn: null, rou: null, ready: "K1", ev: [] },
+      { cpu: null, prn: "K1", rou: null, ready: "", ev: [["ioStartOn", "K1", "Impresora"], ["idle"]] },
+      { cpu: "K1", prn: null, rou: null, ready: "K1", ev: [["ioEnd", "K1"]] },
+      { cpu: "K2", prn: null, rou: "K1", ready: "K2", ev: [["arrive", "K2"], ["ioStartOn", "K1", "Router"]] },
+      { cpu: null, prn: "K2", rou: "K1", ready: "", ev: [["ioStartOn", "K2", "Impresora"], ["idle"]], key: true,
+        reason: "Dos I/O corriendo en el mismo instante. En el ejemplo anterior esto era imposible; acá se puede, porque son dispositivos distintos y cada uno atiende a uno." },
+      { cpu: null, prn: "K2", rou: "K1", ready: "", ev: [["idle"]] },
+      { cpu: "K2", prn: null, rou: null, ready: "K2", ev: [["ioEndBoth"]] }
+    ]
+  },
+  {
+    number: 4, id: "A4", group: "base",
+    title: "SJF sin desalojo",
+    short: "SJF S/D",
+    subtitle: "El criterio deja de ser el orden de llegada y pasa a ser la ráfaga.",
+    closing: "El criterio dejó de ser el orden de llegada.",
+    algorithm: "sjf",
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 3 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] },
+      { id: "B", arrival: 1, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }, { k: "cpu", v: 2 }] },
+      { id: "C", arrival: 2, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { A: 7, B: 9, C: 6 },
+    trace: [
+      { cpu: "A", io: null, ready: "A(3)", ev: [] },
+      { cpu: "A", io: null, ready: "B(1)", ev: [["arrive", "B"]] },
+      { cpu: "A", io: null, ready: "B(1),C(2)", ev: [["arrive", "C"]] },
+      { cpu: "B", io: "A", ready: "B(1),C(2)", ev: [["ioStart", "A"]], key: true,
+        reason: "La CPU va para B, con ráfaga 1, y no para C, con ráfaga 2 — aunque C no sea más nuevo. El número que está al lado de cada uno en la cola es lo que decide." },
+      { cpu: "C", io: "A", ready: "C(2)", devq: "B", waiting: ["B"], ev: [["ioWait", "B"]] },
+      { cpu: "C", io: "B", ready: "A(1)", ev: [["ioEnd", "A"], ["ioGet", "B"]] },
+      { cpu: "A", io: "B", ready: "A(1)", ev: [["exit", "C"]] },
+      { cpu: "B", io: null, ready: "B(2)", ev: [["ioEnd", "B"], ["exit", "A"]] },
+      { cpu: "B", io: null, ready: "", ev: [] }
+    ]
+  },
+  {
+    number: 5, id: "A5", group: "base",
+    title: "SJF con desalojo",
+    short: "SJF C/D",
+    subtitle: "La misma tabla del ejemplo 4. Ahora cada llegada vuelve a abrir la decisión.",
+    closing: "Con desalojo, cada llegada vuelve a abrir la decisión.",
+    algorithm: "sjfP",
+    compareWith: "A4",
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 3 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] },
+      { id: "B", arrival: 1, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }, { k: "cpu", v: 2 }] },
+      { id: "C", arrival: 2, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { A: 7, B: 9, C: 6 },
+    trace: [
+      { cpu: "A", io: null, ready: "A(3)", ev: [] },
+      { cpu: "B", io: null, ready: "B(1),A(2)", ev: [["arrive", "B"], ["preempt", "B", "A"]], key: true,
+        reason: "B llega con una ráfaga de 1 y a A le quedan 2. B le saca la CPU a A en el acto. Con la tabla idéntica, en el ejemplo 4 esto no pasaba: ahí, una vez que arrancaba, A terminaba su ráfaga." },
+      { cpu: "A", io: "B", ready: "A(2),C(2)", ev: [["arrive", "C"], ["ioStart", "B"]] },
+      { cpu: "A", io: "B", ready: "C(2)", ev: [] },
+      { cpu: "C", io: "A", ready: "C(2),B(2)", ev: [["ioEnd", "B"], ["ioStart", "A"]] },
+      { cpu: "C", io: "A", ready: "B(2)", ev: [] },
+      { cpu: "A", io: null, ready: "A(1),B(2)", ev: [["ioEnd", "A"], ["exit", "C"]] },
+      { cpu: "B", io: null, ready: "B(2)", ev: [["exit", "A"]] },
+      { cpu: "B", io: null, ready: "", ev: [] }
+    ]
+  },
+  {
+    number: 6, id: "A6", group: "base",
+    title: "SJF con estimadores",
+    short: "Estimadores",
+    subtitle: "El planificador no conoce la ráfaga real: trabaja con una estimación, y la estimación puede errarle.",
+    closing: "El planificador no elige con la ráfaga real: elige con la estimación.",
+    algorithm: "sjfEst",
+    params: { alpha: "0,5" },
+    table: { kind: "process", estimates: true, rows: [
+      { id: "A", arrival: 0, estPrev: 4, realPrev: 6, est: 5, nextEst: 4,
+        bursts: [{ k: "cpu", v: 3 }, { k: "io", v: 2 }, { k: "cpu", v: 2 }] },
+      { id: "B", arrival: 1, estPrev: 2, realPrev: 2, est: 2, nextEst: 3,
+        bursts: [{ k: "cpu", v: 4 }, { k: "io", v: 1 }, { k: "cpu", v: 1 }] }
+    ] },
+    ends: { A: 9, B: 10 },
+    trace: [
+      { cpu: "A", io: null, ready: "A(5)", ev: [] },
+      { cpu: "A", io: null, ready: "B(2)", ev: [["arrive", "B"]] },
+      { cpu: "A", io: null, ready: "B(2)", ev: [] },
+      { cpu: "B", io: "A", ready: "B(2)", ev: [["ioStart", "A"]], key: true,
+        reason: "B entra porque su [[estimador:estimación]] es 2 — y después se queda 4 instantes. El planificador nunca supo la ráfaga real: sólo tenía la estimación, y la estimación le erró." },
+      { cpu: "B", io: "A", ready: "", ev: [] },
+      { cpu: "B", io: null, ready: "A(4)", ev: [["ioEnd", "A"]] },
+      { cpu: "B", io: null, ready: "A(4)", ev: [] },
+      { cpu: "A", io: "B", ready: "A(4)", ev: [["ioStart", "B"]] },
+      { cpu: "A", io: null, ready: "B(3)", ev: [["ioEnd", "B"]] },
+      { cpu: "B", io: null, ready: "B(3)", ev: [["exit", "A"]] }
+    ]
+  },
+  {
+    number: 7, id: "A7", group: "base",
+    title: "HRRN",
+    short: "HRRN",
+    subtitle: "Lo que un proceso lleva esperando entra en el criterio.",
+    closing: "Lo que esperaste también cuenta.",
+    algorithm: "hrrn",
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 5 }, { k: "io", v: 1 }, { k: "cpu", v: 1 }] },
+      { id: "B", arrival: 1, bursts: [{ k: "cpu", v: 4 }, { k: "io", v: 1 }, { k: "cpu", v: 1 }] },
+      { id: "C", arrival: 4, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { A: 10, B: 13, C: 12 },
+    trace: [
+      { cpu: "A", io: null, ready: "A(1.0)", ev: [] },
+      { cpu: "A", io: null, ready: "B(1.0)", ev: [["arrive", "B"]] },
+      { cpu: "A", io: null, ready: "B(1.25)", ev: [] },
+      { cpu: "A", io: null, ready: "B(1.5)", ev: [] },
+      { cpu: "A", io: null, ready: "B(1.75),C(1.0)", ev: [["arrive", "C"]] },
+      { cpu: "B", io: "A", ready: "B(2.0),C(1.5)", ev: [["ioStart", "A"]], key: true,
+        reason: "B tiene [[razon:razón]] 2,0 y C tiene 1,5, así que entra B — aunque la ráfaga de C sea la mitad. SJF pelado habría elegido a C: lo que inclina la balanza es que B viene esperando desde el 1." },
+      { cpu: "B", io: null, ready: "C(2.0),A(1.0)", ev: [["ioEnd", "A"]] },
+      { cpu: "B", io: null, ready: "C(2.5),A(2.0)", ev: [] },
+      { cpu: "B", io: null, ready: "C(3.0),A(3.0)", ev: [] },
+      { cpu: "A", io: "B", ready: "A(4.0),C(3.5)", ev: [["ioStart", "B"]] },
+      { cpu: "C", io: null, ready: "C(4.0),B(1.0)", ev: [["ioEnd", "B"], ["exit", "A"]] },
+      { cpu: "C", io: null, ready: "B(2.0)", ev: [] },
+      { cpu: "B", io: null, ready: "B(3.0)", ev: [["exit", "C"]] }
+    ]
+  },
+  {
+    number: 8, id: "A8", group: "base",
+    title: "Round Robin",
+    short: "Round Robin",
+    subtitle: "Un techo de tiempo por turno, y un orden de reinserción que hay que mirar de cerca.",
+    closing: "El quantum le pone un techo a cada turno.",
+    algorithm: "rr",
+    params: { quantum: 3 },
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 3 }, { k: "cpu", v: 3 }] },
+      { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 4 }] },
+      { id: "C", arrival: 2, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] }
+    ] },
+    ends: { A: 9, B: 6, C: 10 },
+    trace: [
+      { cpu: "A", io: null, ready: "A,B", ev: [] },
+      { cpu: "B", io: "A", ready: "B", ev: [["ioStart", "A"]] },
+      { cpu: "B", io: "A", ready: "C", ev: [["arrive", "C"]] },
+      { cpu: "B", io: "A", ready: "C", ev: [] },
+      { cpu: "C", io: null, ready: "C,B,A", ev: [["quantum", "B"], ["ioEnd", "A"]], key: true,
+        reason: "Caen dos cosas juntas: se le acaba el quantum a B y termina la I/O de A. En Round Robin primero se encola el fin de quantum y después el fin de I/O, así que la cola queda C —que ya estaba esperando—, después B, después A." },
+      { cpu: "B", io: "C", ready: "B,A", ev: [["ioStart", "C"]] },
+      { cpu: "A", io: "C", ready: "A", ev: [["exit", "B"]] },
+      { cpu: "A", io: null, ready: "C", ev: [["ioEnd", "C"]] },
+      { cpu: "A", io: null, ready: "C", ev: [] },
+      { cpu: "C", io: null, ready: "C", ev: [["exit", "A"]] }
+    ]
+  },
+  {
+    number: 9, id: "A9", group: "base",
+    title: "Virtual Round Robin",
+    short: "VRR",
+    subtitle: "La misma tabla del ejemplo 8. Ahora el que se fue a I/O sin gastar su quantum se lo guarda.",
+    closing: "B, que es puro CPU, termina en 8 en vez de 6: VRR favorece a los que hacen I/O, y lo paga él.",
+    algorithm: "vrr",
+    params: { quantum: 3 },
+    compareWith: "A8",
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 3 }, { k: "cpu", v: 3 }] },
+      { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 4 }] },
+      { id: "C", arrival: 2, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] }
+    ] },
+    ends: { A: 9, B: 8, C: 10 },
+    trace: [
+      { cpu: "A", io: null, ready: "A(Q),B(Q)", ev: [] },
+      { cpu: "B", io: "A", ready: "B(Q)", ev: [["ioStart", "A"], ["quantumLeft", "A", "2"]] },
+      { cpu: "B", io: "A", ready: "C(Q)", ev: [["arrive", "C"]] },
+      { cpu: "B", io: "A", ready: "C(Q)", ev: [] },
+      { cpu: "A", io: null, ready: "A(Q+),C(Q),B(Q)", ev: [["quantum", "B"], ["toReadyPlus", "A"]], key: true,
+        reason: "A vuelve de su I/O con 2 de [[quantum:quantum]] sin usar, entra por [[readyPlus:Ready+]] y se pone adelante de C y de B. En Round Robin pelado (ejemplo 8) A iba al fondo y acá corría C." },
+      { cpu: "A", io: null, ready: "C(Q),B(Q)", ev: [] },
+      { cpu: "C", io: null, ready: "C(Q),B(Q),A(Q)", ev: [["leftoverOver", "A"]] },
+      { cpu: "B", io: "C", ready: "B(Q),A(Q)", ev: [["ioStart", "C"], ["quantumLeft", "C", "2"]] },
+      { cpu: "A", io: "C", ready: "A(Q)", ev: [["exit", "B"]] },
+      { cpu: "C", io: null, ready: "C(Q+)", ev: [["toReadyPlus", "C"], ["exit", "A"]] }
+    ]
+  },
+  {
+    number: 10, id: "A10", group: "base",
+    title: "Colas multinivel con feedback",
+    short: "Feedback",
+    subtitle: "Dos colas: se baja al gastar el quantum y se sube al volver de una I/O.",
+    closing: "Volver de una I/O te sube de cola.",
+    algorithm: "feedback",
+    params: { queueHigh: "RR, quantum 2", queueLow: "FIFO" },
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 6 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] },
+      { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 3 }, { k: "cpu", v: 2 }] }
+    ] },
+    ends: { A: 12, B: 8 },
+    trace: [
+      { cpu: "A", io: null, ready: "A(Q1),B(Q1)", ev: [] },
+      { cpu: "A", io: null, ready: "B(Q1)", ev: [] },
+      { cpu: "B", io: null, ready: "B(Q1),A(Q2)", ev: [["quantum", "A"], ["demote", "A", "Q2"]] },
+      { cpu: "A", io: "B", ready: "A(Q2)", ev: [["ioStart", "B"]] },
+      { cpu: "A", io: "B", ready: "", ev: [] },
+      { cpu: "A", io: "B", ready: "", ev: [] },
+      { cpu: "B", io: null, ready: "B(Q1),A(Q2)", ev: [["ioEnd", "B"], ["promote", "B", "Q1"], ["preempt", "B", "A"]], key: true,
+        reason: "B vuelve de su I/O, sube a Q1 y le saca la CPU a A, que estaba corriendo en Q2. Q1 tiene prioridad absoluta sobre Q2, y A no vuelve al frente de su cola: va al fondo de Q2." },
+      { cpu: "B", io: null, ready: "A(Q2)", ev: [] },
+      { cpu: "A", io: null, ready: "A(Q2)", ev: [["exit", "B"]] },
+      { cpu: null, io: "A", ready: "", ev: [["ioStart", "A"], ["idle"]] },
+      { cpu: null, io: "A", ready: "", ev: [["idle"]] },
+      { cpu: "A", io: null, ready: "A(Q1)", ev: [["ioEnd", "A"], ["promote", "A", "Q1"]] }
+    ]
+  },
+  {
+    number: 11, id: "B1", group: "hilos",
+    title: "Hilos de kernel",
+    short: "KLT",
+    subtitle: "Los procesos no compiten por la CPU: compiten sus KLT.",
+    closing: "El sistema operativo no elige procesos: elige KLT.",
+    algorithm: "rr",
+    params: { quantum: 3 },
+    rowLabel: "klt",
+    rows: [{ id: "K1", group: "P1" }, { id: "K2", group: "P1" }, { id: "K3", group: "P2" }],
+    table: { kind: "thread", ownerHead: "Proceso", unitHead: "KLT", rows: [
+      { id: "K1", owner: "P1", arrival: 0, bursts: [{ k: "cpu", v: 2 }, { k: "io", v: 3 }, { k: "cpu", v: 2 }] },
+      { id: "K2", owner: "P1", arrival: 0, bursts: [{ k: "cpu", v: 4 }] },
+      { id: "K3", owner: "P2", arrival: 1, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { K1: 10, K2: 8, K3: 7 },
+    trace: [
+      { cpu: "K1", io: null, ready: "K1,K2", ev: [] },
+      { cpu: "K1", io: null, ready: "K2,K3", ev: [["arrive", "K3"]] },
+      { cpu: "K2", io: "K1", ready: "K2,K3", ev: [["ioStart", "K1"]], key: true,
+        reason: "K1 se va a I/O y la CPU pasa a K2, que es del mismo proceso. Podría haber pasado a K3, que es de otro. Al planificador le da igual: la fila de la izquierda agrupa por proceso, pero el proceso no participa de la decisión." },
+      { cpu: "K2", io: "K1", ready: "K3", ev: [] },
+      { cpu: "K2", io: "K1", ready: "K3", ev: [] },
+      { cpu: "K3", io: null, ready: "K3,K2,K1", ev: [["quantum", "K2"], ["ioEnd", "K1"]] },
+      { cpu: "K3", io: null, ready: "K2,K1", ev: [] },
+      { cpu: "K2", io: null, ready: "K2,K1", ev: [["exit", "K3"]] },
+      { cpu: "K1", io: null, ready: "K1", ev: [["exit", "K2"]] },
+      { cpu: "K1", io: null, ready: "", ev: [] }
+    ]
+  },
+  {
+    number: 12, id: "B2", group: "hilos",
+    title: "Cada nivel con su algoritmo",
+    short: "Dos niveles",
+    subtitle: "El sistema operativo elige KLT con un criterio; la biblioteca elige ULT con otro.",
+    closing: "Dos decisiones, dos criterios, un mismo instante.",
+    twoLevel: true,
+    algorithm: "fifo",
+    ultAlgorithm: "sjf",
+    params: { kltAlgorithm: "FIFO", ultAlgorithm: "SJF sin desalojo", jacketing: false },
+    rowLabel: "ult",
+    rows: [{ id: "ULT1A", group: "KLT1" }, { id: "ULT1B", group: "KLT1" }, { id: "ULT2A", group: "KLT2" }],
+    table: { kind: "thread", ownerHead: "KLT", unitHead: "ULT", rows: [
+      { id: "ULT1A", owner: "KLT1", arrival: 0, bursts: [{ k: "cpu", v: 2 }, { k: "io", v: 2 }] },
+      { id: "ULT1B", owner: "KLT1", arrival: 0, bursts: [{ k: "cpu", v: 3 }] },
+      { id: "ULT2A", owner: "KLT2", arrival: 1, bursts: [{ k: "cpu", v: 2 }, { k: "io", v: 1 }] }
+    ] },
+    ends: { ULT1A: 4, ULT1B: 7, ULT2A: 5 },
+    trace: [
+      { cpu: "ULT1A", io: null, ready: "KLT1", ults: { KLT1: "ULT1A(2),ULT1B(3)", KLT2: null }, ev: [], key: true,
+        reason: "En el mismo instante se toman dos decisiones. El sistema operativo elige KLT1 porque es FIFO y es el único que llegó. Adentro, la biblioteca elige ULT1A sobre ULT1B porque es SJF y su ráfaga es 2 contra 3. Dos criterios distintos, uno arriba del otro." },
+      { cpu: "ULT1A", io: null, ready: "KLT2", ults: { KLT1: "ULT1B(3)", KLT2: "ULT2A(2)" }, ev: [["arrive", "ULT2A"]] },
+      { cpu: "ULT2A", io: "ULT1A", ready: "KLT2", ults: { KLT1: "ULT1B(3)", KLT2: "ULT2A(2)" }, blocked: ["KLT1"],
+        ev: [["kltBlock", "ULT1A", "KLT1"]] },
+      { cpu: "ULT2A", io: "ULT1A", ready: "", ults: { KLT1: "ULT1B(3)", KLT2: "" }, blocked: ["KLT1"], ev: [] },
+      { cpu: "ULT1B", io: "ULT2A", ready: "KLT1", ults: { KLT1: "ULT1B(3)", KLT2: "" }, blocked: ["KLT2"],
+        ev: [["ioEnd", "ULT1A"], ["ultFinish", "ULT1A"], ["kltUnblock", "KLT1"], ["ioStart", "ULT2A"]] },
+      { cpu: "ULT1B", io: null, ready: "", ults: { KLT1: "", KLT2: null }, ev: [["ioEnd", "ULT2A"], ["ultFinish", "ULT2A"]] },
+      { cpu: "ULT1B", io: null, ready: "", ults: { KLT1: "", KLT2: null }, ev: [] }
+    ]
+  },
+  {
+    number: 13, id: "B3", group: "hilos",
+    title: "Sin jacketing",
+    short: "Sin jacketing",
+    subtitle: "La I/O de un ULT bloquea a todo su KLT, y eso se paga en CPU ociosa.",
+    closing: "Un ULT bloqueado se lleva puesto a todo su KLT.",
+    twoLevel: true,
+    algorithm: "fifo",
+    ultAlgorithm: "fifo",
+    params: { kltAlgorithm: "FIFO", ultAlgorithm: "FIFO", jacketing: false },
+    rowLabel: "ult",
+    rows: [{ id: "ULT1A", group: "KLT1" }, { id: "ULT1B", group: "KLT1" }, { id: "ULT2A", group: "KLT2" }],
+    table: { kind: "thread", ownerHead: "KLT", unitHead: "ULT", rows: [
+      { id: "ULT1A", owner: "KLT1", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 4 }] },
+      { id: "ULT1B", owner: "KLT1", arrival: 0, bursts: [{ k: "cpu", v: 2 }] },
+      { id: "ULT2A", owner: "KLT2", arrival: 1, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { ULT1A: 5, ULT1B: 7, ULT2A: 3 },
+    trace: [
+      { cpu: "ULT1A", io: null, ready: "KLT1", ults: { KLT1: "ULT1A,ULT1B", KLT2: null }, ev: [] },
+      { cpu: "ULT2A", io: "ULT1A", ready: "KLT2", ults: { KLT1: "ULT1B", KLT2: "ULT2A" }, blocked: ["KLT1"],
+        ev: [["arrive", "ULT2A"], ["kltBlock", "ULT1A", "KLT1"]], key: true,
+        reason: "[[ult:ULT1B]] está listo desde el instante 0 y no puede correr. No es que no le toque: su [[klt:KLT]] está bloqueado por la I/O de un hermano, y el sistema operativo no ve ULT, ve KLT. Un KLT bloqueado no recibe CPU." },
+      { cpu: "ULT2A", io: "ULT1A", ready: "", ults: { KLT1: "ULT1B", KLT2: "" }, blocked: ["KLT1"], ev: [] },
+      { cpu: null, io: "ULT1A", ready: "", ults: { KLT1: "ULT1B", KLT2: null }, blocked: ["KLT1"],
+        ev: [["ultFinish", "ULT2A"], ["idle"]], key: true,
+        reason: "ULT2A terminó y la CPU queda ociosa dos instantes seguidos, con ULT1B listo y mirando. Ese es el precio: dos instantes de CPU que no usó nadie." },
+      { cpu: null, io: "ULT1A", ready: "", ults: { KLT1: "ULT1B", KLT2: null }, blocked: ["KLT1"], ev: [["idle"]] },
+      { cpu: "ULT1B", io: null, ready: "KLT1", ults: { KLT1: "ULT1B", KLT2: null },
+        ev: [["ioEnd", "ULT1A"], ["ultFinish", "ULT1A"], ["kltUnblock", "KLT1"]] },
+      { cpu: "ULT1B", io: null, ready: "", ults: { KLT1: "", KLT2: null }, ev: [] }
+    ]
+  },
+  {
+    number: 14, id: "B4", group: "hilos",
+    title: "Con jacketing",
+    short: "Con jacketing",
+    subtitle: "La misma tabla del ejemplo 13, con jacketing. La diferencia es toda la lección.",
+    closing: "Misma tabla y mismos algoritmos: 7 instantes contra 5, y ninguno con la CPU ociosa. Eso compra el jacketing.",
+    twoLevel: true,
+    algorithm: "fifo",
+    ultAlgorithm: "fifo",
+    params: { kltAlgorithm: "FIFO", ultAlgorithm: "FIFO", jacketing: true },
+    compareWith: "B3",
+    rowLabel: "ult",
+    rows: [{ id: "ULT1A", group: "KLT1" }, { id: "ULT1B", group: "KLT1" }, { id: "ULT2A", group: "KLT2" }],
+    table: { kind: "thread", ownerHead: "KLT", unitHead: "ULT", rows: [
+      { id: "ULT1A", owner: "KLT1", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 4 }] },
+      { id: "ULT1B", owner: "KLT1", arrival: 0, bursts: [{ k: "cpu", v: 2 }] },
+      { id: "ULT2A", owner: "KLT2", arrival: 1, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { ULT1A: 5, ULT1B: 3, ULT2A: 5 },
+    trace: [
+      { cpu: "ULT1A", io: null, ready: "KLT1", ults: { KLT1: "ULT1A,ULT1B", KLT2: null }, ev: [] },
+      { cpu: "ULT1B", io: "ULT1A", ready: "KLT2", ults: { KLT1: "ULT1B", KLT2: "ULT2A" },
+        ev: [["arrive", "ULT2A"], ["kltBlockJacket", "ULT1A", "KLT1"], ["libDispatch", "ULT1B", "KLT1"]], key: true,
+        reason: "ULT1A pide I/O, pero el [[jacketing:jacketing]] deja a KLT1 listo: la biblioteca pone a ULT1B y el KLT se queda con la CPU. En el ejemplo 13, exactamente acá, KLT1 se bloqueaba y ULT1B se quedaba mirando cuatro instantes." },
+      { cpu: "ULT1B", io: "ULT1A", ready: "KLT2", ults: { KLT1: "", KLT2: "ULT2A" }, ev: [] },
+      { cpu: "ULT2A", io: "ULT1A", ready: "KLT2", ults: { KLT1: "", KLT2: "ULT2A" }, blocked: ["KLT1"],
+        ev: [["ultFinish", "ULT1B"], ["kltNoRunnable", null, "KLT1"]] },
+      { cpu: "ULT2A", io: "ULT1A", ready: "", ults: { KLT1: "", KLT2: "" }, blocked: ["KLT1"], ev: [] }
+    ]
+  },
+  {
+    number: 15, id: "C1", group: "cierre",
+    title: "Dos procesadores",
+    short: "Dos CPU",
+    subtitle: "Con dos CPU el razonamiento cambia, y el jacketing sigue ganando.",
+    closing: "Dos procesadores no destraban un KLT bloqueado. El jacketing sí.",
+    twoLevel: true,
+    algorithm: "fifo",
+    ultAlgorithm: "sjf",
+    params: { cpus: 2, kltAlgorithm: "FIFO", ultAlgorithm: "SJF sin desalojo" },
+    resources: [
+      { id: "cpu1", kind: "cpu", label: "CPU 1", short: "CPU 1" },
+      { id: "cpu2", kind: "cpu", label: "CPU 2", short: "CPU 2" },
+      { id: "io", kind: "device", label: "Dispositivo", short: "I/O" }
+    ],
+    rowLabel: "ult",
+    rows: [{ id: "ULT1", group: "KLTA" }, { id: "ULT2", group: "KLTA" }, { id: "ULT3", group: "KLTB" }, { id: "ULT4", group: "KLTB" }],
+    table: { kind: "thread", ownerHead: "KLT", unitHead: "ULT", rows: [
+      { id: "ULT1", owner: "KLTA", arrival: 0, bursts: [{ k: "cpu", v: 3 }] },
+      { id: "ULT2", owner: "KLTA", arrival: 0, bursts: [{ k: "cpu", v: 2 }] },
+      { id: "ULT3", owner: "KLTB", arrival: 2, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }] },
+      { id: "ULT4", owner: "KLTB", arrival: 2, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    variantLabel: "Ver la misma tabla",
+    variants: [
+      {
+        variantLabel: "Sin jacketing",
+        ends: { ULT1: 5, ULT2: 2, ULT3: 5, ULT4: 7 },
+        trace: [
+          { cpu1: "ULT2", cpu2: null, io: null, ready: "", ults: { KLTA: "ULT2(2),ULT1(3)", KLTB: null }, ev: [], key: true,
+            reason: "La cola de listos de KLT está vacía y se va a quedar vacía todo el ejemplo: hay dos KLT y dos CPU, así que ninguno espera por un procesador. Adentro de KLTA la biblioteca elige ULT2, con ráfaga 2, antes que ULT1, con 3." },
+          { cpu1: "ULT2", cpu2: null, io: null, ready: "", ults: { KLTA: "ULT1(3)", KLTB: null }, ev: [] },
+          { cpu1: "ULT1", cpu2: "ULT3", io: null, ready: "", ults: { KLTA: "ULT1(3)", KLTB: "ULT3(1),ULT4(2)" },
+            ev: [["arrive", "ULT3"], ["arrive", "ULT4"]] },
+          { cpu1: "ULT1", cpu2: null, io: "ULT3", ready: "", ults: { KLTA: "", KLTB: "ULT4(2)" }, blocked: ["KLTB"],
+            ev: [["kltBlock", "ULT3", "KLTB"]], key: true,
+            reason: "ULT3 se va a I/O y KLTB se bloquea entero. ULT4 está listo y la CPU 2 está libre, y aun así ULT4 no puede correr: tener dos procesadores no destraba un KLT bloqueado." },
+          { cpu1: "ULT1", cpu2: null, io: "ULT3", ready: "", ults: { KLTA: "", KLTB: "ULT4(2)" }, blocked: ["KLTB"], ev: [] },
+          { cpu1: null, cpu2: "ULT4", io: null, ready: "", ults: { KLTA: null, KLTB: "ULT4(2)" },
+            ev: [["ioEnd", "ULT3"], ["ultFinish", "ULT3"], ["kltUnblock", "KLTB"]] },
+          { cpu1: null, cpu2: "ULT4", io: null, ready: "", ults: { KLTA: null, KLTB: "" }, ev: [] }
+        ]
+      },
+      {
+        variantLabel: "Con jacketing",
+        ends: { ULT1: 5, ULT2: 2, ULT3: 5, ULT4: 5 },
+        trace: [
+          { cpu1: "ULT2", cpu2: null, io: null, ready: "", ults: { KLTA: "ULT2(2),ULT1(3)", KLTB: null }, ev: [] },
+          { cpu1: "ULT2", cpu2: null, io: null, ready: "", ults: { KLTA: "ULT1(3)", KLTB: null }, ev: [] },
+          { cpu1: "ULT1", cpu2: "ULT3", io: null, ready: "", ults: { KLTA: "ULT1(3)", KLTB: "ULT3(1),ULT4(2)" },
+            ev: [["arrive", "ULT3"], ["arrive", "ULT4"]] },
+          { cpu1: "ULT1", cpu2: "ULT4", io: "ULT3", ready: "", ults: { KLTA: "", KLTB: "ULT4(2)" },
+            ev: [["kltBlockJacket", "ULT3", "KLTB"], ["libDispatch", "ULT4", "KLTB"]], key: true,
+            reason: "El mismo instante, con jacketing: KLTB sigue listo, la biblioteca pone a ULT4 en la CPU 2 y la I/O de ULT3 corre en paralelo. Sin jacketing acá había una CPU parada y todo terminaba en 7; así termina en 5." },
+          { cpu1: "ULT1", cpu2: "ULT4", io: "ULT3", ready: "", ults: { KLTA: "", KLTB: "" }, ev: [] }
+        ]
+      }
+    ]
+  },
+  {
+    number: 16, id: "C2", group: "cierre",
+    title: "Grado de multiprogramación y swap",
+    short: "Swap",
+    subtitle: "Cuando no hay lugar en memoria, alguien sale — y hay dos formas de estar afuera.",
+    closing: "Suspendido y bloqueado no son lo mismo: se puede estar listo y afuera.",
+    algorithm: "fifo",
+    params: { degree: 2 },
+    stateBand: true,
+    memory: true,
+    resources: [
+      { id: "cpu", kind: "cpu", label: "CPU", short: "CPU" },
+      { id: "io", kind: "device", label: "Dispositivo", short: "I/O" },
+      { id: "swap", kind: "memory", label: "Fuera de memoria", short: "" }
+    ],
+    table: { kind: "process", rows: [
+      { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 2 }, { k: "io", v: 4 }, { k: "cpu", v: 2 }] },
+      { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 5 }, { k: "io", v: 1 }, { k: "cpu", v: 1 }] },
+      { id: "C", arrival: 3, bursts: [{ k: "cpu", v: 2 }] }
+    ] },
+    ends: { A: 12, B: 10, C: 9 },
+    trace: [
+      { cpu: "A", io: null, ready: "A,B", swap: "", mem: "A,B", states: { A: "running", B: "ready" }, ev: [] },
+      { cpu: "A", io: null, ready: "B", swap: "", mem: "A,B", states: { A: "running", B: "ready" }, ev: [] },
+      { cpu: "B", io: "A", ready: "B", swap: "", mem: "A,B", states: { A: "blocked", B: "running" }, ev: [["ioStart", "A"]] },
+      { cpu: "B", io: "A", ready: "C", swap: "A", mem: "B,C", states: { A: "bsusp", B: "running", C: "ready" },
+        ev: [["create", "C"], ["suspend", "A"]], key: true,
+        reason: "Se crea C y en memoria entran dos. El [[medioPlazo:planificador de mediano plazo]] elige a un bloqueado, A, y lo saca: A pasa a [[suspendido:BLOCKED SUSPENDED]]. Su I/O no se entera y sigue corriendo." },
+      { cpu: "B", io: "A", ready: "C", swap: "A", mem: "B,C", states: { A: "bsusp", B: "running", C: "ready" }, ev: [] },
+      { cpu: "B", io: "A", ready: "C", swap: "A", mem: "B,C", states: { A: "bsusp", B: "running", C: "ready" }, ev: [] },
+      { cpu: "B", io: null, ready: "C", swap: "A", mem: "B,C", states: { A: "rsusp", B: "running", C: "ready" },
+        ev: [["ioEnd", "A"], ["readySusp", "A"]], key: true,
+        reason: "Termina la I/O de A. Ya no espera nada, pero sigue afuera de memoria: pasa a READY SUSPENDED. Está listo y no puede ejecutar, y eso es exactamente lo que distingue a los dos estados suspendidos." },
+      { cpu: "C", io: "B", ready: "C", swap: "A", mem: "B,C", states: { A: "rsusp", B: "blocked", C: "running" }, ev: [["ioStart", "B"]] },
+      { cpu: "C", io: null, ready: "B", swap: "A", mem: "B,C", states: { A: "rsusp", B: "ready", C: "running" }, ev: [["ioEnd", "B"]] },
+      { cpu: "B", io: null, ready: "B,A", swap: "", mem: "A,B", states: { A: "ready", B: "running", C: "term" },
+        ev: [["exit", "C"], ["admit", "A"]], key: true,
+        reason: "C termina, se libera un lugar y el de mediano plazo deja volver a A: READY SUSPENDED pasa a READY. Recién ahí A vuelve a competir por la CPU. El camino completo fue bloqueado, suspendido, listo afuera, listo adentro." },
+      { cpu: "A", io: null, ready: "A", swap: "", mem: "A", states: { A: "running", B: "term", C: "term" }, ev: [["exit", "B"]] },
+      { cpu: "A", io: null, ready: "", swap: "", mem: "A", states: { A: "running", B: "term", C: "term" }, ev: [] }
+    ]
+  },
+  {
+    number: 17, id: "C3", group: "cierre",
+    title: "¿Qué algoritmo era?",
+    short: "¿Cuál era?",
+    subtitle: "Dos diagramas ya resueltos. Ahora el trabajo es al revés: mirar el resultado y reconocer la regla.",
+    closing: "Un diagrama tiene adentro la regla que lo armó.",
+    quiz: {
+      charts: [
+        {
+          chartOf: "A7", answer: "hrrn",
+          options: ["fifo", "sjf", "sjfP", "hrrn"],
+          groups: [
+            { t: 5, algos: ["sjf", "sjfP"],
+              text: "SJF elegiría a C, con ráfaga 2, antes que a B, con ráfaga 4. Acá entra B." },
+            { t: 9, algos: ["fifo"],
+              text: "FIFO le daría la CPU al que llegó primero a la cola, C, que espera desde el 4. Acá entra A, que volvió de su I/O recién en el 6." }
+          ],
+          tie: { algos: ["sjf", "sjfP"],
+            text: "En esta tabla, SJF con desalojo y SJF sin desalojo dan el mismo diagrama, porque ninguna llegada desaloja a nadie. Se descartan juntos, en el mismo instante y por el mismo motivo." },
+          note: "Round Robin y VRR no estaban en la lista porque el enunciado no declara ningún quantum. Fijarse si hay quantum es lo primero que conviene mirar: eso solo ya parte la lista en dos."
+        },
+        {
+          chartOf: "A9", answer: "vrr",
+          options: ["fifo", "sjf", "sjfP", "hrrn", "rr", "vrr"],
+          groups: [
+            { t: 2, algos: ["sjfP"],
+              text: "C llega con una ráfaga de 1 contra los 3 que le quedan a B, y lo habría desalojado ahí mismo. Acá B sigue corriendo." },
+            { t: 4, algos: ["fifo", "sjf", "hrrn"],
+              text: "A B le cortan la ráfaga en el 4 sin que la termine. Ninguno de estos tres desaloja por tiempo, así que con cualquiera de ellos B seguía hasta el 5. Hay quantum." },
+            { t: 4, algos: ["rr"],
+              text: "Round Robin también corta a B acá, pero después le da la CPU al primero de la cola, que es C, esperando desde el 2. Acá entra A, que volvió de I/O con quantum sin usar. Hay Ready+." }
+          ]
+        }
+      ]
+    }
+  }
+];
+</script>
+
+<script id="engine">
+function parseQueue(spec) {
+  if (!spec) return [];
+  return spec.split(",").map(function (raw) {
+    const text = raw.trim();
+    const open = text.indexOf("(");
+    if (open === -1) return { id: text, note: null };
+    return { id: text.slice(0, open), note: text.slice(open + 1, text.length - 1) };
+  }).filter(function (entry) { return entry.id.length > 0; });
+}
+
+function fill(template, values) {
+  return Object.keys(values).reduce(function (text, key) {
+    return text.split("{" + key + "}").join(values[key]);
+  }, template);
+}
+
+function deviceResources(resources) {
+  return resources.filter(function (res) { return res.kind === "device"; });
+}
+
+function holdingResources(resources) {
+  return resources.filter(function (res) { return res.kind !== "memory"; });
+}
+
+function stateFrom(view, rowId, index, assign) {
+  if (index >= view.ends[rowId]) return "term";
+  if (view.arrivals[rowId] > index) return null;
+  const outside = view.resources.some(function (res) { return res.kind === "memory" && assign[res.id] === rowId; });
+  const held = holdingResources(view.resources).filter(function (res) { return assign[res.id] === rowId; })[0];
+  if (held && held.kind === "cpu") return "running";
+  if (held) return outside ? "bsusp" : "blocked";
+  return outside ? "rsusp" : "ready";
+}
+
+function cpuResources(resources) {
+  return resources.filter(function (res) { return res.kind === "cpu"; });
+}
+
+function buildView(example, variant) {
+  const source = variant || example;
+  const resources = example.resources || DEFAULT_RESOURCES;
+  const rows = example.rows || example.table.rows.map(function (row) {
+    return { id: row.id, group: row.owner || null };
+  });
+  const groups = [];
+  rows.forEach(function (row) {
+    if (row.group && groups.indexOf(row.group) === -1) groups.push(row.group);
+  });
+  const steps = source.trace.map(function (entry) {
+    const assign = {};
+    resources.forEach(function (res) { assign[res.id] = entry[res.id] || null; });
+    const ults = entry.ults
+      ? groups.reduce(function (acc, group) {
+          acc[group] = entry.ults[group] === null || entry.ults[group] === undefined
+            ? null
+            : parseQueue(entry.ults[group]);
+          return acc;
+        }, {})
+      : null;
+    return {
+      assign: assign,
+      ready: parseQueue(entry.ready),
+      ults: ults,
+      blocked: entry.blocked || [],
+      devq: parseQueue(entry.devq),
+      waiting: entry.waiting || [],
+      mem: entry.mem ? entry.mem.split(",") : null,
+      states: entry.states || null,
+      events: entry.ev || [],
+      key: Boolean(entry.key),
+      reason: entry.reason || null
+    };
+  });
+  const arrivals = {};
+  example.table.rows.forEach(function (row) { arrivals[row.id] = row.arrival; });
+  return {
+    example: example,
+    resources: resources,
+    rows: rows,
+    groups: groups,
+    arrivals: arrivals,
+    ends: source.ends,
+    steps: steps,
+    length: steps.length
+  };
+}
+
+function occupancyOf(view, rowId) {
+  const counts = {};
+  view.resources.forEach(function (res) { counts[res.id] = 0; });
+  let last = -1;
+  view.steps.forEach(function (step, index) {
+    holdingResources(view.resources).forEach(function (res) {
+      if (step.assign[res.id] === rowId) {
+        counts[res.id] += 1;
+        last = Math.max(last, index);
+      }
+    });
+  });
+  return { counts: counts, last: last };
+}
+
+function verifyView(view) {
+  const label = view.example.id;
+  const known = view.rows.map(function (row) { return row.id; });
+  const defaultDevice = deviceResources(view.resources)[0];
+  view.steps.forEach(function (step, index) {
+    const held = {};
+    holdingResources(view.resources).forEach(function (res) {
+      const holder = step.assign[res.id];
+      if (!holder) return;
+      if (known.indexOf(holder) === -1) {
+        throw new Error(label + " t=" + index + ": " + res.id + " asignado a " + holder + ", que no es una fila");
+      }
+      if (held[holder]) {
+        throw new Error(label + " t=" + index + ": " + holder + " ocupa " + held[holder] + " y " + res.id + " al mismo tiempo");
+      }
+      held[holder] = res.id;
+    });
+  });
+  view.rows.forEach(function (row) {
+    const spec = view.example.table.rows.filter(function (item) { return item.id === row.id; })[0];
+    if (!spec) throw new Error(label + ": la fila " + row.id + " no está en el enunciado");
+    if (view.ends[row.id] === undefined) throw new Error(label + ": falta el fin de " + row.id);
+    const wanted = {};
+    view.resources.forEach(function (res) { wanted[res.id] = 0; });
+    let cpuTotal = 0;
+    spec.bursts.forEach(function (burst) {
+      if (burst.k === "cpu") cpuTotal += burst.v;
+      else wanted[burst.dev || defaultDevice.id] += burst.v;
+    });
+    const seen = occupancyOf(view, row.id);
+    const cpuSeen = cpuResources(view.resources).reduce(function (sum, res) { return sum + seen.counts[res.id]; }, 0);
+    if (cpuSeen !== cpuTotal) {
+      throw new Error(label + ": " + row.id + " ocupa la CPU " + cpuSeen + " instantes y el enunciado pide " + cpuTotal);
+    }
+    deviceResources(view.resources).forEach(function (res) {
+      if (seen.counts[res.id] !== wanted[res.id]) {
+        throw new Error(label + ": " + row.id + " ocupa " + res.label + " " + seen.counts[res.id] + " instantes y el enunciado pide " + wanted[res.id]);
+      }
+    });
+    if (seen.last + 1 !== view.ends[row.id]) {
+      throw new Error(label + ": " + row.id + " termina en " + (seen.last + 1) + " y la traza dice " + view.ends[row.id]);
+    }
+  });
+  view.steps.forEach(function (step, index) {
+    if (!step.states) return;
+    view.rows.forEach(function (row) {
+      const onCpu = cpuResources(view.resources).some(function (res) { return step.assign[res.id] === row.id; });
+      const outside = view.resources.some(function (res) { return res.kind === "memory" && step.assign[res.id] === row.id; });
+      if (onCpu && outside) {
+        throw new Error(label + " t=" + index + ": " + row.id + " tiene la CPU y está fuera de memoria a la vez");
+      }
+      const derived = stateFrom(view, row.id, index, step.assign);
+      const declared = step.states[row.id] || null;
+      if (derived !== declared) {
+        throw new Error(label + " t=" + index + ": " + row.id + " declara " + declared + " y de la asignación sale " + derived);
+      }
+    });
+  });
+  return view;
+}
+
+function cellState(view, rowId, index) {
+  const step = view.steps[index];
+  if (step.states) return step.states[rowId] || null;
+  const holder = holdingResources(view.resources).filter(function (res) { return step.assign[res.id] === rowId; })[0];
+  if (holder) return holder.kind === "cpu" ? "running" : "blocked";
+  if (index >= view.ends[rowId]) return "term";
+  return null;
+}
+
+function cellTag(view, rowId, index) {
+  const status = cellState(view, rowId, index);
+  if (!status) return "";
+  const step = view.steps[index];
+  if (!step.states) {
+    const holder = holdingResources(view.resources).filter(function (res) { return step.assign[res.id] === rowId; })[0];
+    if (holder) return holder.short;
+  }
+  return UI_TEXT.cells[status] || "";
+}
+
+function groupOf(view, rowId) {
+  const row = view.rows.filter(function (item) { return item.id === rowId; })[0];
+  return row ? row.group : null;
+}
+
+function queueNote(entries, id) {
+  const hit = (entries || []).filter(function (entry) { return entry.id === id; })[0];
+  return hit ? hit.note : null;
+}
+
+function dispatchReason(view, index, resource) {
+  const step = view.steps[index];
+  const holder = step.assign[resource.id];
+  if (!holder) return UI_TEXT.reasons.idle;
+  const previous = index > 0 ? view.steps[index - 1].assign[resource.id] : null;
+  if (holder === previous) return fill(UI_TEXT.reasons.keeps, { p: holder });
+  const group = groupOf(view, holder);
+  if (view.example.twoLevel) {
+    return fill(UI_TEXT.reasons.twoLevel, { p: holder, v: group });
+  }
+  const note = queueNote(step.ready, holder);
+  const algorithm = ALGORITHMS[view.example.algorithm];
+  const key = view.example.algorithm === "vrr" && note === "Q+" ? "vrrPlus" : algorithm.reason;
+  return fill(UI_TEXT.reasons[key], { p: holder, v: note });
+}
+
+function deviceReason(view, index) {
+  const step = view.steps[index];
+  const lines = [];
+  deviceResources(view.resources).forEach(function (res) {
+    const holder = step.assign[res.id];
+    const previous = index > 0 ? view.steps[index - 1].assign[res.id] : null;
+    if (holder && holder !== previous) {
+      const single = deviceResources(view.resources).length === 1;
+      lines.push(fill(single ? UI_TEXT.reasons.devTakeOne : UI_TEXT.reasons.devTake, { p: holder, v: res.label }));
+    }
+    else if (!holder && previous) lines.push(fill(UI_TEXT.reasons.devFree, { v: res.label }));
+  });
+  step.waiting.forEach(function (who) {
+    const res = deviceResources(view.resources)[0];
+    lines.push(fill(UI_TEXT.reasons.devWait, { p: who, q: step.assign[res.id] }));
+  });
+  return lines;
+}
+
+function reasonFor(view, index) {
+  const step = view.steps[index];
+  if (step.reason) return { main: step.reason, extra: [], key: true };
+  const cpus = cpuResources(view.resources);
+  const main = cpus.map(function (res) {
+    const text = dispatchReason(view, index, res);
+    return cpus.length > 1 ? res.label + ": " + text : text;
+  }).join(" ");
+  return { main: main, extra: deviceReason(view, index), key: false };
+}
+
+function eventText(entry) {
+  const template = UI_TEXT.events[entry[0]];
+  return fill(template, { p: entry[1], v: entry[2] });
+}
+
+function checkColumn(view, index, picks) {
+  return view.resources.map(function (res) {
+    const expected = view.steps[index].assign[res.id] || null;
+    const given = picks[res.id] || null;
+    return { resource: res, expected: expected, given: given, correct: given === expected };
+  });
+}
+
+function previousPicks(view, index) {
+  const picks = {};
+  if (index === 0) {
+    view.resources.forEach(function (res) { picks[res.id] = null; });
+    return picks;
+  }
+  view.resources.forEach(function (res) { picks[res.id] = view.steps[index - 1].assign[res.id] || null; });
+  return picks;
+}
+
+function candidatesAt(view, index) {
+  return view.rows.filter(function (row) { return view.arrivals[row.id] <= index; }).map(function (row) { return row.id; });
+}
+</script>
+
+<script id="ui">
+const dom = {
+  exampleList: document.getElementById("exampleList"),
+  modeLabel: document.getElementById("modeLabel"),
+  modeBar: document.getElementById("modeBar"),
+  variantRow: document.getElementById("variantRow"),
+  variantLabel: document.getElementById("variantLabel"),
+  variantBar: document.getElementById("variantBar"),
+  statementTitle: document.getElementById("statementTitle"),
+  statementPanel: document.getElementById("statementPanel"),
+  stateTitle: document.getElementById("stateTitle"),
+  statePanel: document.getElementById("statePanel"),
+  main: document.querySelector("main"),
+  ganttTitle: document.getElementById("ganttTitle"),
+  ganttPanel: document.getElementById("ganttPanel"),
+  ganttLegend: document.getElementById("ganttLegend"),
+  decisionPanel: document.getElementById("decisionPanel"),
+  decisionTitle: document.getElementById("decisionTitle"),
+  decisionWhen: document.getElementById("decisionWhen"),
+  decisionBody: document.getElementById("decisionBody"),
+  exampleTitle: document.getElementById("exampleTitle"),
+  exampleSubtitle: document.getElementById("exampleSubtitle"),
+  granularityNote: document.getElementById("granularityNote"),
+  narrationPanel: document.getElementById("narrationPanel"),
+  progressFill: document.getElementById("progressFill"),
+  progress: document.getElementById("progress"),
+  firstStep: document.getElementById("firstStep"),
+  prevStep: document.getElementById("prevStep"),
+  nextStep: document.getElementById("nextStep"),
+  lastStep: document.getElementById("lastStep"),
+  playPause: document.getElementById("playPause"),
+  score: document.getElementById("score"),
+  tooltip: document.getElementById("tooltip")
+};
+
+const state = {
+  exampleIndex: 0,
+  variantIndex: 0,
+  mode: "solve",
+  index: 0,
+  answered: 0,
+  results: [],
+  picks: {},
+  ok: 0,
+  asked: 0,
+  playing: false,
+  timer: null,
+  quizChart: 0,
+  quizPick: null,
+  quizAnswered: false
+};
+
+let view = null;
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function currentExample() { return EXAMPLES[state.exampleIndex]; }
+
+function currentVariant() {
+  const example = currentExample();
+  return example.variants ? example.variants[state.variantIndex] : null;
+}
+
+function isQuiz() { return Boolean(currentExample().quiz); }
+
+function revealedCount() {
+  return state.mode === "solve" ? state.answered : state.index + 1;
+}
+
+function appendRich(parent, text) {
+  const pattern = /\[\[([a-zA-ZáéíóúñÁÉÍÓÚÑ0-9]+):([^\]]+)\]\]|\*([^*]+)\*/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) parent.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+    if (match[3]) {
+      parent.appendChild(element("em", null, match[3]));
+    } else {
+      const term = element("span", "term", match[2]);
+      term.setAttribute("tabindex", "0");
+      term.dataset.term = match[1];
+      parent.appendChild(term);
+    }
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) parent.appendChild(document.createTextNode(text.slice(cursor)));
+}
+
+function burstProgress(view, rowId, bound) {
+  const pools = {};
+  view.resources.forEach(function (res) { pools[res.id] = 0; });
+  for (let t = 0; t < bound && t < view.length; t += 1) {
+    view.resources.forEach(function (res) {
+      if (view.steps[t].assign[res.id] === rowId) pools[res.id] += 1;
+    });
+  }
+  const cpuIds = cpuResources(view.resources).map(function (res) { return res.id; });
+  let cpuPool = cpuIds.reduce(function (sum, id) { return sum + pools[id]; }, 0);
+  const defaultDevice = deviceResources(view.resources)[0].id;
+  const spec = view.example.table.rows.filter(function (row) { return row.id === rowId; })[0];
+  return spec.bursts.map(function (burst) {
+    if (burst.k === "cpu") {
+      const done = cpuPool >= burst.v;
+      cpuPool = Math.max(0, cpuPool - burst.v);
+      return done;
+    }
+    const key = burst.dev || defaultDevice;
+    const done = pools[key] >= burst.v;
+    pools[key] = Math.max(0, pools[key] - burst.v);
+    return done;
+  });
+}
+
+function renderLadder() {
+  dom.exampleList.textContent = "";
+  let lastGroup = null;
+  EXAMPLES.forEach(function (example, position) {
+    if (example.group !== lastGroup) {
+      dom.exampleList.appendChild(element("span", "group-cap", UI_TEXT.groups[example.group]));
+      lastGroup = example.group;
+    }
+    const button = element("button");
+    button.type = "button";
+    button.title = example.short;
+    button.appendChild(element("span", "num", String(example.number)));
+    button.appendChild(element("span", "short", example.short));
+    if (position === state.exampleIndex) button.setAttribute("aria-current", "true");
+    button.addEventListener("click", function () { selectExample(position); });
+    dom.exampleList.appendChild(button);
+  });
+}
+
+function renderSwitch(container, entries, activeKey, onPick) {
+  container.textContent = "";
+  entries.forEach(function (entry) {
+    const button = element("button", null, entry.label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", entry.key === activeKey ? "true" : "false");
+    button.addEventListener("click", function () { onPick(entry.key); });
+    container.appendChild(button);
+  });
+}
+
+function renderModes() {
+  dom.modeLabel.textContent = UI_TEXT.modeLabel;
+  const entries = [
+    { key: "solve", label: UI_TEXT.modes.solve },
+    { key: "watch", label: UI_TEXT.modes.watch }
+  ];
+  renderSwitch(dom.modeBar, entries, state.mode, function (key) {
+    if (key === state.mode) return;
+    state.mode = key;
+    stopPlay();
+    resetProgress();
+    render();
+  });
+}
+
+function renderVariants() {
+  const example = currentExample();
+  if (!example.variants) {
+    dom.variantBar.textContent = "";
+    dom.variantRow.hidden = true;
+    return;
+  }
+  dom.variantRow.hidden = false;
+  dom.variantLabel.textContent = example.variantLabel;
+  const entries = example.variants.map(function (variant, position) {
+    return { key: String(position), label: variant.variantLabel };
+  });
+  renderSwitch(dom.variantBar, entries, String(state.variantIndex), function (key) {
+    if (Number(key) === state.variantIndex) return;
+    state.variantIndex = Number(key);
+    stopPlay();
+    rebuildView();
+    resetProgress();
+    render();
+  });
+}
+
+function renderStatement() {
+  const example = view.example;
+  const body = dom.statementPanel;
+  body.textContent = "";
+  const scroll = element("div", "statement-scroll");
+  const table = element("table", "statement-table");
+  const head = element("thead");
+  const headRow = element("tr");
+  const spec = example.table;
+  if (spec.rows.length > 3) table.classList.add("dense");
+  if (spec.kind === "thread") headRow.appendChild(element("th", null, spec.ownerHead));
+  headRow.appendChild(element("th", null, spec.kind === "thread" ? spec.unitHead : UI_TEXT.statement.process));
+  headRow.appendChild(element("th", null, UI_TEXT.statement.arrival));
+  if (spec.estimates) {
+    headRow.appendChild(element("th", null, UI_TEXT.statement.estPrev));
+    headRow.appendChild(element("th", null, UI_TEXT.statement.realPrev));
+    headRow.appendChild(element("th", null, UI_TEXT.statement.est));
+  }
+  const width = spec.rows.reduce(function (max, row) { return Math.max(max, row.bursts.length); }, 0);
+  for (let i = 0; i < width; i += 1) {
+    headRow.appendChild(element("th", null, i % 2 === 0 ? UI_TEXT.statement.cpu : UI_TEXT.statement.io));
+  }
+  head.appendChild(headRow);
+  table.appendChild(head);
+  const bound = revealedCount();
+  const bodyRows = element("tbody");
+  spec.rows.forEach(function (row) {
+    const line = element("tr");
+    if (spec.kind === "thread") line.appendChild(element("td", null, row.owner));
+    line.appendChild(element("td", null, row.id));
+    line.appendChild(element("td", null, String(row.arrival)));
+    if (spec.estimates) {
+      line.appendChild(element("td", null, String(row.estPrev)));
+      line.appendChild(element("td", null, String(row.realPrev)));
+      line.appendChild(element("td", null, String(row.est)));
+    }
+    const spent = isQuiz() ? [] : burstProgress(view, row.id, bound);
+    for (let i = 0; i < width; i += 1) {
+      const burst = row.bursts[i];
+      if (!burst) {
+        line.appendChild(element("td", null, UI_TEXT.statement.dash));
+        continue;
+      }
+      const cell = element("td", burst.k === "cpu" ? "burst-cpu" : "burst-io", String(burst.v));
+      if (spent[i]) cell.classList.add("spent");
+      if (burst.dev) cell.title = view.resources.filter(function (res) { return res.id === burst.dev; })[0].label;
+      line.appendChild(cell);
+    }
+    bodyRows.appendChild(line);
+  });
+  table.appendChild(bodyRows);
+  scroll.appendChild(table);
+  body.appendChild(scroll);
+
+  const params = element("div", "params");
+  function addParam(label, value) {
+    const chip = element("span", "param");
+    chip.appendChild(element("span", null, label));
+    chip.appendChild(element("b", null, String(value)));
+    params.appendChild(chip);
+  }
+  if (!example.twoLevel) addParam(UI_TEXT.params.algorithm, ALGORITHMS[example.algorithm].label);
+  const settings = example.params || {};
+  if (settings.kltAlgorithm) addParam(UI_TEXT.params.kltAlgorithm, settings.kltAlgorithm);
+  if (settings.ultAlgorithm) addParam(UI_TEXT.params.ultAlgorithm, settings.ultAlgorithm);
+  if (settings.jacketing !== undefined) addParam(UI_TEXT.params.jacketing, settings.jacketing ? UI_TEXT.params.yes : UI_TEXT.params.no);
+  if (settings.quantum) addParam(UI_TEXT.params.quantum, settings.quantum);
+  if (settings.alpha) addParam(UI_TEXT.params.alpha, settings.alpha);
+  if (settings.degree) addParam(UI_TEXT.params.degree, settings.degree);
+  if (settings.cpus) addParam(UI_TEXT.params.cpus, settings.cpus);
+  if (settings.queueHigh) addParam(UI_TEXT.params.queueHigh, settings.queueHigh);
+  if (settings.queueLow) addParam(UI_TEXT.params.queueLow, settings.queueLow);
+  const devices = deviceResources(view.resources);
+  if (devices.length > 1) addParam(UI_TEXT.params.devices, devices.map(function (res) { return res.label; }).join(" · "));
+  body.appendChild(params);
+
+}
+
+function renderLegend() {
+  const example = view.example;
+  const legend = dom.ganttLegend;
+  legend.textContent = "";
+  function addLegend(key) {
+    const item = element("span", "legend-item");
+    item.appendChild(element("span", "legend-swatch " + STATES[key].css));
+    item.appendChild(element("b", null, UI_TEXT.cells[key]));
+    item.appendChild(element("span", "eq", UI_TEXT.legend.equals));
+    item.appendChild(element("span", null, STATES[key].label));
+    legend.appendChild(item);
+  }
+  const shown = example.stateBand
+    ? ["running", "blocked", "ready", "bsusp", "rsusp", "term"]
+    : ["running", "blocked", "term"];
+  shown.forEach(function (key) { addLegend(key); });
+}
+
+function ganttFor(target, chartView, cursor, bound, preview) {
+  target.textContent = "";
+  const grid = element("div", "gantt-grid");
+  grid.style.gridTemplateColumns = "max-content repeat(" + chartView.length + ", minmax(38px, 1fr))";
+  if (chartView.rows.length >= 4) grid.classList.add("dense");
+  chartView.rows.forEach(function (row) {
+    const label = element("div", "gantt-label");
+    label.appendChild(element("span", null, row.id));
+    if (row.group) label.appendChild(element("span", "owner", row.group));
+    grid.appendChild(label);
+    for (let t = 0; t < chartView.length; t += 1) {
+      const cell = element("div", "gantt-cell");
+      if (preview && t === cursor) {
+        const guess = chartView.steps[t].states
+          ? stateFrom(chartView, row.id, t, preview)
+          : (function () {
+              const held = holdingResources(chartView.resources).filter(function (res) { return preview[res.id] === row.id; })[0];
+              return held ? (held.kind === "cpu" ? "running" : "blocked") : null;
+            })();
+        const held = holdingResources(chartView.resources).filter(function (res) { return preview[res.id] === row.id; })[0];
+        if (guess && (held || chartView.steps[t].states)) {
+          cell.classList.add(STATES[guess].css, "preview");
+          cell.textContent = held && !chartView.steps[t].states ? held.short : UI_TEXT.cells[guess] || "";
+        } else {
+          cell.classList.add("future", "blank");
+        }
+      } else if (t >= bound) {
+        cell.classList.add("future", "blank");
+      } else {
+        const status = cellState(chartView, row.id, t);
+        if (status) {
+          cell.classList.add(STATES[status].css);
+          cell.textContent = cellTag(chartView, row.id, t);
+          cell.title = STATES[status].label;
+        } else {
+          cell.classList.add("blank");
+          if (chartView.steps[t].waiting.indexOf(row.id) !== -1) cell.classList.add("waiting");
+        }
+      }
+      if (t === cursor) cell.classList.add("now");
+      grid.appendChild(cell);
+    }
+  });
+  grid.appendChild(element("div", "gantt-axis origin", "0"));
+  for (let t = 0; t < chartView.length; t += 1) {
+    const axis = element("div", "gantt-axis", String(t + 1));
+    if (t === cursor) axis.classList.add("now");
+    grid.appendChild(axis);
+  }
+  target.appendChild(grid);
+}
+
+function renderGantt() {
+  if (isQuiz()) {
+    const chart = quizChart();
+    ganttFor(dom.ganttPanel, chart.view, -1, chart.view.length);
+    return;
+  }
+  const settled = state.results[state.index];
+  const preview = state.mode === "solve" && !settled ? currentPicks() : null;
+  ganttFor(dom.ganttPanel, view, state.index, revealedCount(), preview);
+}
+
+function currentPicks() {
+  const picks = {};
+  view.resources.forEach(function (res) { picks[res.id] = state.picks[res.id] || null; });
+  return picks;
+}
+
+function stateBlock(title, gloss, flag) {
+  const block = element("div", "state-block");
+  const head = element("div", "block-head");
+  head.appendChild(element("span", "what", title));
+  if (gloss) head.appendChild(element("span", "gloss", gloss));
+  if (flag) head.appendChild(element("span", "flag", flag));
+  block.appendChild(head);
+  return block;
+}
+
+function processChip(id, note, extra) {
+  const chip = element("span", "queue-chip" + (extra ? " " + extra : ""));
+  if (note === "Q+") chip.classList.add("plus");
+  chip.appendChild(element("span", null, id));
+  if (note) chip.appendChild(element("span", "note", note));
+  return chip;
+}
+
+function queueBlock(title, gloss, entries, flag, extra, unordered) {
+  const block = stateBlock(title, gloss, flag);
+  if (!entries || entries.length === 0) {
+    block.appendChild(element("div", "queue-empty", UI_TEXT.queues.empty));
+    return block;
+  }
+  const list = element("div", "queue-list");
+  entries.forEach(function (entry, position) {
+    if (position > 0 && !unordered) list.appendChild(element("span", "sep", "\u203a"));
+    list.appendChild(processChip(entry.id, entry.note, extra));
+  });
+  block.appendChild(list);
+  return block;
+}
+
+function queueRow(level, entries, flag) {
+  const row = element("div", "queue-row");
+  row.appendChild(element("span", "lvl", level));
+  if (!entries || entries.length === 0) {
+    row.appendChild(element("span", "queue-empty", UI_TEXT.queues.empty));
+  } else {
+    const list = element("div", "queue-list");
+    entries.forEach(function (entry, position) {
+      if (position > 0) list.appendChild(element("span", "sep", "\u203a"));
+      list.appendChild(processChip(entry.id, entry.note, null));
+    });
+    row.appendChild(list);
+  }
+  if (flag) row.appendChild(element("span", "flag", flag));
+  return row;
+}
+
+function criterionFor(algorithm) {
+  return UI_TEXT.queues.criterion[algorithm] || null;
+}
+
+function readyGloss(algorithm) {
+  const criterion = criterionFor(algorithm);
+  return criterion ? STATES.ready.label + " \u00b7 " + criterion : STATES.ready.label;
+}
+
+function renderState() {
+  const body = dom.statePanel;
+  body.textContent = "";
+  if (isQuiz()) {
+    renderQuizState(body);
+    return;
+  }
+  const step = view.steps[state.index];
+  const example = currentExample();
+  const grid = element("div", "state-grid");
+  if (example.twoLevel) {
+    const block = stateBlock(UI_TEXT.queues.readyBoth, criterionFor(example.ultAlgorithm), null);
+    const rows = element("div", "queue-rows");
+    rows.appendChild(queueRow(UI_TEXT.queues.levelKlt, step.ready, null));
+    view.groups.forEach(function (group) {
+      const entries = step.ults ? step.ults[group] : null;
+      if (entries === null || entries === undefined) return;
+      rows.appendChild(queueRow(
+        fill(UI_TEXT.queues.levelUlt, { klt: group }),
+        entries,
+        step.blocked.indexOf(group) !== -1 ? UI_TEXT.queues.kltBlocked : null));
+    });
+    block.appendChild(rows);
+    grid.appendChild(block);
+  } else {
+    grid.appendChild(queueBlock(UI_TEXT.queues.ready, readyGloss(example.algorithm), step.ready));
+  }
+  if (example.memory) {
+    grid.appendChild(queueBlock(UI_TEXT.queues.memory, null,
+      (step.mem || []).map(function (id) { return { id: id, note: null }; }), null, "mem", true));
+  }
+  const devices = stateBlock(UI_TEXT.queues.devices, null, null);
+  const deviceList = deviceResources(view.resources);
+  deviceList.forEach(function (res, position) {
+    const card = element("div", "dev-card");
+    card.appendChild(element("span", "dev-name", res.label));
+    const holder = step.assign[res.id];
+    card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", UI_TEXT.queues.free));
+    if (position === 0 && step.devq.length > 0) {
+      const wait = element("div", "waiting-for");
+      wait.appendChild(element("span", null, UI_TEXT.queues.deviceQueue));
+      step.devq.forEach(function (entry) { wait.appendChild(processChip(entry.id, null, "dev")); });
+      card.appendChild(wait);
+    }
+    devices.appendChild(card);
+  });
+  grid.appendChild(devices);
+  const events = stateBlock(UI_TEXT.queues.events, null, null);
+  if (grid.children.length % 2 === 0) events.classList.add("full");
+  if (step.events.length === 0) {
+    events.appendChild(element("div", "queue-empty", UI_TEXT.queues.noEvents));
+  } else {
+    const list = element("ul", "event-list");
+    step.events.forEach(function (entry) { list.appendChild(element("li", null, eventText(entry))); });
+    events.appendChild(list);
+  }
+  grid.appendChild(events);
+  body.appendChild(grid);
+}
+
+const quizViews = {};
+
+function quizViewFor(exampleId) {
+  if (!quizViews[exampleId]) {
+    const source = EXAMPLES.filter(function (item) { return item.id === exampleId; })[0];
+    quizViews[exampleId] = verifyView(buildView(source, null));
+  }
+  return quizViews[exampleId];
+}
+
+function quizChart() {
+  const spec = currentExample().quiz.charts[state.quizChart];
+  return { spec: spec, view: quizViewFor(spec.chartOf) };
+}
+
+function nextChartButton() {
+  const example = currentExample();
+  if (state.quizChart + 1 >= example.quiz.charts.length) return null;
+  const next = element("button", "big primary", UI_TEXT.quiz.next);
+  next.type = "button";
+  next.addEventListener("click", function () {
+    state.quizChart += 1;
+    state.quizPick = null;
+    state.quizAnswered = false;
+    rebuildView();
+    render();
+  });
+  return next;
+}
+
+function renderQuizState(body) {
+  const chart = quizChart();
+  if (!state.quizAnswered) {
+    body.appendChild(element("p", "queue-empty", UI_TEXT.quiz.prompt));
+    return;
+  }
+  const wrap = element("div", "elim");
+  function elimCard(when, algos, text) {
+    const card = element("div", "elim-card");
+    const head = element("div", "elim-head");
+    head.appendChild(element("span", "elim-when", when));
+    head.appendChild(element("span", "elim-who", algos.map(function (key) { return ALGORITHMS[key].label; }).join(" · ")));
+    card.appendChild(head);
+    card.appendChild(element("div", "elim-why", text));
+    return card;
+  }
+  chart.spec.groups.forEach(function (group) {
+    wrap.appendChild(elimCard(fill(UI_TEXT.quiz.elimWhen, { t: group.t }), group.algos, group.text));
+  });
+  if (chart.spec.tie) wrap.appendChild(elimCard(UI_TEXT.quiz.tie, chart.spec.tie.algos, chart.spec.tie.text));
+  if (chart.spec.note) wrap.appendChild(element("p", "elim-note", chart.spec.note));
+  body.appendChild(wrap);
+  const next = nextChartButton();
+  if (next) {
+    const actions = element("div", "decision-actions");
+    actions.appendChild(next);
+    body.appendChild(actions);
+  }
+}
+
+function renderQuizDecision() {
+  const chart = quizChart();
+  dom.main.classList.remove("solo");
+  dom.main.classList.toggle("answered", state.quizAnswered);
+  if (state.quizAnswered) {
+    dom.decisionPanel.hidden = true;
+    return;
+  }
+  dom.decisionPanel.hidden = false;
+  dom.decisionTitle.textContent = UI_TEXT.panels.quiz;
+  dom.decisionTitle.dataset.tip = "quiz";
+  const body = dom.decisionBody;
+  body.textContent = "";
+  dom.decisionWhen.textContent = fill(UI_TEXT.quiz.chartOf, {
+    n: state.quizChart + 1,
+    total: currentExample().quiz.charts.length
+  });
+  const options = element("div", "quiz-options");
+  chart.spec.options.forEach(function (key) {
+    const button = element("button", null, ALGORITHMS[key].label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", state.quizPick === key ? "true" : "false");
+    button.addEventListener("click", function () {
+      state.quizPick = key;
+      render();
+    });
+    options.appendChild(button);
+  });
+  body.appendChild(options);
+  const actions = element("div", "decision-actions");
+  const check = element("button", "big primary", UI_TEXT.quiz.check);
+  check.type = "button";
+  check.disabled = !state.quizPick;
+  check.addEventListener("click", function () {
+    state.quizAnswered = true;
+    state.asked += 1;
+    if (state.quizPick === chart.spec.answer) state.ok += 1;
+    render();
+  });
+  actions.appendChild(check);
+  body.appendChild(actions);
+}
+
+function renderDecision() {
+  if (isQuiz()) {
+    renderQuizDecision();
+    return;
+  }
+  if (state.mode === "watch") {
+    dom.decisionPanel.hidden = true;
+    dom.main.classList.add("solo");
+    return;
+  }
+  dom.decisionPanel.hidden = false;
+  dom.main.classList.remove("solo");
+  dom.decisionTitle.textContent = UI_TEXT.panels.decision;
+  dom.decisionTitle.dataset.tip = "decision";
+  const body = dom.decisionBody;
+  body.textContent = "";
+  const settled = state.results[state.index];
+  dom.decisionWhen.textContent = fill(UI_TEXT.decision.prompt, { from: state.index, to: state.index + 1 });
+  const selectors = element("div", "selectors");
+  const options = candidatesAt(view, state.index);
+  view.resources.forEach(function (res) {
+    const holder = element("div", "selector");
+    const result = settled ? settled.filter(function (item) { return item.resource.id === res.id; })[0] : null;
+    const shown = result ? result.expected : (state.picks[res.id] || null);
+    const labelCol = element("div", "label-col");
+    labelCol.appendChild(element("span", "name", res.label));
+    holder.appendChild(labelCol);
+    const group = element("div", "choices " + res.kind);
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", res.label);
+    const columnAssign = settled ? view.steps[state.index].assign : currentPicks();
+    [null].concat(options).forEach(function (value) {
+      const button = element("button", value === null ? "none" : null, value === null ? UI_TEXT.none : value);
+      button.type = "button";
+      button.setAttribute("aria-pressed", shown === value ? "true" : "false");
+      if (shown === value && value !== null) {
+        const produced = stateFrom(view, value, state.index, columnAssign);
+        if (produced) button.classList.add("st-" + produced);
+      }
+      if (result && !result.correct && result.given === value) button.classList.add("was-wrong");
+      button.disabled = Boolean(settled);
+      button.addEventListener("click", function () {
+        state.picks[res.id] = value;
+        if (value) {
+          view.resources.forEach(function (other) {
+            if (other.id === res.id) return;
+            if (state.picks[other.id] !== value) return;
+            if (res.kind === "memory" && other.kind === "device") return;
+            if (res.kind === "device" && other.kind === "memory") return;
+            state.picks[other.id] = null;
+          });
+        }
+        render();
+      });
+      group.appendChild(button);
+    });
+    holder.appendChild(group);
+    if (result) {
+      holder.classList.add(result.correct ? "ok" : "bad");
+      labelCol.appendChild(element("span", "verdict", result.correct
+        ? UI_TEXT.decision.ok
+        : fill(UI_TEXT.decision.bad, { p: result.expected || UI_TEXT.none })));
+    }
+    selectors.appendChild(holder);
+  });
+  body.appendChild(selectors);
+  const actions = element("div", "decision-actions");
+  if (!settled) {
+    const confirm = element("button", "big primary", UI_TEXT.decision.confirm);
+    confirm.type = "button";
+    confirm.addEventListener("click", confirmColumn);
+    actions.appendChild(confirm);
+    const same = element("button", "small", UI_TEXT.decision.same);
+    same.type = "button";
+    same.disabled = state.index === 0;
+    same.addEventListener("click", function () {
+      state.picks = previousPicks(view, state.index);
+      render();
+    });
+    actions.appendChild(same);
+  }
+  if (actions.childNodes.length > 0) body.appendChild(actions);
+}
+
+function confirmColumn() {
+  const results = checkColumn(view, state.index, state.picks);
+  state.results[state.index] = results;
+  results.forEach(function (item) {
+    state.asked += 1;
+    if (item.correct) state.ok += 1;
+  });
+  state.answered = Math.max(state.answered, state.index + 1);
+  state.picks = {};
+  render();
+}
+
+function renderNarration() {
+  const example = currentExample();
+  dom.exampleTitle.textContent = example.title;
+  dom.exampleSubtitle.textContent = example.subtitle;
+  dom.granularityNote.textContent = isQuiz() ? "" : UI_TEXT.stepUnit;
+  dom.granularityNote.hidden = isQuiz();
+  const body = dom.narrationPanel;
+  body.textContent = "";
+  if (isQuiz()) {
+    const chart = quizChart();
+    const line = element("p", "narration-text");
+    if (!state.quizAnswered) {
+      line.textContent = UI_TEXT.quiz.prompt;
+    } else {
+      line.textContent = fill(state.quizPick === chart.spec.answer ? UI_TEXT.quiz.correct : UI_TEXT.quiz.wrong, {
+        p: ALGORITHMS[chart.spec.answer].label
+      });
+    }
+    body.appendChild(line);
+    if (state.quizAnswered && state.quizChart + 1 === example.quiz.charts.length) body.appendChild(closingCard(example));
+    return;
+  }
+  const settled = state.mode === "watch" || state.results[state.index];
+  if (!settled) {
+    body.appendChild(element("p", "narration-note", UI_TEXT.decision.pending));
+    return;
+  }
+  const reason = reasonFor(view, state.index);
+  const line = element("p", "narration-text");
+  appendRich(line, reason.main);
+  body.appendChild(line);
+  reason.extra.forEach(function (text) {
+    const note = element("p", "narration-note");
+    appendRich(note, text);
+    body.appendChild(note);
+  });
+  const finished = state.mode === "watch"
+    ? state.index === view.length - 1
+    : state.answered === view.length && state.index === view.length - 1;
+  if (finished) body.appendChild(closingCard(example));
+}
+
+function closingCard(example) {
+  const card = element("div", "takeaway");
+  card.appendChild(element("span", "tag", UI_TEXT.takeawayTag));
+  const line = element("span", "line");
+  appendRich(line, example.closing);
+  card.appendChild(line);
+  return card;
+}
+
+function maxIndex() {
+  if (state.mode === "watch") return view.length - 1;
+  return state.answered < view.length ? state.answered : view.length - 1;
+}
+
+function renderControls() {
+  dom.firstStep.textContent = UI_TEXT.firstStep;
+  dom.prevStep.textContent = UI_TEXT.prevStep;
+  dom.nextStep.textContent = UI_TEXT.nextStep;
+  dom.lastStep.textContent = UI_TEXT.lastStep;
+  dom.playPause.textContent = state.playing ? UI_TEXT.pause : UI_TEXT.play;
+  const quiz = isQuiz();
+  dom.firstStep.disabled = quiz || state.index === 0;
+  dom.prevStep.disabled = quiz || state.index === 0;
+  dom.nextStep.disabled = quiz || state.index >= maxIndex();
+  dom.lastStep.disabled = quiz || state.index >= maxIndex();
+  dom.playPause.hidden = quiz || state.mode !== "watch";
+  dom.score.textContent = state.asked === 0 ? "" : fill(UI_TEXT.score, { ok: state.ok, total: state.asked });
+  if (quiz) {
+    dom.progress.textContent = fill(UI_TEXT.quiz.chartOf, { n: state.quizChart + 1, total: currentExample().quiz.charts.length });
+    dom.progressFill.style.transform = "scaleX(" + ((state.quizChart + 1) / currentExample().quiz.charts.length) + ")";
+    return;
+  }
+  dom.progress.textContent = fill(UI_TEXT.progress, { current: state.index + 1, total: view.length });
+  dom.progressFill.style.transform = "scaleX(" + ((state.index + 1) / view.length) + ")";
+}
+
+function render() {
+  renderLadder();
+  renderModes();
+  renderVariants();
+  dom.statementTitle.textContent = UI_TEXT.panels.statement;
+  dom.stateTitle.textContent = isQuiz() ? UI_TEXT.quiz.elimPanel : UI_TEXT.panels.state;
+  dom.stateTitle.dataset.tip = isQuiz() ? "elim" : "state";
+  dom.ganttTitle.textContent = UI_TEXT.panels.gantt;
+  dom.main.classList.toggle("quiz", isQuiz());
+  if (!isQuiz()) dom.main.classList.remove("answered");
+  renderStatement();
+  renderGantt();
+  renderLegend();
+  renderState();
+  renderDecision();
+  renderNarration();
+  renderControls();
+}
+
+function resetProgress() {
+  state.index = 0;
+  state.answered = 0;
+  state.results = [];
+  state.picks = {};
+  state.quizChart = 0;
+  state.quizPick = null;
+  state.quizAnswered = false;
+}
+
+function rebuildView() {
+  const example = currentExample();
+  view = example.quiz ? quizViewFor(example.quiz.charts[state.quizChart].chartOf) : verifyView(buildView(example, currentVariant()));
+}
+
+function selectExample(position) {
+  if (position === state.exampleIndex) return;
+  stopPlay();
+  state.exampleIndex = position;
+  state.variantIndex = 0;
+  resetProgress();
+  rebuildView();
+  render();
+}
+
+function goTo(index) {
+  if (isQuiz()) return;
+  const limit = maxIndex();
+  state.index = Math.max(0, Math.min(index, limit));
+  render();
+}
+
+function stopPlay() {
+  state.playing = false;
+  if (state.timer) {
+    window.clearInterval(state.timer);
+    state.timer = null;
+  }
+}
+
+function togglePlay() {
+  if (state.playing) {
+    stopPlay();
+    render();
+    return;
+  }
+  if (state.index >= maxIndex()) state.index = 0;
+  state.playing = true;
+  state.timer = window.setInterval(function () {
+    if (state.index >= maxIndex()) {
+      stopPlay();
+      render();
+      return;
+    }
+    state.index += 1;
+    render();
+  }, 1100);
+  render();
+}
+
+function showTip(node, tip) {
+  dom.tooltip.textContent = "";
+  dom.tooltip.appendChild(element("strong", "tip-title", tip.title));
+  dom.tooltip.appendChild(document.createTextNode(tip.body));
+  dom.tooltip.classList.add("open");
+  const box = node.getBoundingClientRect();
+  const width = dom.tooltip.offsetWidth;
+  const height = dom.tooltip.offsetHeight;
+  let left = box.left + box.width / 2 - width / 2;
+  left = Math.min(left, window.innerWidth - width - 8);
+  let top = box.top - height - 8;
+  if (top < 8) top = box.bottom + 8;
+  dom.tooltip.style.left = Math.max(8, left) + "px";
+  dom.tooltip.style.top = top + "px";
+}
+
+function hideTooltip() { dom.tooltip.classList.remove("open"); }
+
+function tipFor(node) {
+  if (node.dataset.tip) return PANEL_TIPS[node.dataset.tip];
+  if (node.dataset.term) return TOOLTIPS[node.dataset.term];
+  return null;
+}
+
+["mouseover", "focusin"].forEach(function (name) {
+  document.addEventListener(name, function (event) {
+    const node = event.target.closest ? event.target.closest("[data-tip], [data-term]") : null;
+    const tip = node ? tipFor(node) : null;
+    if (tip) showTip(node, tip);
+    else hideTooltip();
+  });
+});
+
+["mouseout", "focusout", "scroll"].forEach(function (name) {
+  document.addEventListener(name, hideTooltip, true);
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.target.tagName === "BUTTON") {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") return;
+  }
+  if (event.key === "ArrowRight") { stopPlay(); goTo(state.index + 1); event.preventDefault(); }
+  else if (event.key === "ArrowLeft") { stopPlay(); goTo(state.index - 1); event.preventDefault(); }
+  else if (event.key === "Home") { stopPlay(); goTo(0); event.preventDefault(); }
+  else if (event.key === "End") { stopPlay(); goTo(maxIndex()); event.preventDefault(); }
+});
+
+dom.firstStep.addEventListener("click", function () { stopPlay(); goTo(0); });
+dom.prevStep.addEventListener("click", function () { stopPlay(); goTo(state.index - 1); });
+dom.nextStep.addEventListener("click", function () { stopPlay(); goTo(state.index + 1); });
+dom.lastStep.addEventListener("click", function () { stopPlay(); goTo(maxIndex()); });
+dom.playPause.addEventListener("click", togglePlay);
+
+EXAMPLES.forEach(function (example) {
+  if (example.quiz) return;
+  (example.variants || [null]).forEach(function (variant) {
+    verifyView(buildView(example, variant));
+  });
+});
+
+rebuildView();
+render();
+</script>
+
+</body>
+</html>
