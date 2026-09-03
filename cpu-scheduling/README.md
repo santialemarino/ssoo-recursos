@@ -1,10 +1,10 @@
 # Planificación de procesos
 
-El estudiante **arma el diagrama de Gantt instante por instante**: para cada
-columna elige quién ocupa cada recurso —la CPU, cada dispositivo de I/O— y
-confirma. El recurso le dice si acertó y, cuando no, le muestra la respuesta
-correcta y por qué es esa. Es un ensayo del ejercicio de parcial, con la misma
-tabla y el mismo dibujo.
+El estudiante **pinta el diagrama de Gantt**: elige un recurso —la CPU, cada
+dispositivo de I/O— y pinta, casillero por casillero o arrastrando, quién lo
+ocupa en cada instante. El recurso le dice si acertó y, cuando no, le muestra la
+respuesta correcta y por qué es esa. Es un ensayo del ejercicio de parcial, con
+la misma tabla y el mismo dibujo, hecho de la misma forma: dibujando.
 
 Se abre haciendo doble clic en `index.html`. No necesita internet ni instalar
 nada.
@@ -20,21 +20,24 @@ se puede tocar. Si vas a modificar `index.html`, leelo antes.
 
 ## Los diecisiete ejemplos
 
-Van en tres grupos, y así aparecen en la escalera de arriba.
+Van en cuatro grupos, y así aparecen en la escalera de arriba. El de
+**Dispositivos** tiene uno solo: es otro eje, no un algoritmo más, y por eso no
+va en el medio de la progresión de la CPU.
 
 | # | Ejemplo | Qué enseña |
 |---|---|---|
 | **Base** | | |
-| 1 | Empecemos: FIFO | Cómo se lee el tablero, y que FIFO no desaloja |
-| 2 | El dispositivo es uno solo | Que las I/O se serializan y que esperar el dispositivo no ocupa la CPU |
-| 3 | Dos dispositivos | Que con dispositivos distintos las I/O se superponen |
-| 4 | SJF sin desalojo | Que el criterio deja de ser el orden de llegada |
-| 5 | SJF con desalojo | Que cada llegada vuelve a abrir la decisión |
-| 6 | SJF con estimadores | Que se planifica con la estimación, y que la estimación puede errarle |
-| 7 | HRRN | Que el tiempo de espera entra en el criterio |
-| 8 | Round Robin | El quantum, y el orden de reinserción de RR |
-| 9 | Virtual Round Robin | Ready+ y el quantum sobrante, y a costa de quién |
-| 10 | Colas multinivel con feedback | Bajar de cola, subir de cola, y desalojar entre colas |
+| 1 | FIFO | Cómo se lee el tablero, y que el que espera el dispositivo no ocupa la CPU |
+| 2 | SJF sin desalojo | Que el criterio deja de ser el orden de llegada |
+| 3 | SJF con desalojo | Que cada llegada vuelve a abrir la decisión |
+| 4 | SJF con estimadores, sin desalojo | Que se planifica con la estimación, y que la estimación puede errarle |
+| 5 | SJF con estimadores, con desalojo | La misma tabla del 4: que la estimación también decide a quién desalojan |
+| 6 | HRRN | Que el tiempo de espera entra en el criterio |
+| 7 | Round Robin | El quantum, y el orden de reinserción de RR |
+| 8 | Virtual Round Robin | Ready+ y el quantum sobrante, y a costa de quién |
+| 9 | Colas multinivel con feedback | Bajar de cola, subir de cola, y desalojar entre colas |
+| **Dispositivos** | | |
+| 10 | Dos dispositivos | Que con dispositivos distintos las I/O se superponen |
 | **Hilos** | | |
 | 11 | Hilos de kernel | Que la unidad planificable es el KLT, no el proceso |
 | 12 | Cada nivel con su algoritmo | Que el SO y la biblioteca deciden por separado |
@@ -50,58 +53,84 @@ uno termina con una frase de cierre, en letra grande, que es lo que el
 estudiante se tiene que llevar. Los ejemplos son cortos a propósito: entre 5 y
 13 instantes.
 
-Los pares **4 y 5**, **8 y 9**, **13 y 14** comparten enunciado: la diferencia
-entre los dos diagramas es toda la lección. El **15** hace lo mismo con dos
-variantes adentro de un ejemplo.
+Los pares **2 y 3**, **4 y 5**, **7 y 8**, **13 y 14** comparten enunciado: la
+diferencia entre los dos diagramas es toda la lección. El **15** hace lo mismo
+con dos variantes adentro de un ejemplo.
 
 ---
 
 ## Dos modos sobre el mismo motor
 
-- **Resolver** — el modo interactivo. Un **grupo de opciones por recurso**: una
-  fila de botones con «nadie» y cada proceso o hilo que ya llegó. Se elige con un
-  clic, sin desplegar nada, y **el botón elegido se pinta del color del estado que
-  esa elección produce**: azul bajo CPU, porque tener la CPU es estar en RUNNING;
-  rojo bajo el dispositivo, porque tener una I/O es estar en BLOCKED. En el 16 esa
-  misma regla se vuelve interesante: el botón de «fuera de memoria» no tiene un
-  color fijo, porque estar afuera no es un estado —es naranja si además tiene el
-  dispositivo (BLOCKED SUSPENDED) y amarillo si no (READY SUSPENDED)—. No es una
-  excepción: es la regla de siempre, que en los otros dieciséis ejemplos da siempre
-  el mismo color porque ahí cada recurso corresponde a un estado y nada más.
+- **Resolver** — el modo interactivo. Arriba del diagrama hay **un botón por
+  recurso**: CPU, dispositivo, y los que el ejemplo agregue. El botón elegido dice
+  qué estás pintando, y **está pintado del color del estado que produce**: azul la
+  CPU, porque tener la CPU es estar en RUNNING; rojo el dispositivo, porque tener
+  una I/O es estar en BLOCKED. Se cambia con un clic, con las teclas `1`…`9`, o
+  con la **barra espaciadora**, que rota entre los recursos sin sacar la mano del
+  diagrama.
 
-  **Mientras elegís, la columna se dibuja sola.** Los casilleros del instante
-  actual se van pintando con borde punteado —todavía sin confirmar— así que la
-  decisión se ve donde importa, en el diagrama, y no sólo en el panel.
+  **Se pinta sobre el diagrama.** Al pasar el mouse, el casillero se muestra con
+  opacidad —así se ve dónde vas a marcar antes de marcar— y se pinta con un clic o
+  **arrastrando** para varios instantes seguidos. `Esc` cancela el trazo antes de
+  soltar y **`Ctrl+Z` deshace** el último, todas las veces que haga falta.
 
-  **En el ejemplo 16 hay un selector más: «fuera de memoria».** El estudiante no
-  elige el estado —eso sería copiar la respuesta—, elige **quién está afuera**, y de
-  ahí sale todo lo demás: con la CPU es RUNNING; con el dispositivo es BLOCKED si
-  está en memoria y BLOCKED SUSPENDED si no; sin nada es READY adentro y READY
-  SUSPENDED afuera. Es la única forma de que el 16 sea un ejercicio y no una
-  película: lo que enseña es justamente esa decisión, y la toma el planificador de
-  mediano plazo.
+  **La pregunta es siempre la misma: quién ocupa este recurso en este instante.**
+  Por eso la unidad de corrección es el par instante–recurso y no el casillero: en
+  el 16 un proceso puede tener el dispositivo **y** estar fuera de memoria a la
+  vez, y son dos respuestas distintas. Por eso también el color de un casillero no
+  se elige, se deriva: en el 16 pintar «fuera de memoria» sobre alguien que además
+  tiene el dispositivo lo pinta de BLOCKED SUSPENDED, y sin el dispositivo, de
+  READY SUSPENDED. No es una excepción: es la regla de siempre, que en los otros
+  dieciséis ejemplos da siempre el mismo color porque ahí cada recurso corresponde
+  a un estado y nada más.
 
-  **Un proceso no puede estar en dos lados a la vez.** Si ponés a B en la CPU y
-  después lo elegís para el dispositivo, B se mueve: deja la CPU, que vuelve a
-  «nadie». No es un bloqueo con cartel de error, es que un proceso está en un solo
-  estado. La misma invariante está verificada sobre las dieciocho trazas al abrir
-  el archivo. Las combinaciones se bloquean por lo que es posible, no por comodidad:
-  **el dispositivo y «fuera de memoria» conviven** —eso es exactamente BLOCKED
-  SUSPENDED—, pero **la CPU y «fuera de memoria» no**, porque un proceso que ejecuta
-  está en memoria por definición. Darle la CPU a un proceso suspendido lo devuelve a
-  memoria, y sacarlo de memoria le saca la CPU.
+  **Cada recurso se corrige en orden, pero nada está bloqueado.** Se puede pintar
+  cualquier casillero en cualquier momento; lo que no se puede es saltear la
+  corrección. La CPU del instante 4 no se corrige hasta que esté resuelta la del 3,
+  y lo que se pintó adelantado queda **en suspenso** —punteado, con la etiqueta
+  `antes`— hasta entonces. Cuando lo anterior se resuelve, lo que estaba en
+  suspenso **se corrige solo, en cascada**. La frontera es por recurso y no por
+  columna, y de ahí salen dos cosas que importan: el arrastre largo sigue siendo
+  posible —A puede tener el dispositivo del 2 al 6 aunque en el medio la CPU cambie
+  de dueño tres veces— y un recurso que en ese instante no ocupa nadie no traba
+  nada.
 
-  Se confirma la columna entera, y la validación es por recurso: si acertaste la
-  CPU y erraste el dispositivo, sólo se marca el dispositivo. Al confirmar queda
-  encendida **la opción correcta** y la que habías elegido queda tachada. Siempre
-  se avanza; nunca queda trabado. Hay un contador discreto de aciertos.
-- **Ver** — recorre la traza ya resuelta con los mismos paneles, para adelante y
-  para atrás, con reversibilidad exacta. Es el modo para proyectar en clase y
-  para repasar.
+  **Al corregir, el diagrama pasa a decir la verdad.** El casillero correcto queda
+  pintado; si te equivocaste, el que sí iba aparece con la etiqueta `iba` y el que
+  pintaste de más queda rayado y tachado. Lo que el estudiante mira al final es
+  siempre el diagrama correcto, no su borrador. La devolución agrupa instantes
+  contiguos: un trazo de cuatro casilleros errados sale como una sola frase, no
+  como cuatro. Siempre se avanza; nunca queda trabado. Hay un contador discreto de
+  aciertos, y **deshacer no lo toca**: recuperás el casillero para volver a
+  pintarlo, no el punto.
 
-El botón **«Igual que el instante anterior»** completa todos los selectores con
-la asignación del instante anterior. Los tramos largos sin cambios son comunes,
-y ahí la decisión real es justamente que no cambia nada.
+  **Cuando se erra la CPU, la devolución dice por qué.** No alcanza con «era B»:
+  en los ejemplos que deciden con una cuenta, lo que hay que ver son los dos
+  números. La explicación sale de la cola del instante, que ya viene anotada con
+  el número que decide, así que dice lo mismo que el panel de estado y no puede
+  contradecirlo. Sale una sola por trazo, pegada al primer error, y tiene cinco
+  formas según lo que haya pasado:
+
+  | Cuando | Dice |
+  |---|---|
+  | Los dos estaban en la cola con números distintos | «Ahí el criterio era la ráfaga restante: B tenía 1, y C, 2» |
+  | Los dos tenían el mismo número | «Ahí los dos tenían Q1, así que decidía el orden de la cola» |
+  | El algoritmo no anota números (FIFO, RR) | «Ahí decidía el orden de la cola, y A estaba antes que B» |
+  | El que elegiste no estaba en la cola | «B tenía 2. A no estaba en la cola de listos en ese instante» |
+  | El que ganó ya venía ejecutando | «A ya venía ejecutando, y este algoritmo no desaloja» |
+
+  Y cuando el error es **de recurso** y no de proceso —pintar el router donde iba
+  la impresora— la devolución lo dice con esas palabras: «K1 estaba en la
+  impresora, y el router no era de nadie». Es el error propio del 10.
+
+  Esa última es la que más aparece en los ejemplos sin desalojo, y es a propósito:
+  el error típico ahí no es equivocarse de cuenta, es no darse cuenta de que la
+  decisión ni siquiera estaba abierta. De ahí sale el campo `noPreempt` de
+  `ALGORITHMS`: separa «no desaloja» de «desaloja» para poder decirlo con esas
+  palabras.
+
+  El botón **«Terminé»** cierra el diagrama: corrige lo que haya en suspenso y
+  completa lo que falte, marcándolo como lo que te faltó.
 
 ---
 
@@ -111,15 +140,19 @@ Está también en `CLAUDE.md` porque vale para todo el repositorio.
 
 **El chasis es fijo:** la escalera de ejemplos arriba, el panel de narración, el
 contador, la barra de controles (primero / anterior / siguiente / último, más
-reproducir en modo Ver), las teclas (flechas, `Inicio`, `Fin`), un tooltip en
-cada título de panel, una tarjeta de cierre por ejemplo, una sola fila de
-elección en el encabezado, y el favicon del repositorio.
+reproducir en modo Ver y deshacer / terminé en modo Resolver), las teclas
+(flechas, `Inicio`, `Fin`), un tooltip en cada título de panel, una tarjeta de
+cierre por ejemplo, una sola fila de elección en el encabezado, y el favicon del
+repositorio.
 
 **El canvas se deriva por ejemplo, y acá se nota en cuatro lugares:**
 
-- **Cuántos selectores hay.** Uno por recurso, siempre. Casi todos los ejemplos
-  tienen dos (CPU y dispositivo); el 3 tiene tres (CPU, Impresora, Router) y el
-  15 tiene tres (CPU 1, CPU 2 y dispositivo).
+- **Cuántos botones tiene la barra de herramientas.** Uno por recurso, siempre,
+  y salen de `view.resources`: el motor no sabe cuántos son. Casi todos los
+  ejemplos tienen dos (CPU y dispositivo); el 10 tiene tres (CPU, Impresora,
+  Router) y el 15 tiene tres (CPU 1, CPU 2 y dispositivo). Cuando dos recursos
+  comparten color —las dos CPU del 15— lo que los distingue es el nombre en el
+  botón y el `short` que queda escrito en el casillero.
 - **Qué muestra el panel de estado.** Con un solo nivel de planificación,
   una cola de listos. Con dos niveles (12 a 15), la cola de KLT y además la lista
   de ULT listos de cada KLT. El 16 agrega qué hay en memoria.
@@ -160,7 +193,12 @@ tema; los descartes pasaron a serlo.
 ## Los paneles
 
 1. **Enunciado.** La tabla de procesos con llegada y ráfagas, el algoritmo y los
-   parámetros. Es la misma tabla que se da en el parcial. Las ráfagas ya
+   parámetros. **Cuando el ejemplo tiene más de un dispositivo, el encabezado de
+   cada columna de I/O dice cuál es** —`IMP`, `ROU`— en vez de un `I/O` genérico:
+   sin eso, el 10 no se puede resolver, porque no hay forma de saber que la
+   primera ráfaga va a la impresora y la segunda al router. El encabezado sale de
+   los `dev` de esa columna y sólo aparece si todas las filas usan el mismo; si no,
+   vuelve a decir `I/O`. Es la misma tabla que se da en el parcial. Las ráfagas ya
    consumidas se van tachando, como cuando se resuelve a mano.
 2. **Diagrama.** Una fila por proceso —o por hilo, agrupado por KLT o por
    proceso— y una columna por instante. La columna de etiquetas mide lo que miden
@@ -176,10 +214,11 @@ tema; los descartes pasaron a serlo.
    viene anotada con el número que decide (ráfaga restante, estimación, razón de
    respuesta, `Q`/`Q+`, `Q1`/`Q2`), salvo en FIFO y RR, donde no decide ningún
    número.
-4. **Tu decisión.** Un grupo de opciones por recurso, el botón de confirmar y el
-   de «igual que el anterior». El título del panel dice de qué instante a qué
-   instante estás decidiendo. En modo Ver este panel no está.
-5. **Narración.** La devolución de la última columna confirmada.
+4. **Narración.** La devolución del último trazo, más la razón del instante
+   cuando la columna quedó resuelta.
+
+El panel de decisión ya no existe: la decisión se toma sobre el diagrama. En modo
+Resolver el diagrama ocupa el lugar que tenía, igual que en modo Ver.
 
 ---
 
@@ -191,6 +230,12 @@ escrito adentro del motor ni del render.
 - `UI_TEXT` — rótulos, botones, títulos de panel, y las **plantillas** de eventos
   y de razones. Cambiar `UI_TEXT.reasons.fifo` cambia la frase en los diez
   instantes donde FIFO elige a alguien.
+- `UI_TEXT.paint` — todo lo del modo Resolver: los rótulos de la barra, las
+  etiquetas `antes` e `iba`, las plantillas de devolución y las cinco `why*`, que
+  son las que explican por qué la decisión de CPU estaba mal. Hay una familia por
+  tipo de recurso: `hit` / `missOther` / `missFree` / `missing` para los que se
+  ocupan, y las mismas con el sufijo `Mem` para «fuera de memoria», que no se
+  puede decir con las mismas palabras.
 - `TOOLTIPS` — el glosario. Se enlaza desde cualquier texto con `[[clave:texto]]`.
 - `PANEL_TIPS` — el tooltip de cada título de panel.
 - `EXAMPLES[n].title`, `.subtitle`, `.closing` — el título, la bajada y la frase
@@ -225,7 +270,10 @@ Un ejemplo es un objeto de `EXAMPLES`. Lo mínimo:
   `"B(1),C(2)"`, o `""` si está vacía.
 - `ev` es una lista de eventos estructurados, `[["ioStart", "A"]]`. El texto sale
   de `UI_TEXT.events`, nunca del ejemplo.
-- `resources` sólo hace falta si el ejemplo no es una CPU y un dispositivo.
+- `resources` sólo hace falta si el ejemplo no es una CPU y un dispositivo. Cada
+  recurso lleva `label` (el botón), `short` (lo que se escribe en el casillero) y
+  `phrase` (cómo se lo nombra en la devolución, con artículo: «la impresora», «el
+  router»). Si falta `phrase`, las frases de corrección salen rotas.
 - `rows` sólo hace falta si las filas no son los procesos de la tabla (hilos).
 - `variants` reemplaza a `trace` y `ends` cuando el ejemplo tiene dos versiones.
 
@@ -275,8 +323,16 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
 - **Que el casillero de un proceso que pidió el dispositivo y no lo tiene quede
   vacío.** El diagrama dibuja ocupación de recursos, no estados: pintarlo de rojo
   diría que tiene un dispositivo que no tiene. Que está esperando se ve en la
-  cola del dispositivo. En el ejemplo 2 —donde ese es justamente el tema— el
+  cola del dispositivo. En el ejemplo 1 —donde ese es justamente el tema— el
   casillero lleva además el borde punteado.
+- **El tope de líneas de la devolución.** Se muestran como mucho tres —dos si
+  además hay algo en suspenso— y **ninguna cuando el ejemplo ya se cerró**: ahí
+  quedan sólo la razón del instante y la tarjeta de cierre. No es estética. La
+  devolución vive en el pie, el pie empuja al `main`, y el `main` es de donde
+  salen los paneles: sin tope, terminar un ejemplo con «Terminé» listaba diez
+  líneas y comprimía el panel de estado unos 50 px. Con el tope, el recurso
+  scrollea igual o menos que la versión de selectores en los diecisiete.
+
 - **La numeración del eje.** El casillero `n` es el intervalo `n−1` a `n`. Así lo
   dibuja la cátedra y así lo dibuja el estudiante en el parcial.
 - **La referencia de colores se genera, no se escribe.** Cada renglón sale de
@@ -313,6 +369,34 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
 
 ## Decisiones que conviene revisar
 
+- **El ejemplo 5 es el único que no viene de una resolución previa de la
+  cátedra.** Lo derivó un agente a partir de las convenciones del 3 y del 4, y
+  cierra contra su propio enunciado —`verifyView` lo verifica—. Las tres
+  convenciones de las que depende **están confirmadas por la cátedra**, y son las
+  que hay que releer si alguna vez el diagrama parece mal:
+  1. **Se compara la estimación restante**, no la estimación completa: B entra
+     con 2 contra los 4 que le quedaban a A, que había arrancado con 5. Es la que
+     más cambia el resultado — comparando la estimación completa, en el instante 6
+     B (3) desalojaría a A (5) y la segunda mitad del diagrama sería otra.
+  2. **Un empate no desaloja.** En el instante 6, B vuelve de I/O con 3 y a A le
+     quedan 3: sigue A. Lo respalda el ejemplo 3, donde con `C(2),B(2)` entra C,
+     que estaba antes en la cola.
+  3. **Al que se le agota la estimación no se lo desaloja por eso.** B estimó 2 y
+     ocupa la CPU 4 instantes; termina su ráfaga. Acá no cambia nada —A tiene 4
+     estimados y B pasa a 0— pero es una convención igual.
+
+  Lo que queda sin cotejar contra una solución escrita a mano es el diagrama en
+  sí, que se derivó de esas tres reglas.
+
+- **El 1 dice que FIFO no desaloja, pero no lo demuestra.** En su tabla los dos
+  procesos llegan en el 0, así que no hay ninguna llegada tardía que pudiera
+  desalojar a nadie: el no-desalojo está en la bajada, que describe el algoritmo,
+  y no en la tarjeta de cierre, que sólo puede decir lo que el diagrama muestra
+  —de ahí que cierre con el dispositivo—. Quien primero lo ve de verdad es el 3,
+  por contraste con el 2. Esto quedó así al sacar el ejemplo introductorio, que sí
+  tenía una llegada tardía; si molesta, la salida no es reescribir el cierre sino
+  darle al 1 una tabla con alguien que llegue tarde.
+
 - **Los textos en español los redactó un agente.** Están todos en el bloque de
   datos, en español rioplatense, y **todavía no los revisó nadie de la cátedra**.
   Es lo primero que hay que leer antes de mandarles el link a los estudiantes.
@@ -332,14 +416,20 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   encendida la opción correcta, la elegida queda tachada, y al lado dice «bien» o
   «era X». El rojo y el verde ya significan `BLOCKED` y `READY` acá, así que
   gastarlos en «esto estuvo mal» los haría chocar con el material.
-- **La decisión se toma con botones, no con un `select`.** Se probó primero con un
-  desplegable por recurso: son dos clics, esconde las opciones hasta que lo abrís,
-  y deja la vista lejos del diagrama. Con los botones es un clic, están todas las
-  opciones a la vista, y el color de cada uno enseña la equivalencia CPU/RUNNING y
-  I/O/BLOCKED. Se evaluó también pintar directamente sobre los casilleros, como
-  quien dibuja a mano: se descartó porque obliga a tener una herramienta activa
-  —un modo—, y equivocarse de modo es de los errores más caros que hay. La vista
-  previa punteada da el mismo efecto de «estoy dibujando» sin ningún modo.
+- **Se pinta sobre el diagrama, y eso trajo de vuelta el modo.** Hubo dos
+  versiones anteriores: un desplegable por recurso —dos clics, opciones
+  escondidas, la vista lejos del diagrama— y después un grupo de botones por
+  recurso en un panel aparte. Pintar sobre los casilleros se había **descartado**
+  con este argumento, que conviene tener presente porque sigue siendo cierto:
+  obliga a tener una herramienta activa —un modo—, y equivocarse de modo es de los
+  errores más caros que hay. Se revirtió esa decisión a propósito, porque pintar es
+  lo que el estudiante hace en el parcial y el panel era un intermediario. Lo que
+  paga el costo del modo son cuatro cosas: el botón activo está pegado al
+  diagrama y pintado del color que va a salir, la vista previa con opacidad muestra
+  el resultado antes del clic, la barra espaciadora hace barato cambiar, y
+  `Ctrl+Z` deshace. **Lo que el deshacer no borra es el error del marcador**: si
+  esto se revisa alguna vez, esa es la decisión a revisar primero, porque hoy
+  equivocarse de modo cuesta un punto.
 
 ---
 
@@ -358,6 +448,10 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
 4. A 390 px de ancho: legible, en una columna, sin scroll horizontal del `body`.
 5. Recorrido completo para adelante y para atrás en modo Ver: el estado inicial
    queda idéntico.
-6. En modo Resolver: confirmar una columna bien y una mal, y que el contador y la
-   corrección hagan lo que dicen.
-7. Los dos diagramas del ejemplo 17, respondiendo uno bien y uno mal.
+6. En modo Resolver, sobre el diagrama: pintar un trazo bien y uno mal, pintar
+   algo adelantado y comprobar que queda en suspenso y que se corrige solo al
+   resolver lo anterior, deshacer, y «Terminé». Que el contador y la corrección
+   hagan lo que dicen.
+7. Que en modo Resolver el diagrama termine siendo el diagrama correcto, se haya
+   respondido bien o mal.
+8. Los dos diagramas del ejemplo 17, respondiendo uno bien y uno mal.
