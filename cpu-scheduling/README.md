@@ -178,6 +178,13 @@ repositorio.
   golpe. Ahora va **abajo de la etiqueta del recurso**, en una columna que ya
   existía y estaba vacía. Si volvés a moverlo al lado de los botones, el 15 se
   desborda de nuevo.
+- **Cuándo aparece el `FIN`.** Se pinta solo, en cuanto se responde **el último
+  instante que ese proceso ocupa algo**, sin esperar a que cierre la columna ni a
+  que se cierre el ejemplo. No revela nada: que un proceso terminó se deduce del
+  enunciado —ya gastó todas sus ráfagas— y de lo que el estudiante acaba de
+  contestar. Sale de `ends`, no de «la última ráfaga de CPU»: en el 10, K1 termina
+  con una I/O.
+
 - **Qué pinta el diagrama.** En todos los ejemplos menos el 16, el diagrama es de
   **ocupación de recursos**: azul si tiene la CPU, rojo si tiene un dispositivo,
   gris si terminó, y vacío si no ocupa nada. El **16 es la excepción**: ahí el

@@ -2243,6 +2243,16 @@ function flagNode(text) {
   return element("span", "flag", text);
 }
 
+function finishedAt(rowId, index) {
+  const end = view.ends[rowId];
+  if (index < end) return false;
+  const last = end - 1;
+  const holder = holdingResources(view.resources).filter(function (res) {
+    return view.steps[last].assign[res.id] === rowId;
+  })[0];
+  return Boolean(holder && answerAt(state.answers, last, holder.id));
+}
+
 function paintFace(cell, rowId, index) {
   const step = view.steps[index];
   const assign = paintedAssign(index);
@@ -2258,7 +2268,9 @@ function paintFace(cell, rowId, index) {
     return Boolean(answer && !answer.correct && step.assign[res.id] === rowId);
   });
   if (step.states) {
-    const status = columnTouched(index) ? stateFrom(view, rowId, index, assign) : null;
+    const status = finishedAt(rowId, index)
+      ? "term"
+      : (columnTouched(index) ? stateFrom(view, rowId, index, assign) : null);
     if (!status) {
       cell.classList.add("blank");
       return;
@@ -2292,7 +2304,7 @@ function paintFace(cell, rowId, index) {
     cell.textContent = wrong.short || wrong.label;
     return;
   }
-  if (columnSettled(view, state.answers, index) && index >= view.ends[rowId]) {
+  if (finishedAt(rowId, index)) {
     cell.classList.add(STATES.term.css);
     cell.textContent = UI_TEXT.cells.term;
     return;
