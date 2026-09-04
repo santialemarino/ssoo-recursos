@@ -73,9 +73,11 @@ con dos variantes adentro de un ejemplo.
   opacidad —así se ve dónde vas a marcar antes de marcar— y se pinta con un clic o
   **arrastrando** para varios instantes seguidos. `Esc` cancela el trazo antes de
   soltar y **`Ctrl+Z` deshace** el último, todas las veces que haga falta. La vista
-  previa muestra siempre el color del recurso que tenés elegido, aunque el proceso
-  todavía no haya llegado o ya haya terminado: si el clic se acepta, la vista previa
-  lo tiene que mostrar, y de paso no adelanta nada del diagrama.
+  previa muestra siempre el color del recurso que tenés elegido, y aparece
+  exactamente en los casilleros donde el clic va a hacer algo: si no hay vista
+  previa, no hay clic. Sale igual sobre un proceso que todavía no llegó, porque
+  pintarlo ahí es un error que el recurso sabe explicar, y de paso no adelanta nada
+  del diagrama.
 
   **Cada casillero es un `<button>`.** Se llega con `Tab` y se pinta con `Enter` o
   con la barra espaciadora, igual que cualquier otro control de la página. Por eso
@@ -93,16 +95,33 @@ con dos variantes adentro de un ejemplo.
   dieciséis ejemplos da siempre el mismo color porque ahí cada recurso corresponde
   a un estado y nada más.
 
-  **Cada recurso se corrige en orden, pero nada está bloqueado.** Se puede pintar
-  cualquier casillero en cualquier momento; lo que no se puede es saltear la
-  corrección. La CPU del instante 4 no se corrige hasta que esté resuelta la del 3,
-  y lo que se pintó adelantado queda **en suspenso** —punteado, con la etiqueta
-  `antes`— hasta entonces. Cuando lo anterior se resuelve, lo que estaba en
-  suspenso **se corrige solo, en cascada**. La frontera es por recurso y no por
-  columna, y de ahí salen dos cosas que importan: el arrastre largo sigue siendo
-  posible —A puede tener el dispositivo del 2 al 6 aunque en el medio la CPU cambie
-  de dueño tres veces— y un recurso que en ese instante no ocupa nadie no traba
-  nada.
+  **Sólo se puede pintar lo que se puede corregir.** Cada recurso se resuelve en
+  orden, y el borde de cada uno es el primer instante suyo que todavía no
+  contestaste. Los casilleros más allá del borde **no se pintan**: no tienen el
+  cursor de cruz, no muestran la vista previa y el clic no hace nada. Tampoco se
+  pinta un casillero de un proceso que el tablero ya da por terminado —ahí dice
+  `FIN`, y volver a ocuparlo no es un error interesante, es una contradicción.
+
+  El borde es **por recurso**, no por columna, y de ahí salen dos cosas que
+  importan: el arrastre largo sigue siendo posible —A puede tener el dispositivo del
+  2 al 6 aunque en el medio la CPU cambie de dueño tres veces, porque el trazo
+  arranca en el borde del dispositivo y avanza con él— y un recurso que en ese
+  instante no ocupa nadie no traba nada. Un trazo arranca en el borde y pinta
+  **corrido** desde ahí; si el mouse va rápido y saltea casilleros, se rellenan
+  solos, sin agujeros.
+
+  **Esto reemplazó al «en suspenso».** Antes se podía pintar en cualquier lado y lo
+  adelantado quedaba esperando, con la etiqueta `antes`, hasta que se resolviera lo
+  anterior. Se sacó porque medido daba mal: pintando la vida de un proceso de
+  izquierda a derecha —la forma más natural de encarar el tablero— **el 26 % de las
+  respuestas correctas caía en suspenso**, y el estudiante no tenía forma de saber
+  por qué, porque lo que faltaba era otro recurso en otra fila. Pintando por columna
+  o por recurso caía el 0 %: la misma acción daba dos respuestas distintas según un
+  orden invisible. Y era lo único que podía poner una mentira en el tablero: un
+  proceso ocupando algo antes de llegar, o volviendo a ocupar algo después de
+  terminar. Bloquear en vez de diferir arregla las tres cosas y hace que el diagrama
+  coincida con lo que ya decía el resto de la pantalla —el anillo del instante
+  actual, el contador y el panel de estado apuntan todos al mismo lugar.
 
   **Al corregir, el diagrama pasa a decir la verdad.** El casillero correcto queda
   pintado; si te equivocaste, el que sí iba aparece con la etiqueta `iba`, y el que
@@ -112,12 +131,12 @@ con dos variantes adentro de un ejemplo.
   sola frase, no como cuatro. Siempre se avanza; nunca queda trabado. Hay un
   contador discreto de aciertos, **que arranca de cero en cada ejemplo** —el número
   está al lado de un ejemplo, así que habla de ese ejemplo— y al que **deshacer no
-  toca**: recuperás el casillero para volver a pintarlo, no el punto. Deshacer algo
-  que todavía está en suspenso sí es gratis, y tiene que serlo: nunca se corrigió,
-  así que no hay punto que devolver.
+  toca**: recuperás el casillero para volver a pintarlo, no el punto.
 
-  **Una marca sólo puede señalar lo que el casillero muestra.** De ahí sale toda la
-  regla de arriba, y conviene tenerla presente porque ya se rompió una vez. El rayado
+  **Una marca sólo puede señalar lo que el casillero muestra.** Son tres y nada más:
+  el relleno del estado (lo que pasó de verdad), la etiqueta `iba` (esto es lo que
+  iba acá y pusiste otra cosa) y el rayado (pintaste acá y no iba nada). Conviene
+  tener presente por qué son sólo tres, porque ya se rompió una vez. El rayado
   funciona porque *reemplaza* el contenido del casillero: lo único que hay ahí es tu
   error. La etiqueta `iba` funciona porque señala exactamente lo que el casillero
   dice: «esto es lo que iba acá, y te lo perdiste». Pero cuando el casillero muestra
@@ -169,13 +188,6 @@ con dos variantes adentro de un ejemplo.
   decisión ni siquiera estaba abierta. De ahí sale el campo `noPreempt` de
   `ALGORITHMS`: separa «no desaloja» de «desaloja» para poder decirlo con esas
   palabras.
-
-  **Lo que está en suspenso no pinta la columna.** En el 16 el diagrama es una banda
-  de estados y el color de cada casillero se deriva de lo que ya se contestó, así que
-  un casillero contestado ilumina a toda su columna. Un casillero **en suspenso no**:
-  se pinta solo él, con su etiqueta `antes`, y el resto de la columna espera. Si no,
-  una respuesta que todavía no se corrigió estaría afirmando el estado de los otros
-  procesos —y afirmándolo mal, porque sale de una asignación incompleta.
 
   El botón **«Terminé»** cierra el diagrama: corrige lo que haya en suspenso y
   completa lo que falte. Lo que nunca contestaste **no lleva marca**: la marca `iba`
@@ -294,7 +306,7 @@ escrito adentro del motor ni del render.
   y de razones. Cambiar `UI_TEXT.reasons.fifo` cambia la frase en los diez
   instantes donde FIFO elige a alguien.
 - `UI_TEXT.paint` — todo lo del modo Resolver: los rótulos de la barra, las
-  etiquetas `antes` e `iba`, las plantillas de devolución y las `why*`,
+  la etiqueta `iba`, las plantillas de devolución y las `why*`,
   que son las que explican por qué la decisión de CPU estaba mal. Hay una familia por
   tipo de recurso: `hit` / `missOther` / `missFree` / `missing` para los que se
   ocupan, y las mismas con el sufijo `Mem` para «fuera de memoria», que no se
@@ -390,13 +402,8 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   casillero lleva además el borde punteado.
 - **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
   **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
-  instante en vez de sumarse a ella. No es estética, y hay dos partes que importan.
-  La primera es «contando todo»: el tope tiene que incluir los avisos de suspenso y
-  el renglón de «y N más», no sólo los veredictos. Cuando contaba sólo los
-  veredictos, tres recursos en suspenso metían tres renglones extra por abajo y el
-  pie llegaba a cinco. La segunda es que por eso el aviso de suspenso **se junta en
-  un solo renglón** cuando hay más de un recurso adelantado (`earlyMany`): así
-  siempre queda lugar para el veredicto de lo que acabás de hacer. La devolución vive
+  instante en vez de sumarse a ella. No es estética: el tope tiene que contar todos
+  los renglones, incluido el de «y N más», no sólo los veredictos. La devolución vive
   en el pie, el pie empuja al `main`, y el `main` es de donde salen los paneles: sin
   tope, terminar un ejemplo con «Terminé» listaba diez
   líneas y comprimía el panel de estado unos 50 px. Con el tope, el recurso
@@ -498,8 +505,8 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   paga el costo del modo son cuatro cosas: el botón activo está pegado al
   diagrama y pintado del color que va a salir, la vista previa con opacidad muestra
   el resultado antes del clic, la barra espaciadora hace barato cambiar, y
-  `Ctrl+Z` deshace. La vista previa muestra el color del recurso elegido en
-  cualquier casillero que acepte el clic, justamente para que el modo se vea.
+  `Ctrl+Z` deshace. La vista previa sale en cualquier casillero que acepte el clic,
+  justamente para que el modo se vea antes de usarlo.
   **Lo que el deshacer no borra es el error del marcador**: si
   esto se revisa alguna vez, esa es la decisión a revisar primero, porque hoy
   equivocarse de modo cuesta un punto.
@@ -521,10 +528,9 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
 4. A 390 px de ancho: legible, en una columna, sin scroll horizontal del `body`.
 5. Recorrido completo para adelante y para atrás en modo Ver: el estado inicial
    queda idéntico.
-6. En modo Resolver, sobre el diagrama: pintar un trazo bien y uno mal, pintar
-   algo adelantado y comprobar que queda en suspenso y que se corrige solo al
-   resolver lo anterior, deshacer, y «Terminé». Que el contador y la corrección
-   hagan lo que dicen.
+6. En modo Resolver, sobre el diagrama: pintar un trazo bien y uno mal, arrastrar
+   una ráfaga entera de un tirón y también de un saque rápido, deshacer, y «Terminé».
+   Que el contador y la corrección hagan lo que dicen.
 7. Que en modo Resolver el diagrama termine siendo el diagrama correcto, se haya
    respondido bien o mal.
 8. Los dos diagramas del ejemplo 17, respondiendo uno bien y uno mal.
@@ -539,5 +545,8 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
 12. Pintar un recurso donde iba otro y después acertar el que iba: el casillero tiene
     que quedar limpio, diciendo la verdad, sin ninguna marca que contradiga a la
     narración.
-13. Adelantarse en los tres recursos del 10 o del 15 a la vez: el aviso tiene que
-    salir en **un** renglón, y el pie no puede pasar de dos.
+13. Con cada recurso elegido, mirar dónde está el borde: los casilleros pintables
+    tienen borde lleno y cruz; el resto, borde punteado y nada. El anillo del
+    instante actual tiene que caer sobre la columna pintable de la CPU.
+14. Intentar pintar sobre un `FIN` y sobre un casillero lejano: no tiene que pasar
+    nada, y el contador no se tiene que mover.

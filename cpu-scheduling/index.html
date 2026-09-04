@@ -253,7 +253,7 @@
   .legend-item .eq { color: var(--muted); }
   .legend-swatch { width: 16px; height: 14px; border-radius: 3px; border: 1px solid var(--line-strong); flex: 0 0 auto; }
 
-  .gantt-body { display: flex; flex-direction: column; gap: 6px; }
+  .gantt-body { display: flex; flex-direction: column; gap: 6px; padding-top: 3px; }
 
   .tool-row {
     display: flex;
@@ -273,7 +273,7 @@
   .switch button[aria-pressed="true"].tool-memory { background: var(--marked); border-color: var(--marked); color: #fff; }
   .switch button .swatch { width: 12px; height: 10px; border-radius: 3px; border: 1px solid currentColor; background: currentColor; flex: 0 0 auto; }
   .switch button .key { font-size: 10px; font-weight: 700; opacity: 0.65; }
-  .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
+  .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-top: 6px; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
 
   .gantt-grid { display: grid; gap: 7px; padding: 3px; width: max-content; min-width: 100%; }
 
@@ -328,10 +328,10 @@
   .gantt-cell.future { background: var(--card); border-style: dashed; border-color: var(--line); }
   .gantt-cell.now { box-shadow: 0 0 0 2px var(--marked); }
   .gantt-cell.blank.paintable { background: var(--region-fill); border-color: var(--line-strong); }
+  .gantt-grid.painting .gantt-cell.blank:not(.paintable) { border-style: dashed; }
   .gantt-cell.blank.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
   .gantt-cell.ghost { opacity: 0.42; border-style: dashed; border-width: 2px; }
   .gantt-cell.stroke { opacity: 0.72; border-style: dashed; border-width: 2px; }
-  .gantt-cell.early { border-color: var(--bsusp); border-style: dashed; border-width: 2px; }
   .gantt-cell.shown { border-color: var(--marked); border-style: dashed; border-width: 2px; }
 
   .gantt-cell.wrong {
@@ -358,12 +358,10 @@
     pointer-events: none;
   }
 
-  .gantt-cell.early .flag { background: var(--bsusp); }
   .gantt-grid.painting { touch-action: none; }
   .gantt-grid.painting .gantt-cell.paintable { cursor: crosshair; }
   .legend-swatch.mark-wrong { border-color: var(--line-strong); background: repeating-linear-gradient(-45deg, var(--card), var(--card) 4px, var(--region-fill-alt) 4px, var(--region-fill-alt) 8px); }
   .legend-swatch.mark-shown { background: var(--region-fill); border-color: var(--marked); border-style: dashed; }
-  .legend-swatch.mark-early { background: var(--region-fill); border-color: var(--bsusp); border-style: dashed; }
   .gantt-grid.dense .gantt-cell { height: 20px; }
   main.quiz .gantt-grid { gap: 4px; }
   main.quiz .gantt-cell { height: 23px; }
@@ -546,7 +544,6 @@
 
   .verdict-list li.hit { border-left-color: var(--marked); background: var(--marked-soft); }
   .verdict-list li.miss { border-left-color: var(--blocked); }
-  .verdict-list li.early { border-left-color: var(--bsusp); }
   .verdict-list li.note { color: var(--ink-soft); }
   .verdict-list .why { color: var(--muted); }
 
@@ -777,7 +774,7 @@ const UI_TEXT = {
   },
   paint: {
     label: "Estás pintando",
-    idle: "Elegí un recurso arriba y pintá quién lo ocupa en cada instante. Cada recurso se corrige por separado, y en orden.",
+    idle: "Elegí un recurso arriba y pintá quién lo ocupa en cada instante. Cada recurso se resuelve por separado y en orden: se pinta hasta el primer instante suyo sin contestar, y el resto espera.",
     undo: "Deshacer",
     undone: "Deshiciste lo último que pintaste. Los errores que ya contaste siguen contados.",
     more: "y {n} más.",
@@ -795,14 +792,9 @@ const UI_TEXT = {
     whyKeepsPreempt: "{q} ya venía ejecutando y en ese instante no apareció nadie que lo desalojara.",
     finish: "Terminé",
     cellLabel: "{p}, instante {a} a {b}",
-    flagEarly: "antes",
     flagShown: "iba",
     legendMiss: "no iba",
     legendShown: "iba acá",
-    legendEarly: "en suspenso",
-    early: "Te adelantaste. Eso queda en suspenso hasta que resuelvas {r} de {a} a {b}.",
-    earlyMany: "Te adelantaste en {r}. Eso queda en suspenso hasta que resuelvas lo anterior de cada uno.",
-    and: "y",
     hit: "Bien: {p} tiene {r} de {a} a {b}.",
     missOther: "De {a} a {b}, {r} no era de {p} sino de {q}.",
     missElsewhereOther: "De {a} a {b}, {p} estaba en {r2}: {r} era de {q}.",
@@ -890,7 +882,7 @@ const TOOLTIPS = {
 
 const PANEL_TIPS = {
   statement: { title: "Enunciado", body: "La tabla de procesos con su llegada y sus ráfagas, el algoritmo y los parámetros." },
-  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos: elegí un recurso arriba y pintá quién lo ocupa en cada instante, arrastrando para pintar varios seguidos. Espacio cambia de recurso, Esc cancela el trazo y Ctrl+Z deshace el último." },
+  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos: elegí un recurso arriba y pintá quién lo ocupa en cada instante, arrastrando para pintar varios seguidos. Cada recurso se resuelve en orden, así que sólo se pinta hasta el primer instante suyo sin contestar. Espacio cambia de recurso, Esc cancela el trazo y Ctrl+Z deshace el último." },
   state: { title: "Estado del instante", body: "Cómo queda el sistema después de las llegadas y los fines de I/O, y justo antes de que el planificador elija. Con esto alcanza para justificar la decisión." },
   quiz: { title: "¿Qué algoritmo era?", body: "Un diagrama ya resuelto de un ejemplo anterior. Acá el trabajo es al revés: mirar el resultado y reconocer la regla que lo produjo." },
   elim: { title: "Qué descarta a cada uno", body: "Para cada algoritmo que no era, el instante donde el diagrama lo deja afuera. Es la única parte del recurso que explica por eliminación, porque acá eliminar es el ejercicio." }
@@ -1478,11 +1470,6 @@ function parseQueue(spec) {
   }).filter(function (entry) { return entry.id.length > 0; });
 }
 
-function joinPhrases(items) {
-  if (items.length < 2) return items.join("");
-  return items.slice(0, -1).join(", ") + " " + UI_TEXT.paint.and + " " + items[items.length - 1];
-}
-
 function fill(template, values) {
   return Object.keys(values).reduce(function (text, key) {
     return text.split("{" + key + "}").join(values[key]);
@@ -1939,10 +1926,8 @@ const state = {
   mode: "solve",
   index: 0,
   answers: [],
-  early: [],
   tool: null,
   runs: [],
-  notes: [],
   note: null,
   history: [],
   stroke: [],
@@ -2209,7 +2194,7 @@ function renderLegend() {
     : ["running", "blocked", "term"];
   shown.forEach(function (key) { addLegend(key); });
   if (isQuiz() || state.mode !== "solve") return;
-  [["mark-wrong", UI_TEXT.paint.legendMiss], ["mark-shown", UI_TEXT.paint.legendShown], ["mark-early", UI_TEXT.paint.legendEarly]].forEach(function (entry) {
+  [["mark-wrong", UI_TEXT.paint.legendMiss], ["mark-shown", UI_TEXT.paint.legendShown]].forEach(function (entry) {
     const item = element("span", "legend-item");
     item.appendChild(element("span", "legend-swatch " + entry[0]));
     item.appendChild(element("span", null, entry[1]));
@@ -2273,13 +2258,8 @@ function toolResource() {
   return picked || view.resources[0];
 }
 
-function earlyAt(index, resId) {
-  return state.early[index] ? state.early[index][resId] || null : null;
-}
-
 function shownHolder(index, resId) {
-  if (answerAt(state.answers, index, resId)) return view.steps[index].assign[resId] || null;
-  return earlyAt(index, resId);
+  return answerAt(state.answers, index, resId) ? view.steps[index].assign[resId] || null : null;
 }
 
 function paintedAssign(index) {
@@ -2303,7 +2283,6 @@ function finishedAt(rowId, index) {
 function marksAt(rowId, index) {
   const step = view.steps[index];
   return {
-    early: view.resources.some(function (res) { return earlyAt(index, res.id) === rowId; }),
     wrong: view.resources.filter(function (res) {
       const answer = answerAt(state.answers, index, res.id);
       return Boolean(answer && answer.given === rowId && !answer.correct);
@@ -2316,11 +2295,6 @@ function marksAt(rowId, index) {
 }
 
 function markCell(cell, marks) {
-  if (marks.early) {
-    cell.classList.add("early");
-    cell.appendChild(flagNode(UI_TEXT.paint.flagEarly));
-    return;
-  }
   if (marks.shown) {
     cell.classList.add("shown");
     cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
@@ -2344,7 +2318,7 @@ function paintFace(cell, rowId, index) {
   if (step.states) {
     const status = finishedAt(rowId, index)
       ? "term"
-      : ((columnAnswered(index) || marks.early) ? stateFrom(view, rowId, index, assign) : null);
+      : (columnAnswered(index) ? stateFrom(view, rowId, index, assign) : null);
     if (!status) {
       cell.classList.add("blank");
       return;
@@ -2375,8 +2349,21 @@ function inStroke(rowId, index) {
   return state.stroke.some(function (spot) { return spot.row === rowId && spot.t === index; });
 }
 
-function paintableAt(index) {
-  return !answerAt(state.answers, index, toolResource().id);
+function paintingEdge() {
+  const resId = toolResource().id;
+  for (let t = 0; t < view.length; t += 1) {
+    if (!view.steps[t].assign[resId]) continue;
+    if (answerAt(state.answers, t, resId)) continue;
+    if (state.stroke.some(function (spot) { return spot.t === t; })) continue;
+    return t;
+  }
+  return view.length - 1;
+}
+
+function paintableAt(rowId, index) {
+  if (answerAt(state.answers, index, toolResource().id)) return false;
+  if (finishedAt(rowId, index)) return false;
+  return index <= paintingEdge();
 }
 
 function previewStatus(res, rowId, index) {
@@ -2393,7 +2380,7 @@ function decorateCells() {
       const cell = paintCells[row.id][t];
       paintFace(cell, row.id, t);
       if (t === state.index) cell.classList.add("now");
-      if (!paintableAt(t)) continue;
+      if (!paintableAt(row.id, t)) continue;
       cell.classList.add("paintable");
       const marked = inStroke(row.id, t);
       const hovered = !state.painting && state.hover && state.hover.row === row.id && state.hover.t === t;
@@ -2722,7 +2709,7 @@ function copyPicks(list) {
 }
 
 function rememberPicks() {
-  state.history.push({ answers: copyPicks(state.answers), early: copyPicks(state.early), index: state.index });
+  state.history.push({ answers: copyPicks(state.answers), index: state.index });
 }
 
 function elsewhereAt(index, resId, rowId) {
@@ -2732,49 +2719,23 @@ function elsewhereAt(index, resId, rowId) {
   return held ? held.id : null;
 }
 
-function settlePicks(force) {
-  const entries = [];
-  let moved = true;
-  while (moved) {
-    moved = false;
-    for (let t = 0; t < view.length; t += 1) {
-      view.resources.forEach(function (res) {
-        const given = state.early[t][res.id];
-        if (!given) return;
-        if (!force && t > frontierOf(view, state.answers, res.id)) return;
-        delete state.early[t][res.id];
-        const call = judgePick(view, t, res.id, given);
-        state.answers[t][res.id] = { given: given, correct: call.correct };
-        state.asked += 1;
-        if (call.correct) state.ok += 1;
-        entries.push({ t: t, res: res.id, given: given, expected: call.expected, elsewhere: elsewhereAt(t, res.id, given), status: call.correct ? "hit" : "miss" });
-        moved = true;
-      });
-    }
-  }
-  return entries;
-}
-
-function earlyNotes() {
-  const pending = view.resources.filter(function (res) {
-    return state.early.some(function (entry) { return Boolean(entry[res.id]); });
-  });
-  if (pending.length === 0) return [];
-  if (pending.length === 1) {
-    const limit = frontierOf(view, state.answers, pending[0].id);
-    return [fill(UI_TEXT.paint.early, { r: pending[0].phrase, a: limit, b: limit + 1 })];
-  }
-  return [fill(UI_TEXT.paint.earlyMany, { r: joinPhrases(pending.map(function (res) { return res.phrase; })) })];
+function judgeInto(entries, index, resId, given) {
+  const call = judgePick(view, index, resId, given);
+  state.answers[index][resId] = { given: given, correct: call.correct };
+  state.asked += 1;
+  if (call.correct) state.ok += 1;
+  entries.push({ t: index, res: resId, given: given, expected: call.expected, elsewhere: elsewhereAt(index, resId, given), status: call.correct ? "hit" : "miss" });
 }
 
 function commitStroke(stroke) {
   const res = toolResource();
-  const fresh = stroke.filter(function (spot) { return !answerAt(state.answers, spot.t, res.id); });
+  const fresh = stroke.filter(function (spot) { return !answerAt(state.answers, spot.t, res.id); })
+    .sort(function (one, two) { return one.t - two.t; });
   if (fresh.length === 0) return;
   rememberPicks();
-  fresh.forEach(function (spot) { state.early[spot.t][res.id] = spot.row; });
-  state.runs = groupPicks(settlePicks(false));
-  state.notes = earlyNotes();
+  const entries = [];
+  fresh.forEach(function (spot) { judgeInto(entries, spot.t, res.id, spot.row); });
+  state.runs = groupPicks(entries);
   state.note = null;
   state.index = maxIndex();
   render();
@@ -2784,46 +2745,54 @@ function undoPick() {
   const last = state.history.pop();
   if (!last) return;
   state.answers = last.answers;
-  state.early = last.early;
   state.runs = [];
-  state.notes = earlyNotes();
   state.note = UI_TEXT.paint.undone;
   state.index = Math.min(last.index, maxIndex());
   render();
 }
 
 function finishAll() {
-  const entries = settlePicks(true);
+  const entries = [];
   openPicks(view, state.answers).forEach(function (spot) {
     state.answers[spot.t][spot.res] = { given: null, correct: false };
     entries.push({ t: spot.t, res: spot.res, given: null, expected: view.steps[spot.t].assign[spot.res], status: "missing" });
   });
   state.runs = groupPicks(entries);
-  state.notes = [];
   state.note = null;
   state.history = [];
   state.index = maxIndex();
   render();
 }
 
-function spotFrom(x, y) {
+function spotFrom(x, y, open) {
   const node = document.elementFromPoint(x, y);
   if (!node || !node.dataset || node.dataset.row === undefined) return null;
   const t = Number(node.dataset.time);
-  if (!paintableAt(t)) return null;
+  if (open ? !paintableAt(node.dataset.row, t) : answerAt(state.answers, t, toolResource().id)) return null;
   return { row: node.dataset.row, t: t };
+}
+
+function markStroke(spot) {
+  state.stroke = state.stroke.filter(function (item) { return item.t !== spot.t; });
+  state.stroke.push(spot);
 }
 
 function addToStroke(spot) {
   if (!spot || inStroke(spot.row, spot.t)) return;
-  state.stroke = state.stroke.filter(function (item) { return item.t !== spot.t; });
-  state.stroke.push(spot);
+  const last = state.stroke[state.stroke.length - 1];
+  if (last && Math.abs(spot.t - last.t) > 1) {
+    const step = spot.t > last.t ? 1 : -1;
+    for (let t = last.t + step; t !== spot.t; t += step) {
+      if (!answerAt(state.answers, t, toolResource().id) && !finishedAt(spot.row, t)) markStroke({ row: spot.row, t: t });
+    }
+  }
+  markStroke(spot);
   decorateCells();
 }
 
 function onPaintDown(event) {
   if (event.button !== 0 || !event.isPrimary) return;
-  const spot = spotFrom(event.clientX, event.clientY);
+  const spot = spotFrom(event.clientX, event.clientY, true);
   if (!spot) return;
   event.preventDefault();
   stopPlay();
@@ -2838,13 +2807,13 @@ function onPaintKeyClick(event) {
   const cell = event.target.closest ? event.target.closest(".gantt-cell") : null;
   if (!cell || cell.dataset.row === undefined) return;
   const t = Number(cell.dataset.time);
-  if (!paintableAt(t)) return;
+  if (!paintableAt(cell.dataset.row, t)) return;
   stopPlay();
   commitStroke([{ row: cell.dataset.row, t: t }]);
 }
 
 function onPaintMove(event) {
-  const spot = spotFrom(event.clientX, event.clientY);
+  const spot = spotFrom(event.clientX, event.clientY, !state.painting);
   if (state.painting) {
     addToStroke(spot);
     return;
@@ -2921,14 +2890,12 @@ function feedbackLines(closed) {
   const cap = closed ? 1 : FEEDBACK_LINES;
   const runs = closed ? state.runs.filter(function (run) { return run.status !== "missing"; }) : state.runs;
   const lines = state.note ? [{ css: "note", text: state.note }] : [];
-  const notes = state.notes.slice(0, Math.max(0, cap - lines.length - (runs.length > 0 ? 1 : 0)));
-  const room = cap - lines.length - notes.length;
+  const room = cap - lines.length;
   const shown = runs.slice(0, runs.length > room && room > 1 ? room - 1 : room);
   shown.forEach(function (run) { lines.push({ run: run }); });
-  if (runs.length > shown.length && lines.length < cap - notes.length) {
+  if (runs.length > shown.length) {
     lines.push({ css: "note", text: fill(UI_TEXT.paint.more, { n: runs.length - shown.length }) });
   }
-  notes.forEach(function (text) { lines.push({ css: "early", text: text }); });
   return lines.slice(0, cap);
 }
 
@@ -3048,11 +3015,9 @@ function renderAll() {
 function resetProgress() {
   state.index = 0;
   state.answers = emptyPicks();
-  state.early = emptyPicks();
   state.ok = 0;
   state.asked = 0;
   state.runs = [];
-  state.notes = [];
   state.note = null;
   state.history = [];
   state.stroke = [];
@@ -3068,7 +3033,6 @@ function rebuildView() {
   const example = currentExample();
   view = example.quiz ? quizViewFor(example.quiz.charts[state.quizChart].chartOf) : verifyView(buildView(example, currentVariant()));
   state.answers = emptyPicks();
-  state.early = emptyPicks();
   state.tool = view.resources[0].id;
 }
 
