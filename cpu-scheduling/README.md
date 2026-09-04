@@ -85,6 +85,15 @@ con dos variantes adentro de un ejemplo.
   adentro de un botón, la barra es lo que lo activa. Las teclas `1`…`9` funcionan
   siempre.
 
+  Sólo se puede tabular a los casilleros del borde vivo; el resto queda fuera del
+  orden de tabulación. Y **después de pintar con el teclado el foco se va solo al
+  próximo casillero pintable**, que a veces es el mismo —el instante todavía tiene
+  recursos sin contestar— y a veces abre la columna siguiente. Sin eso, el orden de
+  tabulación es el del DOM, fila por fila, y cuando el próximo pintable quedaba en
+  una fila de más arriba había que dar la vuelta entera a la página: medido, pasaba
+  en 1 de 148 casos, y ese caso solo ya es una inconsistencia que el estudiante no
+  se puede explicar.
+
   **La pregunta es siempre la misma: quién ocupa este recurso en este instante.**
   Por eso la unidad de corrección es el par instante–recurso y no el casillero: en
   el 16 un proceso puede tener el dispositivo **y** estar fuera de memoria a la
@@ -678,7 +687,8 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
    cada cambio. Es el camino que rompió una vez, porque reiniciar el progreso y
    reconstruir la vista tienen que pasar en ese orden.
 10. Con el teclado solo: llegar a un casillero con `Tab`, pintarlo con `Enter` y
-    con la barra espaciadora, y comprobar que el foco no se va al activar un botón
+    con la barra espaciadora, comprobar que el foco cae en el próximo casillero
+    pintable sin tabular de nuevo, y que no se va al activar un botón
     de la escalera, del modo o de la barra de recursos.
 11. Mirar el diagrama con **cada** recurso elegido, no sólo con el primero: lo que
     ya está contestado se tiene que ver igual con cualquier herramienta activa.

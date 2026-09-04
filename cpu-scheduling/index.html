@@ -2872,6 +2872,14 @@ function onPaintKeyClick(event) {
   if (!paintableAt(cell.dataset.row, t)) return;
   stopPlay();
   commitStroke([{ row: cell.dataset.row, t: t }]);
+  focusEdge();
+}
+
+function focusEdge() {
+  const active = document.activeElement;
+  if (active && active.tabIndex === 0 && active.classList.contains("gantt-cell")) return;
+  const next = dom.grid.querySelector('.gantt-cell[tabindex="0"]');
+  if (next) next.focus();
 }
 
 function onPaintMove(event) {
