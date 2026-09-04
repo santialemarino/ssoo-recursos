@@ -72,10 +72,10 @@
     transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
   }
 
-  button:hover:not([disabled]) { border-color: var(--faint); }
-  button:active:not([disabled]) { transform: translateY(1px); }
+  button:hover:not([disabled]):not(.gantt-cell) { border-color: var(--faint); }
+  button:active:not([disabled]):not(.gantt-cell) { transform: translateY(1px); }
 
-  button:focus-visible, [tabindex]:focus-visible, select:focus-visible {
+  button:focus-visible, [tabindex]:focus-visible {
     outline: 3px solid var(--marked);
     outline-offset: 2px;
   }
@@ -84,7 +84,7 @@
 
   header { display: flex; flex-direction: column; gap: 7px; flex: 0 0 auto; }
 
-  .head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
   header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
 
@@ -180,20 +180,20 @@
     align-items: center;
     gap: 7px;
     flex-wrap: wrap;
-    font-size: 11.5px;
-    font-weight: 720;
-    letter-spacing: 0.055em;
+    font-size: 11px;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: var(--ink-soft);
-    padding: 9px 14px 3px;
+    color: var(--faint);
+    padding: 9px 14px 8px;
+    border-bottom: 1px solid var(--line);
     flex: 0 0 auto;
   }
 
   .panel > h2::before {
     content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
     background: var(--line-strong);
     flex: 0 0 auto;
   }
@@ -203,10 +203,18 @@
   .panel.state > h2::before { background: var(--ready); }
   .panel.decision > h2::before { background: var(--marked); }
 
-  .panel-title {
+  .tip {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
     border-bottom: 1px dotted var(--running);
     cursor: help;
+    border-radius: 0;
   }
+
+  .tip:hover { border-bottom-style: solid; }
 
   .panel-when {
     font-size: 11px;
@@ -216,7 +224,7 @@
     color: var(--muted);
   }
 
-  .panel-body { padding: 9px 14px 10px; overflow: auto; min-height: 0; flex: 1 1 auto; }
+  .panel-body { padding: 8px 14px 8px; overflow: auto; min-height: 0; flex: 1 1 auto; }
 
   .statement-scroll { overflow-x: auto; }
   .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -247,13 +255,13 @@
 
   .param b { font-weight: 750; }
 
-  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 18px; padding-top: 7px; border-top: 1px solid var(--line); flex: 0 0 auto; }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 12px; padding-top: 7px; border-top: 1px solid var(--line); flex: 0 0 auto; }
   .legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-soft); }
   .legend-item b { font-weight: 750; }
   .legend-item .eq { color: var(--muted); }
   .legend-swatch { width: 16px; height: 14px; border-radius: 3px; border: 1px solid var(--line-strong); flex: 0 0 auto; }
 
-  .gantt-body { display: flex; flex-direction: column; gap: 6px; }
+  .gantt-body { display: flex; flex-direction: column; gap: 6px; padding-top: 3px; }
 
   .tool-row {
     display: flex;
@@ -273,8 +281,7 @@
   .switch button[aria-pressed="true"].tool-memory { background: var(--marked); border-color: var(--marked); color: #fff; }
   .switch button .swatch { width: 12px; height: 10px; border-radius: 3px; border: 1px solid currentColor; background: currentColor; flex: 0 0 auto; }
   .switch button .key { font-size: 10px; font-weight: 700; opacity: 0.65; }
-  .hint { font-size: 12px; color: var(--muted); }
-  .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
+  .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-top: 6px; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
 
   .gantt-grid { display: grid; gap: 7px; padding: 3px; width: max-content; min-width: 100%; }
 
@@ -308,6 +315,17 @@
     transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out;
   }
 
+  .gantt-grid.painting .gantt-cell {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    cursor: default;
+  }
+
   .gantt-cell.blank { color: transparent; }
   .s-running { background: var(--running-soft); border-color: var(--running); color: var(--running); }
   .s-blocked { background: var(--blocked-soft); border-color: var(--blocked); color: var(--blocked); }
@@ -316,13 +334,13 @@
   .s-rsusp { background: var(--rsusp-soft); border-color: var(--rsusp); color: var(--rsusp); }
   .s-bsusp { background: var(--bsusp-soft); border-color: var(--bsusp); color: var(--bsusp); }
   .gantt-cell.future { background: var(--card); border-style: dashed; border-color: var(--line); }
-  .gantt-cell.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
   .gantt-cell.now { box-shadow: 0 0 0 2px var(--marked); }
-  .gantt-cell.paintable { background: var(--region-fill); border-color: var(--line-strong); }
+  .gantt-cell.blank.paintable { background: var(--region-fill); border-color: var(--line-strong); }
+  .gantt-grid.painting .gantt-cell.blank:not(.paintable) { border-style: dashed; }
+  .gantt-cell.blank.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
   .gantt-cell.ghost { opacity: 0.42; border-style: dashed; border-width: 2px; }
   .gantt-cell.stroke { opacity: 0.72; border-style: dashed; border-width: 2px; }
-  .gantt-cell.early { border-color: var(--bsusp); border-style: dashed; border-width: 2px; }
-  .gantt-cell.shown { border-style: dashed; border-width: 2px; }
+  .gantt-cell.shown { border-color: var(--marked); border-style: dashed; border-width: 2px; }
 
   .gantt-cell.wrong {
     color: var(--muted);
@@ -333,24 +351,23 @@
 
   .gantt-cell .flag {
     position: absolute;
-    top: -6px;
+    top: -7px;
     right: -4px;
     font-size: 9px;
+    line-height: 1.3;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: 0 4px;
+    padding: 1px 5px;
     border-radius: 999px;
     background: var(--marked);
     color: #fff;
     text-decoration: none;
+    pointer-events: none;
   }
 
-  .gantt-cell.early .flag { background: var(--bsusp); }
+  .gantt-grid.painting { touch-action: none; }
   .gantt-grid.painting .gantt-cell.paintable { cursor: crosshair; }
-  .legend-swatch.mark-wrong { border-color: var(--line-strong); background: repeating-linear-gradient(-45deg, var(--card), var(--card) 4px, var(--region-fill-alt) 4px, var(--region-fill-alt) 8px); }
-  .legend-swatch.mark-shown { background: var(--marked-soft); border-color: var(--marked); border-style: dashed; }
-  .legend-swatch.mark-early { background: var(--card); border-color: var(--bsusp); border-style: dashed; }
   .gantt-grid.dense .gantt-cell { height: 20px; }
   main.quiz .gantt-grid { gap: 4px; }
   main.quiz .gantt-cell { height: 23px; }
@@ -384,7 +401,8 @@
   .queue-row .flag { font-size: 11px; font-weight: 700; color: var(--bsusp); }
 
   .state-block { min-width: 0; }
-  .state-block.full { grid-column: 1 / -1; }
+  .state-block.tuck { grid-column: 2; grid-row: 2; }
+  .state-block.span { grid-row: 1 / 3; }
 
   .block-head {
     display: flex;
@@ -467,46 +485,14 @@
     border-radius: 0 5px 5px 0;
   }
 
-  .selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2px 18px; }
-
-  .selector { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 9px; padding: 3px 0; }
-
-  .selector .label-col { flex: 0 0 90px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-
-  .selector .name {
-    font-size: 10.5px;
-    font-weight: 750;
-    letter-spacing: 0.045em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-
-  .choices { display: flex; flex-wrap: wrap; gap: 4px; }
-  .choices button { padding: 4px 10px; font-size: 13px; font-weight: 640; min-width: 36px; }
-  .choices button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
-  .choices button[aria-pressed="true"].st-running { background: var(--running); border-color: var(--running); }
-  .choices button[aria-pressed="true"].st-blocked { background: var(--blocked); border-color: var(--blocked); }
-  .choices button[aria-pressed="true"].st-bsusp { background: var(--bsusp); border-color: var(--bsusp); }
-  .choices button[aria-pressed="true"].st-rsusp { background: var(--rsusp); border-color: var(--rsusp); }
-  .choices button:disabled { opacity: 1; cursor: default; }
-  .choices button.was-wrong { text-decoration: line-through; color: var(--muted); border-color: var(--line-strong); }
-
-  .selector .verdict { font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.2; }
-
-  .selector.bad .name { color: var(--ink); }
-
   .decision-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 11px; padding-top: 9px; border-top: 1px solid var(--line); }
 
   .score { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  .quiz-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 5px; }
+  .quiz-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 5px; }
 
   .quiz-options button { text-align: left; padding: 6px 11px; font-size: 13.5px; font-weight: 620; }
   .quiz-options button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
-  .quiz-options button:disabled { opacity: 1; cursor: default; }
-  .quiz-options button.is-answer { border-color: var(--marked); border-width: 2px; background: var(--marked-soft); color: var(--ink); font-weight: 720; }
-  .quiz-options button.is-picked { background: var(--region-fill-alt); }
-  .quiz-options .mark { float: right; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.03em; }
 
   .elim { display: flex; flex-direction: column; gap: 3px; }
 
@@ -551,7 +537,7 @@
 
   .narration-body { padding: 2px 14px 5px; min-height: 38px; }
   .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
-  .narration-note { font-size: 13.5px; color: var(--muted); margin: 3px 0 0; }
+  .narration-note { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
   .verdict-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 
   .verdict-list li {
@@ -565,66 +551,64 @@
 
   .verdict-list li.hit { border-left-color: var(--marked); background: var(--marked-soft); }
   .verdict-list li.miss { border-left-color: var(--blocked); }
-  .verdict-list li.early { border-left-color: var(--bsusp); }
   .verdict-list li.note { color: var(--ink-soft); }
   .verdict-list .why { color: var(--muted); }
 
   .takeaway {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 10px;
     flex-wrap: wrap;
     margin: 2px 0 0;
-    padding: 5px 11px;
-    border: 1px solid var(--running);
-    border-left-width: 4px;
-    border-radius: 0 8px 8px 0;
+    padding: 6px 11px;
+    border: 1.5px solid var(--running);
+    border-radius: 8px;
     background: var(--running-soft);
+    animation: flash var(--fast) ease-out;
   }
 
   .takeaway .tag {
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 800;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--running);
   }
 
   .takeaway .line { font-size: 15px; font-weight: 700; color: var(--ink); }
 
-  .progress-row { display: flex; align-items: center; gap: 9px; padding: 0 14px; }
-  .progress-track { flex: 1; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--running); border-radius: 999px; transform-origin: left center; transition: transform var(--fast) ease-out; }
-  .progress { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+  .progress-track { flex: 1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--running); border-radius: 2px; transition: transform var(--fast) ease-out; transform-origin: left center; }
+  .progress { font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px 8px; }
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 12px 8px; }
   .controls .spacer { flex: 1; }
   .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
   .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
   .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
-  .small { padding: 6px 11px; font-size: 13px; font-weight: 620; }
+  .small { padding: 6px 11px; font-size: 13px; }
 
   #tooltip {
     position: fixed;
-    z-index: 40;
-    display: none;
+    z-index: 20;
     max-width: 330px;
-    padding: 8px 11px;
-    border-radius: 8px;
-    background: var(--marked);
+    background: var(--ink);
     color: #fff;
-    font-size: 12.5px;
-    line-height: 1.4;
-    box-shadow: 0 6px 22px rgba(16, 21, 29, 0.24);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.42;
+    box-shadow: 0 6px 20px rgba(16, 21, 29, 0.3);
+    display: none;
   }
 
-  #tooltip.open { display: block; }
+  #tooltip.open { display: block; animation: flash var(--fast) ease-out; }
   #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
 
-  .term {
-    border-bottom: 1px dotted var(--running);
-    cursor: help;
-    font-weight: 620;
+  @keyframes flash {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
   }
 
   em { font-style: normal; font-weight: 700; }
@@ -669,12 +653,12 @@
 
 <main>
   <section class="panel statement">
-    <h2><span class="panel-title" data-tip="statement" tabindex="0" id="statementTitle"></span></h2>
+    <h2><button type="button" class="tip" data-tip="statement" id="statementTitle"></button></h2>
     <div class="panel-body" id="statementPanel"></div>
   </section>
   <section class="panel gantt">
     <h2>
-      <span class="panel-title" data-tip="gantt" tabindex="0" id="ganttTitle"></span>
+      <button type="button" class="tip" data-tip="gantt" id="ganttTitle"></button>
       <span class="tool-row" id="toolRow">
         <span class="toggle-label" id="paintLabel"></span>
         <span class="switch" id="toolBar" role="group" aria-labelledby="paintLabel"></span>
@@ -686,11 +670,11 @@
     </div>
   </section>
   <section class="panel state">
-    <h2><span class="panel-title" data-tip="state" tabindex="0" id="stateTitle"></span></h2>
+    <h2><button type="button" class="tip" data-tip="state" id="stateTitle"></button></h2>
     <div class="panel-body" id="statePanel"></div>
   </section>
   <section class="panel decision" id="decisionPanel">
-    <h2><span class="panel-title" data-tip="decision" tabindex="0" id="decisionTitle"></span><span class="panel-when" id="decisionWhen"></span></h2>
+    <h2><button type="button" class="tip" id="decisionTitle"></button><span class="panel-when" id="decisionWhen"></span></h2>
     <div class="panel-body" id="decisionBody"></div>
   </section>
 </main>
@@ -735,7 +719,6 @@ const UI_TEXT = {
   lastStep: "Último",
   play: "Reproducir",
   pause: "Pausar",
-  none: "nadie",
   stepUnit: "Un paso = un instante",
   takeawayTag: "Para llevarse",
   score: "aciertos: {ok} de {total}",
@@ -762,7 +745,6 @@ const UI_TEXT = {
     degree: "Grado de multiprogramación",
     devices: "Dispositivos",
     cpus: "Procesadores",
-    outOfMemory: "Fuera de memoria",
     kltAlgorithm: "KLT",
     ultAlgorithm: "ULT",
     queueHigh: "Q1 · más prioridad",
@@ -786,6 +768,7 @@ const UI_TEXT = {
     noEvents: "Nada nuevo.",
     kltBlocked: "KLT bloqueado",
     free: "libre",
+    pending: "sin contestar",
     criterion: {
       sjf: "ráfaga restante",
       sjfP: "ráfaga restante",
@@ -798,33 +781,34 @@ const UI_TEXT = {
   },
   paint: {
     label: "Estás pintando",
-    idle: "Elegí un recurso arriba y pintá quién lo ocupa en cada instante. Cada recurso se corrige por separado, y en orden.",
+    idleBand: "Se resuelve un instante por vez, y acá el casillero no muestra un recurso sino un estado, así que puede necesitar más de una respuesta: tener el dispositivo y estar fuera de memoria son dos, y juntas dan BLOCKED SUSPENDED.",
+    idle: "Se resuelve un instante por vez. Elegí un recurso arriba y pintá quién lo ocupa en la columna marcada; cuando estén contestados todos los recursos de ese instante, se abre el siguiente.",
     undo: "Deshacer",
     undone: "Deshiciste lo último que pintaste. Los errores que ya contaste siguen contados.",
-    more: "y {n} más.",
     whyOther: "Ahí el criterio era {c}: {q} tenía {nq}, y {p}, {np}.",
     whyTie: "Ahí los dos tenían {nq}, así que decidía el orden de la cola, y {q} estaba antes que {p}.",
     whyNotQueued: "Ahí el criterio era {c}: {q} tenía {nq}. {p} no estaba en la cola de listos en ese instante.",
     whyOrder: "Ahí decidía el orden de la cola, y {q} estaba antes que {p}.",
-    whyKeeps: "{q} ya venía ejecutando, y este algoritmo no desaloja: la CPU no se le saca hasta que termine su ráfaga.",
+    whyOrderAlone: "Ahí decidía el orden de la cola, y el primero era {q}.",
+    whyNotArrived: "{p} todavía no había llegado: llega recién en el {a}.",
+    whyKltOther: "Ahí {r} fue para {kq}: el sistema operativo elige [[klt:KLT]], y {kp} no era el elegido.",
+    whyKltElsewhere: "{kp} sí tenía procesador —estaba en {v}—, pero ahí su biblioteca eligió a {o}, no a {p}.",
+    whyKltPicked: "Ahí {r} fue para {kq}, y adentro su biblioteca eligió a {q}.",
+    whyKltBlocked: "{kp} estaba bloqueado: mientras un [[ult:ULT]] suyo espera una I/O, ninguno de sus ULT puede correr.",
+    whyKeeps: "{q} ya venía ejecutando, y este algoritmo no [[desalojo:desaloja]]: la CPU no se le saca hasta que termine su ráfaga.",
     whyKeepsPreempt: "{q} ya venía ejecutando y en ese instante no apareció nadie que lo desalojara.",
     finish: "Terminé",
-    flagEarly: "antes",
+    cellLabel: "{p}, instante {a} a {b}",
     flagShown: "iba",
-    legendMiss: "no iba",
-    legendShown: "iba acá",
-    legendEarly: "en suspenso",
-    early: "Te adelantaste. Eso queda en suspenso hasta que resuelvas {r} de {a} a {b}.",
+    missTitle: "{r}: acá no iba",
     hit: "Bien: {p} tiene {r} de {a} a {b}.",
     missOther: "De {a} a {b}, {r} no era de {p} sino de {q}.",
     missElsewhereOther: "De {a} a {b}, {p} estaba en {r2}: {r} era de {q}.",
     missElsewhereFree: "De {a} a {b}, {p} estaba en {r2}, y {r} no era de nadie.",
     missFree: "De {a} a {b}, {r} estaba libre: no era de {p}.",
-    missing: "Te faltó: de {a} a {b}, {r} era de {p}.",
     hitMem: "Bien: de {a} a {b}, {p} está fuera de memoria.",
     missOtherMem: "De {a} a {b}, el que estaba fuera de memoria era {q}, no {p}.",
-    missFreeMem: "De {a} a {b} no había nadie fuera de memoria: {p} estaba adentro.",
-    missingMem: "Te faltó: de {a} a {b}, {p} estaba fuera de memoria."
+    missFreeMem: "De {a} a {b} no había nadie fuera de memoria: {p} estaba adentro."
   },
   events: {
     arrive: "Llega {p}",
@@ -877,9 +861,7 @@ const UI_TEXT = {
     prompt: "Este diagrama ya está resuelto. ¿Con qué algoritmo se armó?",
     check: "Responder",
     correct: "Bien: era {p}.",
-    wrong: "Era {p}.",
-    isAnswer: "era este",
-    yourPick: "elegiste este",
+    wrong: "Elegiste {c}. Era {p}.",
     elimPanel: "Qué descarta a cada uno",
     elimWhen: "instante {t}",
     tie: "Ojo con estos dos",
@@ -904,7 +886,7 @@ const TOOLTIPS = {
 
 const PANEL_TIPS = {
   statement: { title: "Enunciado", body: "La tabla de procesos con su llegada y sus ráfagas, el algoritmo y los parámetros." },
-  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos: elegí un recurso arriba y pintá quién lo ocupa en cada instante, arrastrando para pintar varios seguidos. Espacio cambia de recurso, Esc cancela el trazo y Ctrl+Z deshace el último." },
+  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos, un instante por vez: sólo se pinta la columna marcada, y se abre la siguiente cuando estén contestados todos los recursos de ésta. El pincel pasa solo al recurso que falte, y el que ya contestaste en ese instante queda apagado. Espacio cambia de recurso y Ctrl+Z deshace." },
   state: { title: "Estado del instante", body: "Cómo queda el sistema después de las llegadas y los fines de I/O, y justo antes de que el planificador elija. Con esto alcanza para justificar la decisión." },
   quiz: { title: "¿Qué algoritmo era?", body: "Un diagrama ya resuelto de un ejemplo anterior. Acá el trabajo es al revés: mirar el resultado y reconocer la regla que lo produjo." },
   elim: { title: "Qué descarta a cada uno", body: "Para cada algoritmo que no era, el instante donde el diagrama lo deja afuera. Es la única parte del recurso que explica por eliminación, porque acá eliminar es el ejercicio." }
@@ -920,15 +902,15 @@ const STATES = {
 };
 
 const ALGORITHMS = {
-  fifo: { label: "FIFO", reason: "fifo", annotated: false, noPreempt: true },
-  sjf: { label: "SJF sin desalojo", reason: "sjf", annotated: true, noPreempt: true },
-  sjfP: { label: "SJF con desalojo", reason: "sjfP", annotated: true },
-  sjfEst: { label: "SJF con estimadores", reason: "sjfEst", annotated: true, noPreempt: true },
-  sjfEstP: { label: "SJF con estimadores y desalojo", reason: "sjfEstP", annotated: true },
-  hrrn: { label: "HRRN", reason: "hrrn", annotated: true, noPreempt: true },
-  rr: { label: "Round Robin", reason: "rr", annotated: false },
-  vrr: { label: "Virtual Round Robin", reason: "vrr", annotated: true },
-  feedback: { label: "Colas multinivel con feedback", reason: "feedback", annotated: true }
+  fifo: { label: "FIFO", reason: "fifo", noPreempt: true },
+  sjf: { label: "SJF sin desalojo", reason: "sjf", noPreempt: true },
+  sjfP: { label: "SJF con desalojo", reason: "sjfP" },
+  sjfEst: { label: "SJF con estimadores", reason: "sjfEst", noPreempt: true },
+  sjfEstP: { label: "SJF con estimadores y desalojo", reason: "sjfEstP" },
+  hrrn: { label: "HRRN", reason: "hrrn", noPreempt: true },
+  rr: { label: "Round Robin", reason: "rr" },
+  vrr: { label: "Virtual Round Robin", reason: "vrr" },
+  feedback: { label: "Colas multinivel con feedback", reason: "feedback" }
 };
 
 const DEFAULT_RESOURCES = [
@@ -995,7 +977,6 @@ const EXAMPLES = [
     subtitle: "La misma tabla del ejemplo 2. Ahora cada llegada vuelve a abrir la decisión.",
     closing: "Con desalojo, cada llegada vuelve a abrir la decisión.",
     algorithm: "sjfP",
-    compareWith: "A4",
     table: { kind: "process", rows: [
       { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 3 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] },
       { id: "B", arrival: 1, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }, { k: "cpu", v: 2 }] },
@@ -1051,7 +1032,6 @@ const EXAMPLES = [
     subtitle: "La misma tabla del ejemplo 4. Ahora cada llegada vuelve a abrir la decisión, y la que decide es la estimación.",
     closing: "Con desalojo, la estimación no sólo elige quién entra: también decide a quién le sacan la CPU.",
     algorithm: "sjfEstP",
-    compareWith: "A6",
     params: { alpha: "0,5" },
     table: { kind: "process", estimates: true, rows: [
       { id: "A", arrival: 0, estPrev: 4, realPrev: 6, est: 5, nextEst: 4,
@@ -1143,7 +1123,6 @@ const EXAMPLES = [
     closing: "B, que es puro CPU, termina en 8 en vez de 6: VRR favorece a los que hacen I/O, y lo paga él.",
     algorithm: "vrr",
     params: { quantum: 3 },
-    compareWith: "A8",
     table: { kind: "process", rows: [
       { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 3 }, { k: "cpu", v: 3 }] },
       { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 4 }] },
@@ -1325,7 +1304,6 @@ const EXAMPLES = [
     algorithm: "fifo",
     ultAlgorithm: "fifo",
     params: { kltAlgorithm: "FIFO", ultAlgorithm: "FIFO", jacketing: true },
-    compareWith: "B3",
     rowLabel: "ult",
     rows: [{ id: "ULT1A", group: "KLT1" }, { id: "ULT1B", group: "KLT1" }, { id: "ULT2A", group: "KLT2" }],
     table: { kind: "thread", ownerHead: "KLT", unitHead: "ULT", rows: [
@@ -1510,14 +1488,18 @@ function holdingResources(resources) {
   return resources.filter(function (res) { return res.kind !== "memory"; });
 }
 
-function stateFrom(view, rowId, index, assign) {
-  if (index >= view.ends[rowId]) return "term";
-  if (view.arrivals[rowId] > index) return null;
+function assignedStatus(view, rowId, assign) {
   const outside = view.resources.some(function (res) { return res.kind === "memory" && assign[res.id] === rowId; });
   const held = holdingResources(view.resources).filter(function (res) { return assign[res.id] === rowId; })[0];
   if (held && held.kind === "cpu") return "running";
   if (held) return outside ? "bsusp" : "blocked";
   return outside ? "rsusp" : "ready";
+}
+
+function stateFrom(view, rowId, index, assign) {
+  if (index >= view.ends[rowId]) return "term";
+  if (view.arrivals[rowId] > index) return null;
+  return assignedStatus(view, rowId, assign);
 }
 
 function cpuResources(resources) {
@@ -1711,10 +1693,12 @@ function deviceReason(view, index) {
     }
     else if (!holder && previous) lines.push(fill(UI_TEXT.reasons.devFree, { v: res.label }));
   });
-  step.waiting.forEach(function (who) {
-    const res = deviceResources(view.resources)[0];
-    lines.push(fill(UI_TEXT.reasons.devWait, { p: who, q: step.assign[res.id] }));
-  });
+  const only = deviceResources(view.resources).length === 1 ? deviceResources(view.resources)[0] : null;
+  if (only) {
+    step.waiting.forEach(function (who) {
+      lines.push(fill(UI_TEXT.reasons.devWait, { p: who, q: step.assign[only.id] }));
+    });
+  }
   return lines;
 }
 
@@ -1729,6 +1713,8 @@ function reasonFor(view, index) {
   return { main: main, extra: deviceReason(view, index), key: false };
 }
 
+const DECIDING_EVENTS = ["ioStart", "ioStartOn", "ioGet", "quantumLeft", "preempt", "libDispatch", "kltBlock", "kltBlockJacket", "suspend", "readySusp", "idle"];
+
 function eventText(entry) {
   const template = UI_TEXT.events[entry[0]];
   return fill(template, { p: entry[1], v: entry[2] });
@@ -1742,6 +1728,16 @@ function answerAt(answers, index, resId) {
   return answers[index] ? answers[index][resId] || null : null;
 }
 
+function rowFinished(view, answers, rowId, index) {
+  const end = view.ends[rowId];
+  if (index < end) return false;
+  const last = end - 1;
+  const holder = holdingResources(view.resources).filter(function (res) {
+    return view.steps[last].assign[res.id] === rowId;
+  })[0];
+  return Boolean(holder && answerAt(answers, last, holder.id));
+}
+
 function resourceSettled(view, answers, index, resId) {
   if (!view.steps[index].assign[resId]) return true;
   return Boolean(answerAt(answers, index, resId));
@@ -1752,6 +1748,12 @@ function frontierOf(view, answers, resId) {
     if (!resourceSettled(view, answers, t, resId)) return t;
   }
   return view.length - 1;
+}
+
+function settledApartFrom(view, answers, index, resId) {
+  return view.resources.every(function (res) {
+    return res.id === resId || resourceSettled(view, answers, index, res.id);
+  });
 }
 
 function columnSettled(view, answers, index) {
@@ -1779,28 +1781,59 @@ function judgePick(view, index, resId, given) {
   return { expected: expected, correct: given === expected };
 }
 
-function groupPicks(entries) {
-  const sorted = entries.slice().sort(function (one, two) {
-    if (one.res !== two.res) return one.res < two.res ? -1 : 1;
-    return one.t - two.t;
-  });
-  const runs = [];
-  sorted.forEach(function (entry) {
-    const open = runs[runs.length - 1];
-    const joins = open
-      && open.res === entry.res
-      && open.status === entry.status
-      && open.given === entry.given
-      && open.expected === entry.expected
-      && open.elsewhere === entry.elsewhere
-      && open.to === entry.t;
-    if (joins) {
-      open.to = entry.t + 1;
-      return;
+function criterionFor(algorithm) {
+  return UI_TEXT.queues.criterion[algorithm] || null;
+}
+
+function schedulerOf(view) {
+  return view.example.twoLevel ? view.example.ultAlgorithm : view.example.algorithm;
+}
+
+function keepsWhy(view, run) {
+  const previous = run.from > 0 ? view.steps[run.from - 1].assign[run.res] : null;
+  if (previous !== run.expected) return null;
+  const key = ALGORITHMS[schedulerOf(view)].noPreempt ? "whyKeeps" : "whyKeepsPreempt";
+  return fill(UI_TEXT.paint[key], { q: run.expected });
+}
+
+function queueWhy(view, run, entries) {
+  const criterion = criterionFor(schedulerOf(view));
+  const winnerNote = queueNote(entries, run.expected);
+  const givenNote = queueNote(entries, run.given);
+  if (!criterion || !winnerNote) {
+    const key = queued(entries, run.given) ? "whyOrder" : "whyOrderAlone";
+    return fill(UI_TEXT.paint[key], { q: run.expected, p: run.given });
+  }
+  if (winnerNote === givenNote) return fill(UI_TEXT.paint.whyTie, { nq: winnerNote, q: run.expected, p: run.given });
+  if (!givenNote) return fill(UI_TEXT.paint.whyNotQueued, { c: criterion, q: run.expected, nq: winnerNote, p: run.given });
+  return fill(UI_TEXT.paint.whyOther, { c: criterion, q: run.expected, nq: winnerNote, p: run.given, np: givenNote });
+}
+
+function otherCpuOf(view, run, step, group) {
+  return cpuResources(view.resources).filter(function (res) {
+    return res.id !== run.res && groupOf(view, step.assign[res.id]) === group;
+  })[0];
+}
+
+function levelWhy(view, run, step) {
+  const winner = groupOf(view, run.expected);
+  const given = groupOf(view, run.given);
+  if (given !== winner) {
+    const here = resourceOf(view, run.res).phrase;
+    if (step.blocked.indexOf(given) !== -1) {
+      return fill(UI_TEXT.paint.whyKltBlocked, { kp: given });
     }
-    runs.push({ res: entry.res, status: entry.status, given: entry.given, expected: entry.expected, elsewhere: entry.elsewhere, from: entry.t, to: entry.t + 1 });
-  });
-  return runs;
+    const other = otherCpuOf(view, run, step, given);
+    if (other) {
+      const there = step.assign[other.id];
+      const key = there === run.given ? "whyKltPicked" : "whyKltElsewhere";
+      return fill(UI_TEXT.paint[key], { q: run.expected, kq: winner, kp: given, p: run.given, v: other.phrase, o: there, r: here });
+    }
+    return fill(UI_TEXT.paint.whyKltOther, { kq: winner, kp: given, r: here });
+  }
+  const entries = (step.ults && step.ults[winner]) || [];
+  if (!queued(entries, run.expected)) return keepsWhy(view, run);
+  return queueWhy(view, run, entries);
 }
 
 function pickWhy(view, run) {
@@ -1808,19 +1841,12 @@ function pickWhy(view, run) {
   const res = resourceOf(view, run.res);
   if (res.kind !== "cpu" || !run.expected) return null;
   const step = view.steps[run.from];
-  if (!queued(step.ready, run.expected)) {
-    const previous = run.from > 0 ? view.steps[run.from - 1].assign[run.res] : null;
-    if (previous !== run.expected) return null;
-    const key = ALGORITHMS[view.example.algorithm].noPreempt ? "whyKeeps" : "whyKeepsPreempt";
-    return fill(UI_TEXT.paint[key], { q: run.expected });
+  if (view.arrivals[run.given] > run.from) {
+    return fill(UI_TEXT.paint.whyNotArrived, { p: run.given, a: view.arrivals[run.given] });
   }
-  const criterion = criterionFor(view.example.algorithm);
-  const winnerNote = queueNote(step.ready, run.expected);
-  const givenNote = queueNote(step.ready, run.given);
-  if (!criterion || !winnerNote) return fill(UI_TEXT.paint.whyOrder, { q: run.expected, p: run.given });
-  if (winnerNote === givenNote) return fill(UI_TEXT.paint.whyTie, { nq: winnerNote, q: run.expected, p: run.given });
-  if (!givenNote) return fill(UI_TEXT.paint.whyNotQueued, { c: criterion, q: run.expected, nq: winnerNote, p: run.given });
-  return fill(UI_TEXT.paint.whyOther, { c: criterion, q: run.expected, nq: winnerNote, p: run.given, np: givenNote });
+  if (view.example.twoLevel) return levelWhy(view, run, step);
+  if (!queued(step.ready, run.expected)) return keepsWhy(view, run);
+  return queueWhy(view, run, step.ready);
 }
 
 function pickVerdict(view, run) {
@@ -1831,14 +1857,9 @@ function pickVerdict(view, run) {
     const template = run.expected ? UI_TEXT.paint.missElsewhereOther : UI_TEXT.paint.missElsewhereFree;
     return fill(template, { p: run.given, q: run.expected || "", r: res.phrase, r2: other.phrase, a: run.from, b: run.to });
   }
-  const key = run.status === "hit"
-    ? "hit"
-    : run.status === "missing"
-      ? "missing"
-      : run.expected ? "missOther" : "missFree";
+  const key = run.status === "hit" ? "hit" : run.expected ? "missOther" : "missFree";
   const template = UI_TEXT.paint[memory ? key + "Mem" : key];
-  const who = run.status === "missing" ? run.expected : run.given;
-  return fill(template, { p: who, q: run.expected || "", r: res.phrase, a: run.from, b: run.to });
+  return fill(template, { p: run.given, q: run.expected || "", r: res.phrase, a: run.from, b: run.to });
 }
 </script>
 
@@ -1888,10 +1909,8 @@ const state = {
   mode: "solve",
   index: 0,
   answers: [],
-  early: [],
   tool: null,
   runs: [],
-  notes: [],
   note: null,
   history: [],
   stroke: [],
@@ -1905,6 +1924,8 @@ const state = {
   quizPick: null,
   quizAnswered: false
 };
+
+const FEEDBACK_LINES = 2;
 
 let view = null;
 let paintCells = {};
@@ -1938,8 +1959,8 @@ function appendRich(parent, text) {
     if (match[3]) {
       parent.appendChild(element("em", null, match[3]));
     } else {
-      const term = element("span", "term", match[2]);
-      term.setAttribute("tabindex", "0");
+      const term = element("button", "tip", match[2]);
+      term.type = "button";
       term.dataset.term = match[1];
       parent.appendChild(term);
     }
@@ -1985,6 +2006,7 @@ function renderLadder() {
     const button = element("button");
     button.type = "button";
     button.title = example.short;
+    button.dataset.focus = "example:" + example.id;
     button.appendChild(element("span", "num", String(example.number)));
     button.appendChild(element("span", "short", example.short));
     if (position === state.exampleIndex) button.setAttribute("aria-current", "true");
@@ -1998,6 +2020,7 @@ function renderSwitch(container, entries, activeKey, onPick) {
   entries.forEach(function (entry) {
     const button = element("button", null, entry.label);
     button.type = "button";
+    button.dataset.focus = container.id + ":" + entry.key;
     button.setAttribute("aria-pressed", entry.key === activeKey ? "true" : "false");
     button.addEventListener("click", function () { onPick(entry.key); });
     container.appendChild(button);
@@ -2035,8 +2058,8 @@ function renderVariants() {
     if (Number(key) === state.variantIndex) return;
     state.variantIndex = Number(key);
     stopPlay();
-    rebuildView();
     resetProgress();
+    rebuildView();
     render();
   });
 }
@@ -2153,13 +2176,6 @@ function renderLegend() {
     ? ["running", "blocked", "ready", "bsusp", "rsusp", "term"]
     : ["running", "blocked", "term"];
   shown.forEach(function (key) { addLegend(key); });
-  if (isQuiz() || state.mode !== "solve") return;
-  [["mark-wrong", UI_TEXT.paint.legendMiss], ["mark-shown", UI_TEXT.paint.legendShown], ["mark-early", UI_TEXT.paint.legendEarly]].forEach(function (entry) {
-    const item = element("span", "legend-item");
-    item.appendChild(element("span", "legend-swatch " + entry[0]));
-    item.appendChild(element("span", null, entry[1]));
-    legend.appendChild(item);
-  });
 }
 
 function ganttFor(target, chartView, cursor, bound) {
@@ -2218,13 +2234,8 @@ function toolResource() {
   return picked || view.resources[0];
 }
 
-function earlyAt(index, resId) {
-  return state.early[index] ? state.early[index][resId] || null : null;
-}
-
 function shownHolder(index, resId) {
-  if (answerAt(state.answers, index, resId)) return view.steps[index].assign[resId] || null;
-  return earlyAt(index, resId);
+  return answerAt(state.answers, index, resId) ? view.steps[index].assign[resId] || null : null;
 }
 
 function paintedAssign(index) {
@@ -2233,24 +2244,42 @@ function paintedAssign(index) {
   return assign;
 }
 
-function columnTouched(index) {
-  return view.resources.some(function (res) {
-    return Boolean(answerAt(state.answers, index, res.id) || earlyAt(index, res.id));
-  });
-}
+
 
 function flagNode(text) {
   return element("span", "flag", text);
 }
 
 function finishedAt(rowId, index) {
-  const end = view.ends[rowId];
-  if (index < end) return false;
-  const last = end - 1;
-  const holder = holdingResources(view.resources).filter(function (res) {
-    return view.steps[last].assign[res.id] === rowId;
-  })[0];
-  return Boolean(holder && answerAt(state.answers, last, holder.id));
+  return rowFinished(view, state.answers, rowId, index);
+}
+
+function marksAt(rowId, index) {
+  const step = view.steps[index];
+  return {
+    wrong: view.resources.filter(function (res) {
+      const answer = answerAt(state.answers, index, res.id);
+      return Boolean(answer && answer.given === rowId && !answer.correct);
+    })[0],
+    shown: view.resources.some(function (res) {
+      const answer = answerAt(state.answers, index, res.id);
+      return Boolean(answer && answer.given && !answer.correct && step.assign[res.id] === rowId);
+    })
+  };
+}
+
+function markCell(cell, marks) {
+  if (marks.shown) {
+    cell.classList.add("shown");
+    cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
+  }
+}
+
+function faceOf(cell, status, text, marks) {
+  cell.classList.add(STATES[status].css);
+  cell.textContent = text;
+  cell.title = STATES[status].label;
+  markCell(cell, marks);
 }
 
 function paintFace(cell, rowId, index) {
@@ -2258,55 +2287,38 @@ function paintFace(cell, rowId, index) {
   const assign = paintedAssign(index);
   cell.className = "gantt-cell";
   cell.textContent = "";
-  const early = view.resources.filter(function (res) { return earlyAt(index, res.id) === rowId; })[0];
-  const wrong = view.resources.filter(function (res) {
-    const answer = answerAt(state.answers, index, res.id);
-    return Boolean(answer && !answer.correct && answer.given === rowId);
-  })[0];
-  const shown = view.resources.some(function (res) {
-    const answer = answerAt(state.answers, index, res.id);
-    return Boolean(answer && !answer.correct && step.assign[res.id] === rowId);
-  });
+  cell.title = "";
+  const marks = marksAt(rowId, index);
   if (step.states) {
     const status = finishedAt(rowId, index)
       ? "term"
-      : (columnTouched(index) ? stateFrom(view, rowId, index, assign) : null);
+      : (statusKnown(rowId, index) ? stateFrom(view, rowId, index, assign) : null);
     if (!status) {
+      if (marks.wrong) {
+        cell.classList.add("wrong");
+        cell.textContent = marks.wrong.short || marks.wrong.label;
+        cell.title = fill(UI_TEXT.paint.missTitle, { r: marks.wrong.label });
+        return;
+      }
       cell.classList.add("blank");
       return;
     }
-    cell.classList.add(STATES[status].css);
-    cell.textContent = UI_TEXT.cells[status] || "";
-    if (early) {
-      cell.classList.add("early");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagEarly));
-    } else if (shown) {
-      cell.classList.add("shown");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
-    }
+    faceOf(cell, status, UI_TEXT.cells[status] || "", marks);
     return;
   }
   const holder = holdingResources(view.resources).filter(function (res) { return assign[res.id] === rowId; })[0];
   if (holder) {
-    cell.classList.add(STATES[holder.kind === "cpu" ? "running" : "blocked"].css);
-    cell.textContent = holder.short;
-    if (early) {
-      cell.classList.add("early");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagEarly));
-    } else if (shown) {
-      cell.classList.add("shown");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
-    }
-    return;
-  }
-  if (wrong) {
-    cell.classList.add("wrong");
-    cell.textContent = wrong.short || wrong.label;
+    faceOf(cell, holder.kind === "cpu" ? "running" : "blocked", holder.short, marks);
     return;
   }
   if (finishedAt(rowId, index)) {
-    cell.classList.add(STATES.term.css);
-    cell.textContent = UI_TEXT.cells.term;
+    faceOf(cell, "term", UI_TEXT.cells.term, marks);
+    return;
+  }
+  if (marks.wrong) {
+    cell.classList.add("wrong");
+    cell.textContent = marks.wrong.short || marks.wrong.label;
+    cell.title = fill(UI_TEXT.paint.missTitle, { r: marks.wrong.label });
     return;
   }
   cell.classList.add("blank");
@@ -2317,8 +2329,76 @@ function inStroke(rowId, index) {
   return state.stroke.some(function (spot) { return spot.row === rowId && spot.t === index; });
 }
 
-function paintableAt(index) {
-  return !answerAt(state.answers, index, toolResource().id);
+function resourceDone(resId) {
+  for (let t = 0; t < view.length; t += 1) {
+    if (view.steps[t].assign[resId] && !answerAt(state.answers, t, resId)) return false;
+  }
+  return true;
+}
+
+function rowHolds(rowId, index) {
+  return holdingResources(view.resources).some(function (res) {
+    return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
+  });
+}
+
+function statusKnown(rowId, index) {
+  const onCpu = cpuResources(view.resources).some(function (res) {
+    return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
+  });
+  return onCpu || columnSettled(view, state.answers, index);
+}
+
+function paintableFor(res, rowId, index) {
+  if (index !== settledCount(view, state.answers)) return false;
+  if (answerAt(state.answers, index, res.id)) return false;
+  if (finishedAt(rowId, index)) return false;
+  if (res.kind !== "memory" && rowHolds(rowId, index)) return false;
+  return !resourceDone(res.id);
+}
+
+function paintableAt(rowId, index) {
+  return paintableFor(toolResource(), rowId, index);
+}
+
+function resourceHasWork(res) {
+  return view.rows.some(function (row) {
+    for (let t = 0; t < view.length; t += 1) if (paintableFor(res, row.id, t)) return true;
+    return false;
+  });
+}
+
+function firstWithWork() {
+  return view.resources.filter(function (res) { return resourceHasWork(res); })[0];
+}
+
+function advanceTool(opened) {
+  const start = opened ? firstWithWork() : null;
+  if (start) {
+    state.tool = start.id;
+    state.hover = null;
+    return;
+  }
+  if (resourceHasWork(toolResource())) return;
+  const ids = view.resources.map(function (item) { return item.id; });
+  const from = ids.indexOf(toolResource().id);
+  for (let k = 1; k <= ids.length; k += 1) {
+    const next = resourceOf(view, ids[(from + k) % ids.length]);
+    if (resourceHasWork(next)) {
+      state.tool = next.id;
+      state.hover = null;
+      return;
+    }
+  }
+}
+
+function previewStatus(res, rowId, index) {
+  if (!view.steps[index].states) return res.kind === "cpu" ? "running" : "blocked";
+  const onCpu = res.kind === "cpu";
+  if (!onCpu && !statusKnown(rowId, index) && !settledApartFrom(view, state.answers, index, res.id)) return null;
+  const assign = paintedAssign(index);
+  assign[res.id] = rowId;
+  return assignedStatus(view, rowId, assign);
 }
 
 function decorateCells() {
@@ -2328,17 +2408,17 @@ function decorateCells() {
       const cell = paintCells[row.id][t];
       paintFace(cell, row.id, t);
       if (t === state.index) cell.classList.add("now");
-      if (!paintableAt(t)) continue;
+      const open = paintableAt(row.id, t);
+      cell.tabIndex = open ? 0 : -1;
+      if (!open) continue;
       cell.classList.add("paintable");
       const marked = inStroke(row.id, t);
       const hovered = !state.painting && state.hover && state.hover.row === row.id && state.hover.t === t;
       if (!marked && !hovered) continue;
-      const assign = paintedAssign(t);
-      assign[res.id] = row.id;
-      const status = stateFrom(view, row.id, t, assign);
-      if (!status) continue;
-      cell.className = "gantt-cell paintable " + STATES[status].css + (marked ? " stroke" : " ghost");
-      cell.textContent = view.steps[t].states ? (UI_TEXT.cells[status] || "") : res.short;
+      const status = previewStatus(res, row.id, t);
+      cell.className = "gantt-cell paintable " + (status ? STATES[status].css + " " : "") + (marked ? "stroke" : "ghost");
+      cell.textContent = view.steps[t].states ? (status ? UI_TEXT.cells[status] || "" : "") : res.short;
+      cell.title = status ? STATES[status].label : res.label;
       if (t === state.index) cell.classList.add("now");
     }
   });
@@ -2357,9 +2437,12 @@ function paintGrid() {
     grid.appendChild(label);
     paintCells[row.id] = [];
     for (let t = 0; t < view.length; t += 1) {
-      const cell = element("div", "gantt-cell");
+      const cell = element("button", "gantt-cell");
+      cell.type = "button";
       cell.dataset.row = row.id;
       cell.dataset.time = String(t);
+      cell.dataset.focus = "cell:" + row.id + ":" + t;
+      cell.setAttribute("aria-label", fill(UI_TEXT.paint.cellLabel, { p: row.id, a: t, b: t + 1 }));
       grid.appendChild(cell);
       paintCells[row.id].push(cell);
     }
@@ -2373,6 +2456,7 @@ function paintGrid() {
   grid.addEventListener("pointerdown", onPaintDown);
   grid.addEventListener("pointermove", onPaintMove);
   grid.addEventListener("pointerleave", onPaintLeave);
+  grid.addEventListener("click", onPaintKeyClick);
   dom.ganttPanel.appendChild(grid);
   dom.grid = grid;
   decorateCells();
@@ -2428,13 +2512,18 @@ function queueRow(level, entries, flag) {
   return row;
 }
 
-function criterionFor(algorithm) {
-  return UI_TEXT.queues.criterion[algorithm] || null;
-}
-
 function readyGloss(algorithm) {
   const criterion = criterionFor(algorithm);
   return criterion ? STATES.ready.label + " \u00b7 " + criterion : STATES.ready.label;
+}
+
+function toldResource(resId, index) {
+  return state.mode !== "solve" || answerAt(state.answers, index, resId) || columnSettled(view, state.answers, index);
+}
+
+function tellableEvents(entries, index) {
+  if (state.mode !== "solve" || columnSettled(view, state.answers, index)) return entries;
+  return entries.filter(function (entry) { return DECIDING_EVENTS.indexOf(entry[0]) === -1; });
 }
 
 function renderState() {
@@ -2465,17 +2554,26 @@ function renderState() {
     grid.appendChild(queueBlock(UI_TEXT.queues.ready, readyGloss(example.algorithm), step.ready));
   }
   if (example.memory) {
-    grid.appendChild(queueBlock(UI_TEXT.queues.memory, null,
-      (step.mem || []).map(function (id) { return { id: id, note: null }; }), null, "mem", true));
+    const swap = view.resources.filter(function (res) { return res.kind === "memory"; })[0];
+    if (!swap || toldResource(swap.id, state.index)) {
+      grid.appendChild(queueBlock(UI_TEXT.queues.memory, null,
+        (step.mem || []).map(function (id) { return { id: id, note: null }; }), null, "mem", true));
+    } else {
+      const block = stateBlock(UI_TEXT.queues.memory, null, null);
+      block.appendChild(element("div", "queue-empty", UI_TEXT.queues.pending));
+      grid.appendChild(block);
+    }
   }
   const devices = stateBlock(UI_TEXT.queues.devices, null, null);
   const deviceList = deviceResources(view.resources);
-  deviceList.forEach(function (res, position) {
+  deviceList.forEach(function (res) {
     const card = element("div", "dev-card");
     card.appendChild(element("span", "dev-name", res.label));
-    const holder = step.assign[res.id];
-    card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", UI_TEXT.queues.free));
-    if (position === 0 && step.devq.length > 0) {
+    const told = toldResource(res.id, state.index);
+    const holder = told ? step.assign[res.id] : null;
+    const empty = told ? UI_TEXT.queues.free : UI_TEXT.queues.pending;
+    card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", empty));
+    if (deviceList.length === 1 && step.devq.length > 0) {
       const wait = element("div", "waiting-for");
       wait.appendChild(element("span", null, UI_TEXT.queues.deviceQueue));
       step.devq.forEach(function (entry) { wait.appendChild(processChip(entry.id, null, "dev")); });
@@ -2485,12 +2583,16 @@ function renderState() {
   });
   grid.appendChild(devices);
   const events = stateBlock(UI_TEXT.queues.events, null, null);
-  if (grid.children.length % 2 === 0) events.classList.add("full");
-  if (step.events.length === 0) {
+  if (grid.children.length === 2) {
+    events.classList.add("tuck");
+    grid.children[0].classList.add("span");
+  }
+  const told = tellableEvents(step.events, state.index);
+  if (told.length === 0) {
     events.appendChild(element("div", "queue-empty", UI_TEXT.queues.noEvents));
   } else {
     const list = element("ul", "event-list");
-    step.events.forEach(function (entry) { list.appendChild(element("li", null, eventText(entry))); });
+    told.forEach(function (entry) { list.appendChild(element("li", null, eventText(entry))); });
     events.appendChild(list);
   }
   grid.appendChild(events);
@@ -2619,26 +2721,37 @@ function renderTools() {
   view.resources.forEach(function (res, position) {
     const button = element("button", "tool-" + res.kind);
     button.type = "button";
+    button.dataset.focus = "tool:" + res.id;
     button.setAttribute("aria-pressed", current.id === res.id ? "true" : "false");
     button.appendChild(element("span", "swatch"));
     button.appendChild(element("span", null, res.label));
     button.appendChild(element("span", "key", String(position + 1)));
+    button.disabled = !resourceHasWork(res);
     button.addEventListener("click", function () { pickTool(res.id); });
     dom.toolBar.appendChild(button);
   });
 }
 
 function pickTool(resId) {
+  if (!resourceHasWork(resourceOf(view, resId))) return;
   state.tool = resId;
   state.hover = null;
-  renderTools();
-  decorateCells();
+  keepFocus(function () {
+    renderTools();
+    decorateCells();
+  });
 }
 
 function cycleTool() {
   const ids = view.resources.map(function (res) { return res.id; });
-  const position = ids.indexOf(toolResource().id);
-  pickTool(ids[(position + 1) % ids.length]);
+  const from = ids.indexOf(toolResource().id);
+  for (let k = 1; k <= ids.length; k += 1) {
+    const next = ids[(from + k) % ids.length];
+    if (resourceHasWork(resourceOf(view, next))) {
+      pickTool(next);
+      return;
+    }
+  }
 }
 
 function emptyPicks() {
@@ -2656,7 +2769,7 @@ function copyPicks(list) {
 }
 
 function rememberPicks() {
-  state.history.push({ answers: copyPicks(state.answers), early: copyPicks(state.early), index: state.index });
+  state.history.push({ answers: copyPicks(state.answers), tool: toolResource().id, index: state.index });
 }
 
 function elsewhereAt(index, resId, rowId) {
@@ -2666,48 +2779,27 @@ function elsewhereAt(index, resId, rowId) {
   return held ? held.id : null;
 }
 
-function settlePicks(force) {
-  const entries = [];
-  let moved = true;
-  while (moved) {
-    moved = false;
-    for (let t = 0; t < view.length; t += 1) {
-      view.resources.forEach(function (res) {
-        const given = state.early[t][res.id];
-        if (!given) return;
-        if (!force && t > frontierOf(view, state.answers, res.id)) return;
-        delete state.early[t][res.id];
-        const call = judgePick(view, t, res.id, given);
-        state.answers[t][res.id] = { given: given, correct: call.correct };
-        state.asked += 1;
-        if (call.correct) state.ok += 1;
-        entries.push({ t: t, res: res.id, given: given, expected: call.expected, elsewhere: elsewhereAt(t, res.id, given), status: call.correct ? "hit" : "miss" });
-        moved = true;
-      });
-    }
-  }
-  return entries;
-}
-
-function earlyNotes() {
-  return view.resources.filter(function (res) {
-    return state.early.some(function (entry) { return Boolean(entry[res.id]); });
-  }).map(function (res) {
-    const limit = frontierOf(view, state.answers, res.id);
-    return fill(UI_TEXT.paint.early, { r: res.phrase, a: limit, b: limit + 1 });
-  });
+function judgeInto(runs, index, resId, given) {
+  const call = judgePick(view, index, resId, given);
+  state.answers[index][resId] = { given: given, correct: call.correct };
+  state.asked += 1;
+  if (call.correct) state.ok += 1;
+  runs.push({ res: resId, status: call.correct ? "hit" : "miss", given: given, expected: call.expected, elsewhere: elsewhereAt(index, resId, given), from: index, to: index + 1 });
 }
 
 function commitStroke(stroke) {
+  const before = settledCount(view, state.answers);
   const res = toolResource();
-  const fresh = stroke.filter(function (spot) { return !answerAt(state.answers, spot.t, res.id); });
+  const fresh = stroke.filter(function (spot) { return !answerAt(state.answers, spot.t, res.id); })
+    .sort(function (one, two) { return one.t - two.t; });
   if (fresh.length === 0) return;
   rememberPicks();
-  fresh.forEach(function (spot) { state.early[spot.t][res.id] = spot.row; });
-  state.runs = groupPicks(settlePicks(false));
-  state.notes = earlyNotes();
+  const runs = [];
+  fresh.forEach(function (spot) { judgeInto(runs, spot.t, res.id, spot.row); });
+  state.runs = runs;
   state.note = null;
   state.index = maxIndex();
+  advanceTool(settledCount(view, state.answers) > before);
   render();
 }
 
@@ -2715,24 +2807,21 @@ function undoPick() {
   const last = state.history.pop();
   if (!last) return;
   state.answers = last.answers;
-  state.early = last.early;
+  state.tool = last.tool;
   state.runs = [];
-  state.notes = earlyNotes();
   state.note = UI_TEXT.paint.undone;
   state.index = Math.min(last.index, maxIndex());
+  advanceTool();
   render();
 }
 
 function finishAll() {
-  rememberPicks();
-  const entries = settlePicks(true);
   openPicks(view, state.answers).forEach(function (spot) {
     state.answers[spot.t][spot.res] = { given: null, correct: false };
-    entries.push({ t: spot.t, res: spot.res, given: null, expected: view.steps[spot.t].assign[spot.res], status: "missing" });
   });
-  state.runs = groupPicks(entries);
-  state.notes = [];
+  state.runs = [];
   state.note = null;
+  state.history = [];
   state.index = maxIndex();
   render();
 }
@@ -2741,18 +2830,18 @@ function spotFrom(x, y) {
   const node = document.elementFromPoint(x, y);
   if (!node || !node.dataset || node.dataset.row === undefined) return null;
   const t = Number(node.dataset.time);
-  if (!paintableAt(t)) return null;
+  if (!paintableAt(node.dataset.row, t)) return null;
   return { row: node.dataset.row, t: t };
 }
 
 function addToStroke(spot) {
   if (!spot || inStroke(spot.row, spot.t)) return;
-  state.stroke = state.stroke.filter(function (item) { return item.t !== spot.t; });
-  state.stroke.push(spot);
+  state.stroke = [spot];
   decorateCells();
 }
 
 function onPaintDown(event) {
+  if (event.button !== 0 || !event.isPrimary) return;
   const spot = spotFrom(event.clientX, event.clientY);
   if (!spot) return;
   event.preventDefault();
@@ -2761,6 +2850,24 @@ function onPaintDown(event) {
   state.stroke = [];
   dom.grid.setPointerCapture(event.pointerId);
   addToStroke(spot);
+}
+
+function onPaintKeyClick(event) {
+  if (event.detail !== 0) return;
+  const cell = event.target.closest ? event.target.closest(".gantt-cell") : null;
+  if (!cell || cell.dataset.row === undefined) return;
+  const t = Number(cell.dataset.time);
+  if (!paintableAt(cell.dataset.row, t)) return;
+  stopPlay();
+  commitStroke([{ row: cell.dataset.row, t: t }]);
+  focusEdge();
+}
+
+function focusEdge() {
+  const active = document.activeElement;
+  if (active && active.tabIndex === 0 && active.classList.contains("gantt-cell")) return;
+  const next = dom.grid.querySelector('.gantt-cell[tabindex="0"]');
+  if (next) next.focus();
 }
 
 function onPaintMove(event) {
@@ -2812,7 +2919,8 @@ function renderNarration() {
       line.textContent = UI_TEXT.quiz.prompt;
     } else {
       line.textContent = fill(state.quizPick === chart.spec.answer ? UI_TEXT.quiz.correct : UI_TEXT.quiz.wrong, {
-        p: ALGORITHMS[chart.spec.answer].label
+        p: ALGORITHMS[chart.spec.answer].label,
+        c: ALGORITHMS[state.quizPick].label
       });
     }
     body.appendChild(line);
@@ -2836,20 +2944,25 @@ function renderNarration() {
   if (state.index === view.length - 1) body.appendChild(closingCard(example));
 }
 
+function feedbackLines(closed) {
+  const cap = closed ? 1 : FEEDBACK_LINES;
+  const lines = state.note ? [{ css: "note", text: state.note }] : [];
+  state.runs.slice(0, cap - lines.length).forEach(function (run) { lines.push({ run: run }); });
+  return lines.slice(0, cap);
+}
+
 function renderVerdicts(body) {
-  if (state.runs.length === 0 && state.notes.length === 0) {
-    body.appendChild(element("p", "narration-note", state.note || UI_TEXT.paint.idle));
-    return;
-  }
-  const list = element("ul", "verdict-list");
-  if (state.note) list.appendChild(element("li", "note", state.note));
   const closed = settledCount(view, state.answers) === view.length;
-  const room = closed ? 0 : (state.notes.length > 0 ? 2 : 3);
+  const list = element("ul", "verdict-list");
   let explained = false;
-  state.runs.slice(0, room).forEach(function (run) {
-    const item = element("li", run.status === "hit" ? "hit" : "miss");
-    appendRich(item, pickVerdict(view, run));
-    const why = explained ? null : pickWhy(view, run);
+  feedbackLines(closed).forEach(function (line) {
+    if (!line.run) {
+      list.appendChild(element("li", line.css, line.text));
+      return;
+    }
+    const item = element("li", line.run.status === "hit" ? "hit" : "miss");
+    appendRich(item, pickVerdict(view, line.run));
+    const why = explained ? null : pickWhy(view, line.run);
     if (why) {
       explained = true;
       item.appendChild(document.createTextNode(" "));
@@ -2859,11 +2972,12 @@ function renderVerdicts(body) {
     }
     list.appendChild(item);
   });
-  if (room > 0 && state.runs.length > room) {
-    list.appendChild(element("li", "note", fill(UI_TEXT.paint.more, { n: state.runs.length - room })));
+  if (list.childNodes.length > 0) {
+    body.appendChild(list);
+    if (closed) return;
+  } else if (!closed) {
+    body.appendChild(element("p", "narration-note", view.example.stateBand ? UI_TEXT.paint.idleBand : UI_TEXT.paint.idle));
   }
-  state.notes.forEach(function (text) { list.appendChild(element("li", "early", text)); });
-  if (list.childNodes.length > 0) body.appendChild(list);
   if (!columnSettled(view, state.answers, Math.min(state.index, view.length - 1))) return;
   const reason = reasonFor(view, state.index);
   const line = element("p", "narration-note");
@@ -2917,7 +3031,20 @@ function renderControls() {
   dom.progressFill.style.transform = "scaleX(" + ((state.index + 1) / view.length) + ")";
 }
 
+function keepFocus(step) {
+  const before = document.activeElement;
+  const key = before && before.dataset ? before.dataset.focus : null;
+  step();
+  if (!key) return;
+  const back = document.querySelector('[data-focus="' + key + '"]');
+  if (back) back.focus();
+}
+
 function render() {
+  keepFocus(renderAll);
+}
+
+function renderAll() {
   renderLadder();
   renderModes();
   renderVariants();
@@ -2939,10 +3066,10 @@ function render() {
 
 function resetProgress() {
   state.index = 0;
-  state.answers = [];
-  state.early = [];
+  state.answers = emptyPicks();
+  state.ok = 0;
+  state.asked = 0;
   state.runs = [];
-  state.notes = [];
   state.note = null;
   state.history = [];
   state.stroke = [];
@@ -2958,7 +3085,6 @@ function rebuildView() {
   const example = currentExample();
   view = example.quiz ? quizViewFor(example.quiz.charts[state.quizChart].chartOf) : verifyView(buildView(example, currentVariant()));
   state.answers = emptyPicks();
-  state.early = emptyPicks();
   state.tool = view.resources[0].id;
 }
 
@@ -2975,6 +3101,8 @@ function selectExample(position) {
 function goTo(index) {
   if (isQuiz()) return;
   const limit = maxIndex();
+  state.runs = [];
+  state.note = null;
   state.index = Math.max(0, Math.min(index, limit));
   render();
 }
@@ -3049,13 +3177,14 @@ window.addEventListener("pointercancel", cancelStroke);
 
 document.addEventListener("keydown", function (event) {
   const painting = !isQuiz() && state.mode === "solve";
+  const onButton = event.target.tagName === "BUTTON";
   if (event.key === "Escape") { cancelStroke(); return; }
   if (painting && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
     event.preventDefault();
     undoPick();
     return;
   }
-  if (painting && (event.key === " " || event.key === "Spacebar")) {
+  if (painting && !onButton && (event.key === " " || event.key === "Spacebar")) {
     event.preventDefault();
     cycleTool();
     return;
@@ -3068,7 +3197,7 @@ document.addEventListener("keydown", function (event) {
       return;
     }
   }
-  if (event.target.tagName === "BUTTON") {
+  if (onButton) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") return;
   }
   if (event.key === "ArrowRight") { stopPlay(); goTo(state.index + 1); event.preventDefault(); }
