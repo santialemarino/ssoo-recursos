@@ -332,7 +332,7 @@
   .gantt-cell.ghost { opacity: 0.42; border-style: dashed; border-width: 2px; }
   .gantt-cell.stroke { opacity: 0.72; border-style: dashed; border-width: 2px; }
   .gantt-cell.early { border-color: var(--bsusp); border-style: dashed; border-width: 2px; }
-  .gantt-cell.shown, .gantt-cell.missed { border-color: var(--marked); border-style: dashed; border-width: 2px; }
+  .gantt-cell.shown { border-color: var(--marked); border-style: dashed; border-width: 2px; }
 
   .gantt-cell.wrong {
     color: var(--muted);
@@ -797,11 +797,12 @@ const UI_TEXT = {
     cellLabel: "{p}, instante {a} a {b}",
     flagEarly: "antes",
     flagShown: "iba",
-    flagMissed: "no iba",
     legendMiss: "no iba",
     legendShown: "iba acá",
     legendEarly: "en suspenso",
     early: "Te adelantaste. Eso queda en suspenso hasta que resuelvas {r} de {a} a {b}.",
+    earlyMany: "Te adelantaste en {r}. Eso queda en suspenso hasta que resuelvas lo anterior de cada uno.",
+    and: "y",
     hit: "Bien: {p} tiene {r} de {a} a {b}.",
     missOther: "De {a} a {b}, {r} no era de {p} sino de {q}.",
     missElsewhereOther: "De {a} a {b}, {p} estaba en {r2}: {r} era de {q}.",
@@ -1477,6 +1478,11 @@ function parseQueue(spec) {
   }).filter(function (entry) { return entry.id.length > 0; });
 }
 
+function joinPhrases(items) {
+  if (items.length < 2) return items.join("");
+  return items.slice(0, -1).join(", ") + " " + UI_TEXT.paint.and + " " + items[items.length - 1];
+}
+
 function fill(template, values) {
   return Object.keys(values).reduce(function (text, key) {
     return text.split("{" + key + "}").join(values[key]);
@@ -1951,6 +1957,8 @@ const state = {
   quizAnswered: false
 };
 
+const FEEDBACK_LINES = 2;
+
 let view = null;
 let paintCells = {};
 
@@ -2280,10 +2288,8 @@ function paintedAssign(index) {
   return assign;
 }
 
-function columnTouched(index) {
-  return view.resources.some(function (res) {
-    return Boolean(answerAt(state.answers, index, res.id) || earlyAt(index, res.id));
-  });
+function columnAnswered(index) {
+  return view.resources.some(function (res) { return Boolean(answerAt(state.answers, index, res.id)); });
 }
 
 function flagNode(text) {
@@ -2318,11 +2324,6 @@ function markCell(cell, marks) {
   if (marks.shown) {
     cell.classList.add("shown");
     cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
-    return;
-  }
-  if (marks.wrong) {
-    cell.classList.add("missed");
-    cell.appendChild(flagNode(UI_TEXT.paint.flagMissed));
   }
 }
 
@@ -2343,7 +2344,7 @@ function paintFace(cell, rowId, index) {
   if (step.states) {
     const status = finishedAt(rowId, index)
       ? "term"
-      : (columnTouched(index) ? stateFrom(view, rowId, index, assign) : null);
+      : ((columnAnswered(index) || marks.early) ? stateFrom(view, rowId, index, assign) : null);
     if (!status) {
       cell.classList.add("blank");
       return;
@@ -2755,12 +2756,15 @@ function settlePicks(force) {
 }
 
 function earlyNotes() {
-  return view.resources.filter(function (res) {
+  const pending = view.resources.filter(function (res) {
     return state.early.some(function (entry) { return Boolean(entry[res.id]); });
-  }).map(function (res) {
-    const limit = frontierOf(view, state.answers, res.id);
-    return fill(UI_TEXT.paint.early, { r: res.phrase, a: limit, b: limit + 1 });
   });
+  if (pending.length === 0) return [];
+  if (pending.length === 1) {
+    const limit = frontierOf(view, state.answers, pending[0].id);
+    return [fill(UI_TEXT.paint.early, { r: pending[0].phrase, a: limit, b: limit + 1 })];
+  }
+  return [fill(UI_TEXT.paint.earlyMany, { r: joinPhrases(pending.map(function (res) { return res.phrase; })) })];
 }
 
 function commitStroke(stroke) {
@@ -2913,17 +2917,33 @@ function renderNarration() {
   if (state.index === view.length - 1) body.appendChild(closingCard(example));
 }
 
+function feedbackLines(closed) {
+  const cap = closed ? 1 : FEEDBACK_LINES;
+  const runs = closed ? state.runs.filter(function (run) { return run.status !== "missing"; }) : state.runs;
+  const lines = state.note ? [{ css: "note", text: state.note }] : [];
+  const notes = state.notes.slice(0, Math.max(0, cap - lines.length - (runs.length > 0 ? 1 : 0)));
+  const room = cap - lines.length - notes.length;
+  const shown = runs.slice(0, runs.length > room && room > 1 ? room - 1 : room);
+  shown.forEach(function (run) { lines.push({ run: run }); });
+  if (runs.length > shown.length && lines.length < cap - notes.length) {
+    lines.push({ css: "note", text: fill(UI_TEXT.paint.more, { n: runs.length - shown.length }) });
+  }
+  notes.forEach(function (text) { lines.push({ css: "early", text: text }); });
+  return lines.slice(0, cap);
+}
+
 function renderVerdicts(body) {
   const closed = settledCount(view, state.answers) === view.length;
-  const runs = closed ? state.runs.filter(function (run) { return run.status !== "missing"; }) : state.runs;
-  const room = closed ? 1 : (state.notes.length > 0 ? 2 : 3);
   const list = element("ul", "verdict-list");
-  if (state.note) list.appendChild(element("li", "note", state.note));
   let explained = false;
-  runs.slice(0, room).forEach(function (run) {
-    const item = element("li", run.status === "hit" ? "hit" : "miss");
-    appendRich(item, pickVerdict(view, run));
-    const why = explained ? null : pickWhy(view, run);
+  feedbackLines(closed).forEach(function (line) {
+    if (!line.run) {
+      list.appendChild(element("li", line.css, line.text));
+      return;
+    }
+    const item = element("li", line.run.status === "hit" ? "hit" : "miss");
+    appendRich(item, pickVerdict(view, line.run));
+    const why = explained ? null : pickWhy(view, line.run);
     if (why) {
       explained = true;
       item.appendChild(document.createTextNode(" "));
@@ -2933,10 +2953,6 @@ function renderVerdicts(body) {
     }
     list.appendChild(item);
   });
-  if (!closed && runs.length > room) {
-    list.appendChild(element("li", "note", fill(UI_TEXT.paint.more, { n: runs.length - room })));
-  }
-  state.notes.forEach(function (text) { list.appendChild(element("li", "early", text)); });
   if (list.childNodes.length > 0) {
     body.appendChild(list);
     if (closed) return;

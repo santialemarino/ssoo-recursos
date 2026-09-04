@@ -105,17 +105,29 @@ con dos variantes adentro de un ejemplo.
   nada.
 
   **Al corregir, el diagrama pasa a decir la verdad.** El casillero correcto queda
-  pintado; si te equivocaste, el que sí iba aparece con la etiqueta `iba`. El que
-  pintaste de más queda rayado y tachado **si el casillero estaba vacío**; si ese
-  proceso en ese instante ocupaba otra cosa —o ya había terminado, o el diagrama es
-  la banda de estados del 16— el casillero sigue diciendo la verdad y el error va
-  como etiqueta `no iba`. Nunca se tapa un hecho con una marca. Lo que el estudiante
+  pintado; si te equivocaste, el que sí iba aparece con la etiqueta `iba`, y el que
+  pintaste de más queda rayado y tachado. Lo que el estudiante
   mira al final es siempre el diagrama correcto, no su borrador. La devolución
   agrupa instantes contiguos: un trazo de cuatro casilleros errados sale como una
   sola frase, no como cuatro. Siempre se avanza; nunca queda trabado. Hay un
   contador discreto de aciertos, **que arranca de cero en cada ejemplo** —el número
   está al lado de un ejemplo, así que habla de ese ejemplo— y al que **deshacer no
-  toca**: recuperás el casillero para volver a pintarlo, no el punto.
+  toca**: recuperás el casillero para volver a pintarlo, no el punto. Deshacer algo
+  que todavía está en suspenso sí es gratis, y tiene que serlo: nunca se corrigió,
+  así que no hay punto que devolver.
+
+  **Una marca sólo puede señalar lo que el casillero muestra.** De ahí sale toda la
+  regla de arriba, y conviene tenerla presente porque ya se rompió una vez. El rayado
+  funciona porque *reemplaza* el contenido del casillero: lo único que hay ahí es tu
+  error. La etiqueta `iba` funciona porque señala exactamente lo que el casillero
+  dice: «esto es lo que iba acá, y te lo perdiste». Pero cuando el casillero muestra
+  un hecho verdadero —el proceso ocupaba otro recurso, o ya había terminado, o es la
+  banda de estados del 16— **no hay nada ahí que una etiqueta de error pueda
+  señalar**, y ponerle una se lee como si negara lo que se ve. Pasó tal cual: pintar
+  el dispositivo donde iba la CPU y después acertar la CPU dejaba el casillero
+  diciendo «CPU» con una etiqueta «no iba» al lado, mientras la narración decía
+  «Bien: A tiene la CPU de 0 a 1». Ese error vive en la devolución, que **nombra el
+  recurso** y por eso no se presta a confusión.
 
   **Cuando se erra la CPU, la devolución dice por qué.** No alcanza con «era B»:
   en los ejemplos que deciden con una cuenta, lo que hay que ver son los dos
@@ -157,6 +169,13 @@ con dos variantes adentro de un ejemplo.
   decisión ni siquiera estaba abierta. De ahí sale el campo `noPreempt` de
   `ALGORITHMS`: separa «no desaloja» de «desaloja» para poder decirlo con esas
   palabras.
+
+  **Lo que está en suspenso no pinta la columna.** En el 16 el diagrama es una banda
+  de estados y el color de cada casillero se deriva de lo que ya se contestó, así que
+  un casillero contestado ilumina a toda su columna. Un casillero **en suspenso no**:
+  se pinta solo él, con su etiqueta `antes`, y el resto de la columna espera. Si no,
+  una respuesta que todavía no se corrigió estaría afirmando el estado de los otros
+  procesos —y afirmándolo mal, porque sale de una asignación incompleta.
 
   El botón **«Terminé»** cierra el diagrama: corrige lo que haya en suspenso y
   completa lo que falte. Lo que nunca contestaste **no lleva marca**: la marca `iba`
@@ -204,9 +223,16 @@ repositorio.
   extiende a lo ancho, y si no, comparte fila con el de dispositivos.
 
   El 15 es el que más apretado queda —tres recursos y cuatro filas de diagrama— y
-  es el que hay que medir cada vez que se agrega un renglón al pie: es el único
-  donde el panel de estado se pasa, y se pasa por 2 px. Cualquier cosa que crezca
-  abajo se le come el margen a ese ejemplo antes que a ninguno.
+  es el que hay que medir cada vez que se agrega un renglón al pie. Con el pie en dos
+  renglones, su panel de estado **se pasa 14 px en el instante 2 y 4 px en el 3**, y
+  ningún otro ejemplo se pasa en ningún instante. Viene de antes de que se pintara
+  sobre el diagrama y es puramente aritmético: la fila del diagrama es `auto` y la del
+  panel de estado es `1fr`, así que cada píxel que crece el pie se lo saca al panel de
+  estado, y en el 15 el panel necesita 189 px y a dos renglones le quedan 175. Se
+  cierra de dos maneras, las dos con costo: bajar el tope a un solo renglón —y perder
+  la mitad de la devolución en los diecisiete— o dejar de darle fila propia al bloque
+  de eventos cuando la cantidad de bloques es par, que ahorraría 60 px pero cambia el
+  acomodo del panel en varios ejemplos. Las dos son decisión de cátedra.
 - **Cuándo aparece el `FIN`.** Se pinta solo, en cuanto se responde **el último
   instante que ese proceso ocupa algo**, sin esperar a que cierre la columna ni a
   que se cierre el ejemplo. No revela nada: que un proceso terminó se deduce del
@@ -268,7 +294,7 @@ escrito adentro del motor ni del render.
   y de razones. Cambiar `UI_TEXT.reasons.fifo` cambia la frase en los diez
   instantes donde FIFO elige a alguien.
 - `UI_TEXT.paint` — todo lo del modo Resolver: los rótulos de la barra, las
-  etiquetas `antes`, `iba` y `no iba`, las plantillas de devolución y las `why*`,
+  etiquetas `antes` e `iba`, las plantillas de devolución y las `why*`,
   que son las que explican por qué la decisión de CPU estaba mal. Hay una familia por
   tipo de recurso: `hit` / `missOther` / `missFree` / `missing` para los que se
   ocupan, y las mismas con el sufijo `Mem` para «fuera de memoria», que no se
@@ -362,13 +388,17 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   diría que tiene un dispositivo que no tiene. Que está esperando se ve en la
   cola del dispositivo. En el ejemplo 1 —donde ese es justamente el tema— el
   casillero lleva además el borde punteado.
-- **El tope de líneas de la devolución.** Se muestran como mucho tres —dos si
-  además hay algo en suspenso— y **una sola cuando el ejemplo ya se cerró**, que
-  además reemplaza a la razón del instante en vez de sumarse a ella. No es
-  estética, y el «reemplaza» es la parte que importa: con la tarjeta de cierre en
-  pantalla el pie no tiene lugar para un renglón más, medido, en ninguno de los
-  diecisiete. La devolución vive en el pie, el pie empuja al `main`, y el `main` es
-  de donde salen los paneles: sin tope, terminar un ejemplo con «Terminé» listaba diez
+- **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
+  **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
+  instante en vez de sumarse a ella. No es estética, y hay dos partes que importan.
+  La primera es «contando todo»: el tope tiene que incluir los avisos de suspenso y
+  el renglón de «y N más», no sólo los veredictos. Cuando contaba sólo los
+  veredictos, tres recursos en suspenso metían tres renglones extra por abajo y el
+  pie llegaba a cinco. La segunda es que por eso el aviso de suspenso **se junta en
+  un solo renglón** cuando hay más de un recurso adelantado (`earlyMany`): así
+  siempre queda lugar para el veredicto de lo que acabás de hacer. La devolución vive
+  en el pie, el pie empuja al `main`, y el `main` es de donde salen los paneles: sin
+  tope, terminar un ejemplo con «Terminé» listaba diez
   líneas y comprimía el panel de estado unos 50 px. Con el tope, el recurso
   scrollea igual o menos que la versión de selectores en los diecisiete.
 
@@ -506,3 +536,8 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
     de la escalera, del modo o de la barra de recursos.
 11. Mirar el diagrama con **cada** recurso elegido, no sólo con el primero: lo que
     ya está contestado se tiene que ver igual con cualquier herramienta activa.
+12. Pintar un recurso donde iba otro y después acertar el que iba: el casillero tiene
+    que quedar limpio, diciendo la verdad, sin ninguna marca que contradiga a la
+    narración.
+13. Adelantarse en los tres recursos del 10 o del 15 a la vez: el aviso tiene que
+    salir en **un** renglón, y el pie no puede pasar de dos.
