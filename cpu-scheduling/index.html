@@ -180,12 +180,12 @@
     align-items: center;
     gap: 7px;
     flex-wrap: wrap;
-    font-size: 11.5px;
-    font-weight: 720;
-    letter-spacing: 0.055em;
+    font-size: 11px;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: var(--ink-soft);
-    padding: 9px 14px 3px;
+    color: var(--faint);
+    padding: 9px 14px 8px;
+    border-bottom: 1px solid var(--line);
     flex: 0 0 auto;
   }
 
@@ -224,7 +224,7 @@
     color: var(--muted);
   }
 
-  .panel-body { padding: 9px 14px 10px; overflow: auto; min-height: 0; flex: 1 1 auto; }
+  .panel-body { padding: 8px 14px 8px; overflow: auto; min-height: 0; flex: 1 1 auto; }
 
   .statement-scroll { overflow-x: auto; }
   .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -489,7 +489,7 @@
 
   .score { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  .quiz-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 5px; }
+  .quiz-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 5px; }
 
   .quiz-options button { text-align: left; padding: 6px 11px; font-size: 13.5px; font-weight: 620; }
   .quiz-options button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
@@ -587,7 +587,7 @@
   .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
   .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
   .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
-  .small { padding: 6px 11px; font-size: 13px; font-weight: 620; }
+  .small { padding: 6px 11px; font-size: 13px; }
 
   #tooltip {
     position: fixed;

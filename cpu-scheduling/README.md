@@ -534,12 +534,13 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   diría que tiene un dispositivo que no tiene. Que está esperando se ve en la
   cola del dispositivo. En el ejemplo 1 —donde ese es justamente el tema— el
   casillero lleva además el borde punteado.
-- **Que en el 16 la banda no diga nada hasta que la columna esté completa.** El
+- **Que en el 16 una fila no se dibuje mientras su estado sea una suposición.** El
   color de cada casillero se deriva de la asignación de CPU, dispositivo y memoria,
-  así que con la columna a medias la derivación es falsa: contestar sólo la CPU del
-  instante 2 pintaba a A de `LISTO` cuando A estaba en el dispositivo. Ahora la
-  columna no muestra nada hasta que **todos** sus recursos estén resueltos, y
-  entonces muestra la verdad de una vez. La devolución sí aparece al instante, así
+  así que con la fila a medias la derivación es falsa: contestar sólo la CPU del
+  instante 2 pintaba a A de `LISTO` cuando A estaba en el dispositivo. La regla que
+  lo evita está arriba —una fila se dibuja apenas una respuesta la nombra, porque
+  ahí su estado ya está decidido— y lo que **no** se puede hacer es dibujar filas
+  que ninguna respuesta nombró todavía. La devolución sí aparece al instante, así
   que no se pierde nada: lo que se pierde es la afirmación falsa.
 
 - **El tooltip es el mismo componente que en los otros dos recursos.** El disparador
@@ -547,6 +548,15 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   fondo, tipografía, sombra y animación de apertura que `instruction-cycle-interrupts`
   y `process-lifecycle`. Había derivado en seis propiedades y se notaba al pasar de un
   recurso a otro. Si tocás uno, tocá los tres.
+
+- **El `h2` de panel y los botones chicos de la barra son los de los otros dos
+  recursos.** El título de panel había derivado en cinco propiedades —cuerpo, peso,
+  interletrado, color y la línea de abajo, que acá no estaba— y «primero» / «último» /
+  «deshacer» / «terminé» venían en negrita cuando en los otros dos van en redonda.
+  Se alinearon los dos, y el `--faint` del título mide 4.71:1 sobre el panel, así que
+  el argumento que había para dejarlo más oscuro no se sostenía. La línea del `h2`
+  cuesta 6 px por panel; se pagaron alineando también el relleno de `.panel-body`,
+  que había derivado por su cuenta.
 
 - **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
   **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
