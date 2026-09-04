@@ -1642,6 +1642,16 @@ function cellState(view, rowId, index) {
   return null;
 }
 
+function swapKeepsState(view, rowId, index) {
+  const memory = view.resources.filter(function (res) { return res.kind === "memory"; })[0];
+  if (!memory || index === 0) return null;
+  if (view.steps[index - 1].assign[memory.id] === rowId) return null;
+  const before = cellState(view, rowId, index - 1);
+  if (before === "blocked") return "bsusp";
+  if (before === "ready") return "rsusp";
+  return null;
+}
+
 function cellTag(view, rowId, index) {
   const status = cellState(view, rowId, index);
   if (!status) return "";
@@ -2343,6 +2353,11 @@ function paintFace(cell, rowId, index) {
         return res.kind === "memory" && answerAt(state.answers, index, res.id) && step.assign[res.id] === rowId;
       })[0];
       if (pending) {
+        const kept = swapKeepsState(view, rowId, index);
+        if (kept) {
+          faceOf(cell, kept, UI_TEXT.cells[kept] || "", marks);
+          return;
+        }
         cell.textContent = pending.short;
         cell.title = pending.label;
         return;
@@ -2441,7 +2456,9 @@ function advanceTool(opened) {
 
 function previewStatus(res, rowId, index) {
   if (!view.steps[index].states) return res.kind === "cpu" ? "running" : "blocked";
-  if (res.kind === "memory" && !statusKnown(rowId, index) && !settledApartFrom(view, state.answers, index, res.id)) return null;
+  if (res.kind === "memory" && !statusKnown(rowId, index) && !settledApartFrom(view, state.answers, index, res.id)) {
+    return swapKeepsState(view, rowId, index);
+  }
   const assign = paintedAssign(index);
   assign[res.id] = rowId;
   return assignedStatus(view, rowId, assign);

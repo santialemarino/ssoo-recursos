@@ -113,15 +113,31 @@ con dos variantes adentro de un ejemplo.
   tener los dos. El renglón de arranque del ejemplo lo dice con todas las letras
   (`idleBand`), porque no se adivina.
 
-  **Y si se contesta la memoria antes que el dispositivo, el casillero no adivina.**
-  Ahí falta el dato que decide entre `B/S` y `R/S`, así que en vez de mostrar `R/S`
-  —que era lo que hacía, y se corregía a `B/S` un clic después— el casillero muestra
-  el `short` del recurso, `FM`, sin color de estado: «dijiste que está afuera; el
-  estado sale cuando se sepa lo del dispositivo». La vista previa muestra lo mismo,
-  así que sigue valiendo que lo que se ve es lo que va a pasar: 880 vistas previas, 0
-  diferencias con el resultado. Con el recorrido automático esto no aparece nunca,
-  porque el dispositivo se contesta antes; aparece sólo si uno elige el pincel de
-  memoria a mano y primero.
+  **Y si se contesta la memoria antes que el dispositivo, hay que separar dos cosas.**
+  Cuando el swap **empieza** —el instante en que se lo llevan— vale leer el casillero
+  de la izquierda: al que sacan bloqueado le queda `B/S` y al que sacan listo, `R/S`,
+  porque sacarlo de memoria no cambia si estaba esperando una I/O. Eso está
+  implementado (`swapKeepsState`) y es lo que hace que contestar la memoria primero en
+  el instante 3 dé `B/S` derecho.
+
+  Cuando el swap **sigue** —los instantes en que ya estaba afuera— leer la izquierda
+  no sirve, y se midió: acierta en el 4, el 5, el 7 y el 8 y **falla en el 6**, donde
+  `B/S` pasa a `R/S` porque terminó la I/O. Ahí no se está decidiendo nada sobre
+  memoria: se está repitiendo una condición que ya valía, y lo que cambió es otra
+  cosa. Así que si falta el dispositivo, el casillero no adivina: muestra el `short`
+  del recurso, `FM`, sin color de estado —«dijiste que está afuera; el estado sale
+  cuando se sepa lo del dispositivo»—. La vista previa muestra lo mismo, así que sigue
+  valiendo que lo que se ve es lo que va a pasar: 880 vistas previas, 0 diferencias
+  con el resultado. Con el recorrido automático nada de esto aparece, porque el
+  dispositivo se contesta antes.
+
+  **Y `B/S` → `R/S` se dice como cualquier otro fin de I/O: dejando de pintar el
+  dispositivo.** No hace falta ningún pincel de «vuelve a estar listo», igual que en
+  los otros dieciséis no hace falta uno para pasar de `I/O` a la cola de listos. Lo
+  mismo vale para volver a memoria: se dice no pintando «fuera de memoria», y el panel
+  de eventos lo anuncia («Se libera lugar y A vuelve a memoria»). Salir es explícito y
+  volver es implícito, igual que empezar una I/O es explícito y terminarla es
+  implícita.
 
   **Estar fuera de memoria se arrastra solo mientras la columna está abierta.** Salir
   de memoria no es un evento de un instante: es una condición que dura hasta que a
