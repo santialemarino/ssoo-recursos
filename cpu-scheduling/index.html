@@ -780,6 +780,7 @@ const UI_TEXT = {
   },
   paint: {
     label: "Estás pintando",
+    idleBand: "Se resuelve un instante por vez, y acá el casillero no muestra un recurso sino un estado, así que puede necesitar más de una respuesta: tener el dispositivo y estar fuera de memoria son dos, y juntas dan BLOCKED SUSPENDED.",
     idle: "Se resuelve un instante por vez. Elegí un recurso arriba y pintá quién lo ocupa en la columna marcada; cuando estén contestados todos los recursos de ese instante, se abre el siguiente.",
     undo: "Deshacer",
     undone: "Deshiciste lo último que pintaste. Los errores que ya contaste siguen contados.",
@@ -2260,9 +2261,19 @@ function shownHolder(index, resId) {
   return answerAt(state.answers, index, resId) ? view.steps[index].assign[resId] || null : null;
 }
 
+function stillOutside(index, resId) {
+  if (answerAt(state.answers, index, resId)) return null;
+  if (columnSettled(view, state.answers, index)) return null;
+  if (index === 0 || !answerAt(state.answers, index - 1, resId)) return null;
+  return shownHolder(index - 1, resId);
+}
+
 function paintedAssign(index) {
   const assign = {};
   view.resources.forEach(function (res) { assign[res.id] = shownHolder(index, res.id); });
+  view.resources.forEach(function (res) {
+    if (res.kind === "memory" && !assign[res.id]) assign[res.id] = stillOutside(index, res.id);
+  });
   return assign;
 }
 
@@ -2977,7 +2988,7 @@ function renderVerdicts(body) {
     body.appendChild(list);
     if (closed) return;
   } else if (!closed) {
-    body.appendChild(element("p", "narration-note", UI_TEXT.paint.idle));
+    body.appendChild(element("p", "narration-note", view.example.stateBand ? UI_TEXT.paint.idleBand : UI_TEXT.paint.idle));
   }
   if (!columnSettled(view, state.answers, Math.min(state.index, view.length - 1))) return;
   const reason = reasonFor(view, state.index);

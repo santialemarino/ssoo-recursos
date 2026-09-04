@@ -105,13 +105,26 @@ con dos variantes adentro de un ejemplo.
 
   **En el 16 hacen falta dos respuestas para decir `B/S`, y se componen.** No hay un
   pincel de «bloqueado y suspendido»: se dice que el proceso tiene el dispositivo y
-  se dice que está fuera de memoria, y de las dos juntas sale `B/S`. Por eso el
-  casillero pasa por `I/O` en el medio, y **eso no es un error de la vista previa**:
-  con una sola de las dos respuestas dadas, lo que se afirmó es exactamente
-  «bloqueado». La vista previa muestra siempre lo que el clic va a producir —medido:
-  880 vistas previas, 0 diferencias con el resultado— y lo provisional se corrige
-  siempre dentro de la misma columna, porque un instante con dispositivo y memoria no
-  cierra hasta tener los dos.
+  se dice que está fuera de memoria, y de las dos juntas sale `B/S`. Con una sola
+  dada, lo que se afirmó es exactamente «bloqueado», así que eso es lo que se ve. La
+  vista previa muestra siempre lo que el clic va a producir —medido: 880 vistas
+  previas, 0 diferencias con el resultado— y lo provisional se corrige siempre dentro
+  de la misma columna, porque un instante con dispositivo y memoria no cierra hasta
+  tener los dos. El renglón de arranque del ejemplo lo dice con todas las letras
+  (`idleBand`), porque no se adivina.
+
+  **Estar fuera de memoria se arrastra solo mientras la columna está abierta.** Salir
+  de memoria no es un evento de un instante: es una condición que dura hasta que a
+  alguien lo dejan volver. Por eso, mientras el instante no cierre, si no contestaste
+  la memoria pero **en el instante anterior dijiste que ese proceso estaba afuera**, se
+  asume que sigue afuera. Sin eso, en los instantes 4 y 5 el casillero pasaba de `B/S`
+  a `I/O` y volvía a `B/S` un clic después: un parpadeo rojo en el medio de una racha
+  naranja, que es justo lo que no pasa en la realidad —a nadie lo devuelven a memoria
+  y lo sacan de nuevo en el mismo instante—. Con el arrastre, el único paso intermedio
+  que queda es el **instante 3**, donde el swap efectivamente empieza, y ahí ver
+  primero `I/O` y después `B/S` es la composición que el ejemplo enseña. El arrastre
+  vale sólo para el dibujo provisional: apenas cierra la columna, el estado sale de
+  las respuestas reales.
 
   **Ojo con "heredar el estado de la izquierda".** Suena bien —«lo mando a memoria
   tal como estaba»— y para la decisión de swap *es* así: al que sacan bloqueado le
