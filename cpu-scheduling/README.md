@@ -103,6 +103,16 @@ con dos variantes adentro de un ejemplo.
   `verifyView` comprueba esa derivación contra los doce estados que resolvió la
   cátedra, así que no es una interpretación: es la regla, chequeada.
 
+  **En el 16 hacen falta dos respuestas para decir `B/S`, y se componen.** No hay un
+  pincel de «bloqueado y suspendido»: se dice que el proceso tiene el dispositivo y
+  se dice que está fuera de memoria, y de las dos juntas sale `B/S`. Por eso el
+  casillero pasa por `I/O` en el medio, y **eso no es un error de la vista previa**:
+  con una sola de las dos respuestas dadas, lo que se afirmó es exactamente
+  «bloqueado». La vista previa muestra siempre lo que el clic va a producir —medido:
+  880 vistas previas, 0 diferencias con el resultado— y lo provisional se corrige
+  siempre dentro de la misma columna, porque un instante con dispositivo y memoria no
+  cierra hasta tener los dos.
+
   **Ojo con "heredar el estado de la izquierda".** Suena bien —«lo mando a memoria
   tal como estaba»— y para la decisión de swap *es* así: al que sacan bloqueado le
   queda `B/S` y al que sacan listo, `R/S`. Pero como regla de dibujo está mal, y se
