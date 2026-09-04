@@ -200,6 +200,17 @@ con dos variantes adentro de un ejemplo.
   contorno solo, sin rótulo. Medido en `k4.mjs`, que compara previa contra resultado
   en todas las combinaciones.
 
+  **Esa previa sin rótulo tiene que verse más marcada que el casillero en reposo, no
+  menos.** Son 51 de las 682 previas posibles, todas en el 16, y como no llevan
+  relleno ni texto quedaban con la opacidad 0.42 del `ghost` aplicada a nada: el
+  casillero apuntado se veía **más débil** que sus vecinos, o sea que apuntar parecía
+  desactivar. Ahora, cuando la previa no lleva estado, el casillero conserva la clase
+  `blank`, va a opacidad entera y marca el objetivo con el borde punteado de 2 px en
+  `--ink-soft`. Neutro a propósito: un color de pincel adentro de la banda de estados
+  se leería como un estado. El clic se acusa igual por otros tres lados —el botón del
+  recurso se apaga, el pie dice «Bien: A tiene el dispositivo de 3 a 4» y la columna
+  sigue abierta—, así que el casillero no necesita afirmar nada.
+
   **Sólo se puede pintar la columna del instante actual.** Es la regla entera. La
   columna viva es la primera que todavía no está resuelta —la del anillo, la del
   contador, la que muestra el panel de estado—, y fuera de ella no se pinta: no hay
@@ -768,7 +779,10 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
     cambiando solo, y cada columna revelarse cuando se contesta su tercer recurso.
 16. En cualquier ejemplo, terminar un recurso y comprobar que su botón queda
     apagado y que el pincel salta al que todavía tiene trabajo.
-17. En el 16, contestar un instante en los seis órdenes posibles y mirar el tablero
+17. En el 16, pasar el mouse con el pincel del dispositivo y con el de memoria por un
+    casillero pintable: el contorno punteado tiene que verse **más** marcado que los
+    casilleros en reposo, aunque no muestre ni color ni rótulo.
+18. En el 16, contestar un instante en los seis órdenes posibles y mirar el tablero
     entre respuesta y respuesta: lo único que puede aparecer antes de cerrar la
     columna es la fila que recibió la CPU. Si con el dispositivo contestado ya se ve
     `B/S`, la última respuesta pasó a ser un trámite y hay un problema.

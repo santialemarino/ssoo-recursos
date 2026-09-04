@@ -340,6 +340,7 @@
   .gantt-cell.blank.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
   .gantt-cell.ghost { opacity: 0.42; border-style: dashed; border-width: 2px; }
   .gantt-cell.stroke { opacity: 0.72; border-style: dashed; border-width: 2px; }
+  .gantt-cell.blank.ghost, .gantt-cell.blank.stroke { opacity: 1; border-color: var(--ink-soft); }
   .gantt-cell.shown { border-color: var(--marked); border-style: dashed; border-width: 2px; }
 
   .gantt-cell.wrong {
@@ -2416,7 +2417,7 @@ function decorateCells() {
       const hovered = !state.painting && state.hover && state.hover.row === row.id && state.hover.t === t;
       if (!marked && !hovered) continue;
       const status = previewStatus(res, row.id, t);
-      cell.className = "gantt-cell paintable " + (status ? STATES[status].css + " " : "") + (marked ? "stroke" : "ghost");
+      cell.className = "gantt-cell paintable " + (status ? STATES[status].css + " " : "blank ") + (marked ? "stroke" : "ghost");
       cell.textContent = view.steps[t].states ? (status ? UI_TEXT.cells[status] || "" : "") : res.short;
       cell.title = status ? STATES[status].label : res.label;
       if (t === state.index) cell.classList.add("now");
