@@ -556,21 +556,21 @@
 
   .takeaway {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 10px;
     flex-wrap: wrap;
     margin: 2px 0 0;
-    padding: 5px 11px;
-    border: 1px solid var(--running);
-    border-left-width: 4px;
-    border-radius: 0 8px 8px 0;
+    padding: 6px 11px;
+    border: 1.5px solid var(--running);
+    border-radius: 8px;
     background: var(--running-soft);
+    animation: flash var(--fast) ease-out;
   }
 
   .takeaway .tag {
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 800;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--running);
   }

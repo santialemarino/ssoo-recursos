@@ -558,6 +558,16 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   cuesta 6 px por panel; se pagaron alineando también el relleno de `.panel-body`,
   que había derivado por su cuenta.
 
+- **La tarjeta de cierre tiene el borde entero, no una barra a la izquierda.** Los
+  tres recursos la dibujaban distinto y no había mayoría, pero acá había además un
+  problema propio: con la barra izquierda y el radio `0 8px 8px 0` tenía la misma
+  silueta que las tarjetas de eliminación del 17 y que las regiones del enunciado,
+  o sea que la frase para llevarse se veía igual que un componente secundario del
+  mismo recurso. Ahora es la forma de `instruction-cycle-interrupts` —fondo teñido,
+  borde de 1.5 px, radio parejo y la misma animación de apertura—. Lo único que
+  queda distinto es que el rótulo va en la misma línea: ponerlo arriba, como en los
+  otros dos, agrega 14 px al pie y desbordaba el panel de estado del 17.
+
 - **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
   **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
   instante en vez de sumarse a ella. No es estética: la devolución vive en el pie, el
