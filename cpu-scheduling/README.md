@@ -541,12 +541,14 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
 
 - **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
   **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
-  instante en vez de sumarse a ella. No es estética: el tope tiene que contar todos
-  los renglones, incluido el de «y N más», no sólo los veredictos. La devolución vive
-  en el pie, el pie empuja al `main`, y el `main` es de donde salen los paneles: sin
-  tope, terminar un ejemplo con «Terminé» listaba diez
-  líneas y comprimía el panel de estado unos 50 px. Con el tope, el recurso
-  scrollea igual o menos que la versión de selectores en los diecisiete.
+  instante en vez de sumarse a ella. No es estética: la devolución vive en el pie, el
+  pie empuja al `main`, y el `main` es de donde salen los paneles: sin tope, terminar
+  un ejemplo con «Terminé» listaba diez líneas y comprimía el panel de estado unos
+  50 px. Con el tope, el recurso scrollea igual o menos que la versión de selectores
+  en los diecisiete. Desde que se pinta un instante por vez, un trazo es un casillero
+  y la devolución es a lo sumo la razón del instante más un veredicto, así que el
+  tope ya casi no recorta: lo que lo justifica ahora es que el pie no crezca cuando
+  la razón es larga.
 
 - **La numeración del eje.** El casillero `n` es el intervalo `n−1` a `n`. Así lo
   dibuja la cátedra y así lo dibuja el estudiante en el parcial.

@@ -784,7 +784,6 @@ const UI_TEXT = {
     idle: "Se resuelve un instante por vez. Elegí un recurso arriba y pintá quién lo ocupa en la columna marcada; cuando estén contestados todos los recursos de ese instante, se abre el siguiente.",
     undo: "Deshacer",
     undone: "Deshiciste lo último que pintaste. Los errores que ya contaste siguen contados.",
-    more: "y {n} más.",
     whyOther: "Ahí el criterio era {c}: {q} tenía {nq}, y {p}, {np}.",
     whyTie: "Ahí los dos tenían {nq}, así que decidía el orden de la cola, y {q} estaba antes que {p}.",
     whyNotQueued: "Ahí el criterio era {c}: {q} tenía {nq}. {p} no estaba en la cola de listos en ese instante.",
@@ -806,11 +805,9 @@ const UI_TEXT = {
     missElsewhereOther: "De {a} a {b}, {p} estaba en {r2}: {r} era de {q}.",
     missElsewhereFree: "De {a} a {b}, {p} estaba en {r2}, y {r} no era de nadie.",
     missFree: "De {a} a {b}, {r} estaba libre: no era de {p}.",
-    missing: "Te faltó: de {a} a {b}, {r} era de {p}.",
     hitMem: "Bien: de {a} a {b}, {p} está fuera de memoria.",
     missOtherMem: "De {a} a {b}, el que estaba fuera de memoria era {q}, no {p}.",
-    missFreeMem: "De {a} a {b} no había nadie fuera de memoria: {p} estaba adentro.",
-    missingMem: "Te faltó: de {a} a {b}, {p} estaba fuera de memoria."
+    missFreeMem: "De {a} a {b} no había nadie fuera de memoria: {p} estaba adentro."
   },
   events: {
     arrive: "Llega {p}",
@@ -1791,30 +1788,6 @@ function judgePick(view, index, resId, given) {
   return { expected: expected, correct: given === expected };
 }
 
-function groupPicks(entries) {
-  const sorted = entries.slice().sort(function (one, two) {
-    if (one.res !== two.res) return one.res < two.res ? -1 : 1;
-    return one.t - two.t;
-  });
-  const runs = [];
-  sorted.forEach(function (entry) {
-    const open = runs[runs.length - 1];
-    const joins = open
-      && open.res === entry.res
-      && open.status === entry.status
-      && open.given === entry.given
-      && open.expected === entry.expected
-      && open.elsewhere === entry.elsewhere
-      && open.to === entry.t;
-    if (joins) {
-      open.to = entry.t + 1;
-      return;
-    }
-    runs.push({ res: entry.res, status: entry.status, given: entry.given, expected: entry.expected, elsewhere: entry.elsewhere, from: entry.t, to: entry.t + 1 });
-  });
-  return runs;
-}
-
 function criterionFor(algorithm) {
   return UI_TEXT.queues.criterion[algorithm] || null;
 }
@@ -1891,14 +1864,9 @@ function pickVerdict(view, run) {
     const template = run.expected ? UI_TEXT.paint.missElsewhereOther : UI_TEXT.paint.missElsewhereFree;
     return fill(template, { p: run.given, q: run.expected || "", r: res.phrase, r2: other.phrase, a: run.from, b: run.to });
   }
-  const key = run.status === "hit"
-    ? "hit"
-    : run.status === "missing"
-      ? "missing"
-      : run.expected ? "missOther" : "missFree";
+  const key = run.status === "hit" ? "hit" : run.expected ? "missOther" : "missFree";
   const template = UI_TEXT.paint[memory ? key + "Mem" : key];
-  const who = run.status === "missing" ? run.expected : run.given;
-  return fill(template, { p: who, q: run.expected || "", r: res.phrase, a: run.from, b: run.to });
+  return fill(template, { p: run.given, q: run.expected || "", r: res.phrase, a: run.from, b: run.to });
 }
 </script>
 
@@ -2823,12 +2791,12 @@ function elsewhereAt(index, resId, rowId) {
   return held ? held.id : null;
 }
 
-function judgeInto(entries, index, resId, given) {
+function judgeInto(runs, index, resId, given) {
   const call = judgePick(view, index, resId, given);
   state.answers[index][resId] = { given: given, correct: call.correct };
   state.asked += 1;
   if (call.correct) state.ok += 1;
-  entries.push({ t: index, res: resId, given: given, expected: call.expected, elsewhere: elsewhereAt(index, resId, given), status: call.correct ? "hit" : "miss" });
+  runs.push({ res: resId, status: call.correct ? "hit" : "miss", given: given, expected: call.expected, elsewhere: elsewhereAt(index, resId, given), from: index, to: index + 1 });
 }
 
 function commitStroke(stroke) {
@@ -2838,9 +2806,9 @@ function commitStroke(stroke) {
     .sort(function (one, two) { return one.t - two.t; });
   if (fresh.length === 0) return;
   rememberPicks();
-  const entries = [];
-  fresh.forEach(function (spot) { judgeInto(entries, spot.t, res.id, spot.row); });
-  state.runs = groupPicks(entries);
+  const runs = [];
+  fresh.forEach(function (spot) { judgeInto(runs, spot.t, res.id, spot.row); });
+  state.runs = runs;
   state.note = null;
   state.index = maxIndex();
   advanceTool(settledCount(view, state.answers) > before);
@@ -2860,12 +2828,10 @@ function undoPick() {
 }
 
 function finishAll() {
-  const entries = [];
   openPicks(view, state.answers).forEach(function (spot) {
     state.answers[spot.t][spot.res] = { given: null, correct: false };
-    entries.push({ t: spot.t, res: spot.res, given: null, expected: view.steps[spot.t].assign[spot.res], status: "missing" });
   });
-  state.runs = groupPicks(entries);
+  state.runs = [];
   state.note = null;
   state.history = [];
   state.index = maxIndex();
@@ -2984,14 +2950,8 @@ function renderNarration() {
 
 function feedbackLines(closed) {
   const cap = closed ? 1 : FEEDBACK_LINES;
-  const runs = closed ? state.runs.filter(function (run) { return run.status !== "missing"; }) : state.runs;
   const lines = state.note ? [{ css: "note", text: state.note }] : [];
-  const room = cap - lines.length;
-  const shown = runs.slice(0, runs.length > room && room > 1 ? room - 1 : room);
-  shown.forEach(function (run) { lines.push({ run: run }); });
-  if (runs.length > shown.length) {
-    lines.push({ css: "note", text: fill(UI_TEXT.paint.more, { n: runs.length - shown.length }) });
-  }
+  state.runs.slice(0, cap - lines.length).forEach(function (run) { lines.push({ run: run }); });
   return lines.slice(0, cap);
 }
 
