@@ -72,8 +72,8 @@
     transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
   }
 
-  button:hover:not([disabled]) { border-color: var(--faint); }
-  button:active:not([disabled]) { transform: translateY(1px); }
+  button:hover:not([disabled]):not(.gantt-cell) { border-color: var(--faint); }
+  button:active:not([disabled]):not(.gantt-cell) { transform: translateY(1px); }
 
   button:focus-visible, [tabindex]:focus-visible, select:focus-visible {
     outline: 3px solid var(--marked);
@@ -273,7 +273,6 @@
   .switch button[aria-pressed="true"].tool-memory { background: var(--marked); border-color: var(--marked); color: #fff; }
   .switch button .swatch { width: 12px; height: 10px; border-radius: 3px; border: 1px solid currentColor; background: currentColor; flex: 0 0 auto; }
   .switch button .key { font-size: 10px; font-weight: 700; opacity: 0.65; }
-  .hint { font-size: 12px; color: var(--muted); }
   .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
 
   .gantt-grid { display: grid; gap: 7px; padding: 3px; width: max-content; min-width: 100%; }
@@ -308,6 +307,17 @@
     transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out;
   }
 
+  .gantt-grid.painting .gantt-cell {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    cursor: default;
+  }
+
   .gantt-cell.blank { color: transparent; }
   .s-running { background: var(--running-soft); border-color: var(--running); color: var(--running); }
   .s-blocked { background: var(--blocked-soft); border-color: var(--blocked); color: var(--blocked); }
@@ -316,13 +326,13 @@
   .s-rsusp { background: var(--rsusp-soft); border-color: var(--rsusp); color: var(--rsusp); }
   .s-bsusp { background: var(--bsusp-soft); border-color: var(--bsusp); color: var(--bsusp); }
   .gantt-cell.future { background: var(--card); border-style: dashed; border-color: var(--line); }
-  .gantt-cell.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
   .gantt-cell.now { box-shadow: 0 0 0 2px var(--marked); }
-  .gantt-cell.paintable { background: var(--region-fill); border-color: var(--line-strong); }
+  .gantt-cell.blank.paintable { background: var(--region-fill); border-color: var(--line-strong); }
+  .gantt-cell.blank.waiting { border-style: dashed; border-color: var(--blocked); color: var(--blocked); }
   .gantt-cell.ghost { opacity: 0.42; border-style: dashed; border-width: 2px; }
   .gantt-cell.stroke { opacity: 0.72; border-style: dashed; border-width: 2px; }
   .gantt-cell.early { border-color: var(--bsusp); border-style: dashed; border-width: 2px; }
-  .gantt-cell.shown { border-style: dashed; border-width: 2px; }
+  .gantt-cell.shown, .gantt-cell.missed { border-color: var(--marked); border-style: dashed; border-width: 2px; }
 
   .gantt-cell.wrong {
     color: var(--muted);
@@ -333,24 +343,27 @@
 
   .gantt-cell .flag {
     position: absolute;
-    top: -6px;
+    top: -7px;
     right: -4px;
     font-size: 9px;
+    line-height: 1.3;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: 0 4px;
+    padding: 1px 5px;
     border-radius: 999px;
     background: var(--marked);
     color: #fff;
     text-decoration: none;
+    pointer-events: none;
   }
 
   .gantt-cell.early .flag { background: var(--bsusp); }
+  .gantt-grid.painting { touch-action: none; }
   .gantt-grid.painting .gantt-cell.paintable { cursor: crosshair; }
   .legend-swatch.mark-wrong { border-color: var(--line-strong); background: repeating-linear-gradient(-45deg, var(--card), var(--card) 4px, var(--region-fill-alt) 4px, var(--region-fill-alt) 8px); }
-  .legend-swatch.mark-shown { background: var(--marked-soft); border-color: var(--marked); border-style: dashed; }
-  .legend-swatch.mark-early { background: var(--card); border-color: var(--bsusp); border-style: dashed; }
+  .legend-swatch.mark-shown { background: var(--region-fill); border-color: var(--marked); border-style: dashed; }
+  .legend-swatch.mark-early { background: var(--region-fill); border-color: var(--bsusp); border-style: dashed; }
   .gantt-grid.dense .gantt-cell { height: 20px; }
   main.quiz .gantt-grid { gap: 4px; }
   main.quiz .gantt-cell { height: 23px; }
@@ -467,34 +480,6 @@
     border-radius: 0 5px 5px 0;
   }
 
-  .selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2px 18px; }
-
-  .selector { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 9px; padding: 3px 0; }
-
-  .selector .label-col { flex: 0 0 90px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-
-  .selector .name {
-    font-size: 10.5px;
-    font-weight: 750;
-    letter-spacing: 0.045em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-
-  .choices { display: flex; flex-wrap: wrap; gap: 4px; }
-  .choices button { padding: 4px 10px; font-size: 13px; font-weight: 640; min-width: 36px; }
-  .choices button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
-  .choices button[aria-pressed="true"].st-running { background: var(--running); border-color: var(--running); }
-  .choices button[aria-pressed="true"].st-blocked { background: var(--blocked); border-color: var(--blocked); }
-  .choices button[aria-pressed="true"].st-bsusp { background: var(--bsusp); border-color: var(--bsusp); }
-  .choices button[aria-pressed="true"].st-rsusp { background: var(--rsusp); border-color: var(--rsusp); }
-  .choices button:disabled { opacity: 1; cursor: default; }
-  .choices button.was-wrong { text-decoration: line-through; color: var(--muted); border-color: var(--line-strong); }
-
-  .selector .verdict { font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.2; }
-
-  .selector.bad .name { color: var(--ink); }
-
   .decision-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 11px; padding-top: 9px; border-top: 1px solid var(--line); }
 
   .score { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -503,10 +488,6 @@
 
   .quiz-options button { text-align: left; padding: 6px 11px; font-size: 13.5px; font-weight: 620; }
   .quiz-options button[aria-pressed="true"] { background: var(--marked); border-color: var(--marked); color: #fff; }
-  .quiz-options button:disabled { opacity: 1; cursor: default; }
-  .quiz-options button.is-answer { border-color: var(--marked); border-width: 2px; background: var(--marked-soft); color: var(--ink); font-weight: 720; }
-  .quiz-options button.is-picked { background: var(--region-fill-alt); }
-  .quiz-options .mark { float: right; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.03em; }
 
   .elim { display: flex; flex-direction: column; gap: 3px; }
 
@@ -690,7 +671,7 @@
     <div class="panel-body" id="statePanel"></div>
   </section>
   <section class="panel decision" id="decisionPanel">
-    <h2><span class="panel-title" data-tip="decision" tabindex="0" id="decisionTitle"></span><span class="panel-when" id="decisionWhen"></span></h2>
+    <h2><span class="panel-title" tabindex="0" id="decisionTitle"></span><span class="panel-when" id="decisionWhen"></span></h2>
     <div class="panel-body" id="decisionBody"></div>
   </section>
 </main>
@@ -735,7 +716,6 @@ const UI_TEXT = {
   lastStep: "Último",
   play: "Reproducir",
   pause: "Pausar",
-  none: "nadie",
   stepUnit: "Un paso = un instante",
   takeawayTag: "Para llevarse",
   score: "aciertos: {ok} de {total}",
@@ -762,7 +742,6 @@ const UI_TEXT = {
     degree: "Grado de multiprogramación",
     devices: "Dispositivos",
     cpus: "Procesadores",
-    outOfMemory: "Fuera de memoria",
     kltAlgorithm: "KLT",
     ultAlgorithm: "ULT",
     queueHigh: "Q1 · más prioridad",
@@ -806,11 +785,19 @@ const UI_TEXT = {
     whyTie: "Ahí los dos tenían {nq}, así que decidía el orden de la cola, y {q} estaba antes que {p}.",
     whyNotQueued: "Ahí el criterio era {c}: {q} tenía {nq}. {p} no estaba en la cola de listos en ese instante.",
     whyOrder: "Ahí decidía el orden de la cola, y {q} estaba antes que {p}.",
-    whyKeeps: "{q} ya venía ejecutando, y este algoritmo no desaloja: la CPU no se le saca hasta que termine su ráfaga.",
+    whyOrderAlone: "Ahí decidía el orden de la cola, y el primero era {q}.",
+    whyNotArrived: "{p} todavía no había llegado: llega recién en el {a}.",
+    whyKltOther: "Ahí {r} fue para {kq}: el sistema operativo elige [[klt:KLT]], y {kp} no era el elegido.",
+    whyKltElsewhere: "{kp} sí tenía procesador —estaba en {v}—, pero ahí su biblioteca eligió a {o}, no a {p}.",
+    whyKltPicked: "Ahí {r} fue para {kq}, y adentro su biblioteca eligió a {q}.",
+    whyKltBlocked: "{kp} estaba bloqueado: mientras un [[ult:ULT]] suyo espera una I/O, ninguno de sus ULT puede correr.",
+    whyKeeps: "{q} ya venía ejecutando, y este algoritmo no [[desalojo:desaloja]]: la CPU no se le saca hasta que termine su ráfaga.",
     whyKeepsPreempt: "{q} ya venía ejecutando y en ese instante no apareció nadie que lo desalojara.",
     finish: "Terminé",
+    cellLabel: "{p}, instante {a} a {b}",
     flagEarly: "antes",
     flagShown: "iba",
+    flagMissed: "no iba",
     legendMiss: "no iba",
     legendShown: "iba acá",
     legendEarly: "en suspenso",
@@ -877,9 +864,7 @@ const UI_TEXT = {
     prompt: "Este diagrama ya está resuelto. ¿Con qué algoritmo se armó?",
     check: "Responder",
     correct: "Bien: era {p}.",
-    wrong: "Era {p}.",
-    isAnswer: "era este",
-    yourPick: "elegiste este",
+    wrong: "Elegiste {c}. Era {p}.",
     elimPanel: "Qué descarta a cada uno",
     elimWhen: "instante {t}",
     tie: "Ojo con estos dos",
@@ -920,15 +905,15 @@ const STATES = {
 };
 
 const ALGORITHMS = {
-  fifo: { label: "FIFO", reason: "fifo", annotated: false, noPreempt: true },
-  sjf: { label: "SJF sin desalojo", reason: "sjf", annotated: true, noPreempt: true },
-  sjfP: { label: "SJF con desalojo", reason: "sjfP", annotated: true },
-  sjfEst: { label: "SJF con estimadores", reason: "sjfEst", annotated: true, noPreempt: true },
-  sjfEstP: { label: "SJF con estimadores y desalojo", reason: "sjfEstP", annotated: true },
-  hrrn: { label: "HRRN", reason: "hrrn", annotated: true, noPreempt: true },
-  rr: { label: "Round Robin", reason: "rr", annotated: false },
-  vrr: { label: "Virtual Round Robin", reason: "vrr", annotated: true },
-  feedback: { label: "Colas multinivel con feedback", reason: "feedback", annotated: true }
+  fifo: { label: "FIFO", reason: "fifo", noPreempt: true },
+  sjf: { label: "SJF sin desalojo", reason: "sjf", noPreempt: true },
+  sjfP: { label: "SJF con desalojo", reason: "sjfP" },
+  sjfEst: { label: "SJF con estimadores", reason: "sjfEst", noPreempt: true },
+  sjfEstP: { label: "SJF con estimadores y desalojo", reason: "sjfEstP" },
+  hrrn: { label: "HRRN", reason: "hrrn", noPreempt: true },
+  rr: { label: "Round Robin", reason: "rr" },
+  vrr: { label: "Virtual Round Robin", reason: "vrr" },
+  feedback: { label: "Colas multinivel con feedback", reason: "feedback" }
 };
 
 const DEFAULT_RESOURCES = [
@@ -995,7 +980,6 @@ const EXAMPLES = [
     subtitle: "La misma tabla del ejemplo 2. Ahora cada llegada vuelve a abrir la decisión.",
     closing: "Con desalojo, cada llegada vuelve a abrir la decisión.",
     algorithm: "sjfP",
-    compareWith: "A4",
     table: { kind: "process", rows: [
       { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 3 }, { k: "io", v: 2 }, { k: "cpu", v: 1 }] },
       { id: "B", arrival: 1, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 2 }, { k: "cpu", v: 2 }] },
@@ -1051,7 +1035,6 @@ const EXAMPLES = [
     subtitle: "La misma tabla del ejemplo 4. Ahora cada llegada vuelve a abrir la decisión, y la que decide es la estimación.",
     closing: "Con desalojo, la estimación no sólo elige quién entra: también decide a quién le sacan la CPU.",
     algorithm: "sjfEstP",
-    compareWith: "A6",
     params: { alpha: "0,5" },
     table: { kind: "process", estimates: true, rows: [
       { id: "A", arrival: 0, estPrev: 4, realPrev: 6, est: 5, nextEst: 4,
@@ -1143,7 +1126,6 @@ const EXAMPLES = [
     closing: "B, que es puro CPU, termina en 8 en vez de 6: VRR favorece a los que hacen I/O, y lo paga él.",
     algorithm: "vrr",
     params: { quantum: 3 },
-    compareWith: "A8",
     table: { kind: "process", rows: [
       { id: "A", arrival: 0, bursts: [{ k: "cpu", v: 1 }, { k: "io", v: 3 }, { k: "cpu", v: 3 }] },
       { id: "B", arrival: 0, bursts: [{ k: "cpu", v: 4 }] },
@@ -1325,7 +1307,6 @@ const EXAMPLES = [
     algorithm: "fifo",
     ultAlgorithm: "fifo",
     params: { kltAlgorithm: "FIFO", ultAlgorithm: "FIFO", jacketing: true },
-    compareWith: "B3",
     rowLabel: "ult",
     rows: [{ id: "ULT1A", group: "KLT1" }, { id: "ULT1B", group: "KLT1" }, { id: "ULT2A", group: "KLT2" }],
     table: { kind: "thread", ownerHead: "KLT", unitHead: "ULT", rows: [
@@ -1510,14 +1491,18 @@ function holdingResources(resources) {
   return resources.filter(function (res) { return res.kind !== "memory"; });
 }
 
-function stateFrom(view, rowId, index, assign) {
-  if (index >= view.ends[rowId]) return "term";
-  if (view.arrivals[rowId] > index) return null;
+function assignedStatus(view, rowId, assign) {
   const outside = view.resources.some(function (res) { return res.kind === "memory" && assign[res.id] === rowId; });
   const held = holdingResources(view.resources).filter(function (res) { return assign[res.id] === rowId; })[0];
   if (held && held.kind === "cpu") return "running";
   if (held) return outside ? "bsusp" : "blocked";
   return outside ? "rsusp" : "ready";
+}
+
+function stateFrom(view, rowId, index, assign) {
+  if (index >= view.ends[rowId]) return "term";
+  if (view.arrivals[rowId] > index) return null;
+  return assignedStatus(view, rowId, assign);
 }
 
 function cpuResources(resources) {
@@ -1711,10 +1696,12 @@ function deviceReason(view, index) {
     }
     else if (!holder && previous) lines.push(fill(UI_TEXT.reasons.devFree, { v: res.label }));
   });
-  step.waiting.forEach(function (who) {
-    const res = deviceResources(view.resources)[0];
-    lines.push(fill(UI_TEXT.reasons.devWait, { p: who, q: step.assign[res.id] }));
-  });
+  const only = deviceResources(view.resources).length === 1 ? deviceResources(view.resources)[0] : null;
+  if (only) {
+    step.waiting.forEach(function (who) {
+      lines.push(fill(UI_TEXT.reasons.devWait, { p: who, q: step.assign[only.id] }));
+    });
+  }
   return lines;
 }
 
@@ -1740,6 +1727,16 @@ function resourceOf(view, resId) {
 
 function answerAt(answers, index, resId) {
   return answers[index] ? answers[index][resId] || null : null;
+}
+
+function rowFinished(view, answers, rowId, index) {
+  const end = view.ends[rowId];
+  if (index < end) return false;
+  const last = end - 1;
+  const holder = holdingResources(view.resources).filter(function (res) {
+    return view.steps[last].assign[res.id] === rowId;
+  })[0];
+  return Boolean(holder && answerAt(answers, last, holder.id));
 }
 
 function resourceSettled(view, answers, index, resId) {
@@ -1803,24 +1800,72 @@ function groupPicks(entries) {
   return runs;
 }
 
+function criterionFor(algorithm) {
+  return UI_TEXT.queues.criterion[algorithm] || null;
+}
+
+function schedulerOf(view) {
+  return view.example.twoLevel ? view.example.ultAlgorithm : view.example.algorithm;
+}
+
+function keepsWhy(view, run) {
+  const previous = run.from > 0 ? view.steps[run.from - 1].assign[run.res] : null;
+  if (previous !== run.expected) return null;
+  const key = ALGORITHMS[schedulerOf(view)].noPreempt ? "whyKeeps" : "whyKeepsPreempt";
+  return fill(UI_TEXT.paint[key], { q: run.expected });
+}
+
+function queueWhy(view, run, entries) {
+  const criterion = criterionFor(schedulerOf(view));
+  const winnerNote = queueNote(entries, run.expected);
+  const givenNote = queueNote(entries, run.given);
+  if (!criterion || !winnerNote) {
+    const key = queued(entries, run.given) ? "whyOrder" : "whyOrderAlone";
+    return fill(UI_TEXT.paint[key], { q: run.expected, p: run.given });
+  }
+  if (winnerNote === givenNote) return fill(UI_TEXT.paint.whyTie, { nq: winnerNote, q: run.expected, p: run.given });
+  if (!givenNote) return fill(UI_TEXT.paint.whyNotQueued, { c: criterion, q: run.expected, nq: winnerNote, p: run.given });
+  return fill(UI_TEXT.paint.whyOther, { c: criterion, q: run.expected, nq: winnerNote, p: run.given, np: givenNote });
+}
+
+function otherCpuOf(view, run, step, group) {
+  return cpuResources(view.resources).filter(function (res) {
+    return res.id !== run.res && groupOf(view, step.assign[res.id]) === group;
+  })[0];
+}
+
+function levelWhy(view, run, step) {
+  const winner = groupOf(view, run.expected);
+  const given = groupOf(view, run.given);
+  if (given !== winner) {
+    const here = resourceOf(view, run.res).phrase;
+    if (step.blocked.indexOf(given) !== -1) {
+      return fill(UI_TEXT.paint.whyKltBlocked, { kp: given });
+    }
+    const other = otherCpuOf(view, run, step, given);
+    if (other) {
+      const there = step.assign[other.id];
+      const key = there === run.given ? "whyKltPicked" : "whyKltElsewhere";
+      return fill(UI_TEXT.paint[key], { q: run.expected, kq: winner, kp: given, p: run.given, v: other.phrase, o: there, r: here });
+    }
+    return fill(UI_TEXT.paint.whyKltOther, { kq: winner, kp: given, r: here });
+  }
+  const entries = (step.ults && step.ults[winner]) || [];
+  if (!queued(entries, run.expected)) return keepsWhy(view, run);
+  return queueWhy(view, run, entries);
+}
+
 function pickWhy(view, run) {
   if (run.status !== "miss") return null;
   const res = resourceOf(view, run.res);
   if (res.kind !== "cpu" || !run.expected) return null;
   const step = view.steps[run.from];
-  if (!queued(step.ready, run.expected)) {
-    const previous = run.from > 0 ? view.steps[run.from - 1].assign[run.res] : null;
-    if (previous !== run.expected) return null;
-    const key = ALGORITHMS[view.example.algorithm].noPreempt ? "whyKeeps" : "whyKeepsPreempt";
-    return fill(UI_TEXT.paint[key], { q: run.expected });
+  if (view.arrivals[run.given] > run.from) {
+    return fill(UI_TEXT.paint.whyNotArrived, { p: run.given, a: view.arrivals[run.given] });
   }
-  const criterion = criterionFor(view.example.algorithm);
-  const winnerNote = queueNote(step.ready, run.expected);
-  const givenNote = queueNote(step.ready, run.given);
-  if (!criterion || !winnerNote) return fill(UI_TEXT.paint.whyOrder, { q: run.expected, p: run.given });
-  if (winnerNote === givenNote) return fill(UI_TEXT.paint.whyTie, { nq: winnerNote, q: run.expected, p: run.given });
-  if (!givenNote) return fill(UI_TEXT.paint.whyNotQueued, { c: criterion, q: run.expected, nq: winnerNote, p: run.given });
-  return fill(UI_TEXT.paint.whyOther, { c: criterion, q: run.expected, nq: winnerNote, p: run.given, np: givenNote });
+  if (view.example.twoLevel) return levelWhy(view, run, step);
+  if (!queued(step.ready, run.expected)) return keepsWhy(view, run);
+  return queueWhy(view, run, step.ready);
 }
 
 function pickVerdict(view, run) {
@@ -1985,6 +2030,7 @@ function renderLadder() {
     const button = element("button");
     button.type = "button";
     button.title = example.short;
+    button.dataset.focus = "example:" + example.id;
     button.appendChild(element("span", "num", String(example.number)));
     button.appendChild(element("span", "short", example.short));
     if (position === state.exampleIndex) button.setAttribute("aria-current", "true");
@@ -1998,6 +2044,7 @@ function renderSwitch(container, entries, activeKey, onPick) {
   entries.forEach(function (entry) {
     const button = element("button", null, entry.label);
     button.type = "button";
+    button.dataset.focus = container.id + ":" + entry.key;
     button.setAttribute("aria-pressed", entry.key === activeKey ? "true" : "false");
     button.addEventListener("click", function () { onPick(entry.key); });
     container.appendChild(button);
@@ -2035,8 +2082,8 @@ function renderVariants() {
     if (Number(key) === state.variantIndex) return;
     state.variantIndex = Number(key);
     stopPlay();
-    rebuildView();
     resetProgress();
+    rebuildView();
     render();
   });
 }
@@ -2244,13 +2291,46 @@ function flagNode(text) {
 }
 
 function finishedAt(rowId, index) {
-  const end = view.ends[rowId];
-  if (index < end) return false;
-  const last = end - 1;
-  const holder = holdingResources(view.resources).filter(function (res) {
-    return view.steps[last].assign[res.id] === rowId;
-  })[0];
-  return Boolean(holder && answerAt(state.answers, last, holder.id));
+  return rowFinished(view, state.answers, rowId, index);
+}
+
+function marksAt(rowId, index) {
+  const step = view.steps[index];
+  return {
+    early: view.resources.some(function (res) { return earlyAt(index, res.id) === rowId; }),
+    wrong: view.resources.filter(function (res) {
+      const answer = answerAt(state.answers, index, res.id);
+      return Boolean(answer && answer.given === rowId && !answer.correct);
+    })[0],
+    shown: view.resources.some(function (res) {
+      const answer = answerAt(state.answers, index, res.id);
+      return Boolean(answer && answer.given && !answer.correct && step.assign[res.id] === rowId);
+    })
+  };
+}
+
+function markCell(cell, marks) {
+  if (marks.early) {
+    cell.classList.add("early");
+    cell.appendChild(flagNode(UI_TEXT.paint.flagEarly));
+    return;
+  }
+  if (marks.shown) {
+    cell.classList.add("shown");
+    cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
+    return;
+  }
+  if (marks.wrong) {
+    cell.classList.add("missed");
+    cell.appendChild(flagNode(UI_TEXT.paint.flagMissed));
+  }
+}
+
+function faceOf(cell, status, text, marks) {
+  cell.classList.add(STATES[status].css);
+  cell.textContent = text;
+  cell.title = STATES[status].label;
+  markCell(cell, marks);
 }
 
 function paintFace(cell, rowId, index) {
@@ -2258,15 +2338,8 @@ function paintFace(cell, rowId, index) {
   const assign = paintedAssign(index);
   cell.className = "gantt-cell";
   cell.textContent = "";
-  const early = view.resources.filter(function (res) { return earlyAt(index, res.id) === rowId; })[0];
-  const wrong = view.resources.filter(function (res) {
-    const answer = answerAt(state.answers, index, res.id);
-    return Boolean(answer && !answer.correct && answer.given === rowId);
-  })[0];
-  const shown = view.resources.some(function (res) {
-    const answer = answerAt(state.answers, index, res.id);
-    return Boolean(answer && !answer.correct && step.assign[res.id] === rowId);
-  });
+  cell.title = "";
+  const marks = marksAt(rowId, index);
   if (step.states) {
     const status = finishedAt(rowId, index)
       ? "term"
@@ -2275,38 +2348,22 @@ function paintFace(cell, rowId, index) {
       cell.classList.add("blank");
       return;
     }
-    cell.classList.add(STATES[status].css);
-    cell.textContent = UI_TEXT.cells[status] || "";
-    if (early) {
-      cell.classList.add("early");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagEarly));
-    } else if (shown) {
-      cell.classList.add("shown");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
-    }
+    faceOf(cell, status, UI_TEXT.cells[status] || "", marks);
     return;
   }
   const holder = holdingResources(view.resources).filter(function (res) { return assign[res.id] === rowId; })[0];
   if (holder) {
-    cell.classList.add(STATES[holder.kind === "cpu" ? "running" : "blocked"].css);
-    cell.textContent = holder.short;
-    if (early) {
-      cell.classList.add("early");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagEarly));
-    } else if (shown) {
-      cell.classList.add("shown");
-      cell.appendChild(flagNode(UI_TEXT.paint.flagShown));
-    }
-    return;
-  }
-  if (wrong) {
-    cell.classList.add("wrong");
-    cell.textContent = wrong.short || wrong.label;
+    faceOf(cell, holder.kind === "cpu" ? "running" : "blocked", holder.short, marks);
     return;
   }
   if (finishedAt(rowId, index)) {
-    cell.classList.add(STATES.term.css);
-    cell.textContent = UI_TEXT.cells.term;
+    faceOf(cell, "term", UI_TEXT.cells.term, marks);
+    return;
+  }
+  if (marks.wrong) {
+    cell.classList.add("wrong");
+    cell.textContent = marks.wrong.short || marks.wrong.label;
+    cell.title = UI_TEXT.paint.legendMiss;
     return;
   }
   cell.classList.add("blank");
@@ -2321,6 +2378,13 @@ function paintableAt(index) {
   return !answerAt(state.answers, index, toolResource().id);
 }
 
+function previewStatus(res, rowId, index) {
+  if (!view.steps[index].states) return res.kind === "cpu" ? "running" : "blocked";
+  const assign = paintedAssign(index);
+  assign[res.id] = rowId;
+  return assignedStatus(view, rowId, assign);
+}
+
 function decorateCells() {
   const res = toolResource();
   view.rows.forEach(function (row) {
@@ -2333,12 +2397,10 @@ function decorateCells() {
       const marked = inStroke(row.id, t);
       const hovered = !state.painting && state.hover && state.hover.row === row.id && state.hover.t === t;
       if (!marked && !hovered) continue;
-      const assign = paintedAssign(t);
-      assign[res.id] = row.id;
-      const status = stateFrom(view, row.id, t, assign);
-      if (!status) continue;
+      const status = previewStatus(res, row.id, t);
       cell.className = "gantt-cell paintable " + STATES[status].css + (marked ? " stroke" : " ghost");
       cell.textContent = view.steps[t].states ? (UI_TEXT.cells[status] || "") : res.short;
+      cell.title = STATES[status].label;
       if (t === state.index) cell.classList.add("now");
     }
   });
@@ -2357,9 +2419,12 @@ function paintGrid() {
     grid.appendChild(label);
     paintCells[row.id] = [];
     for (let t = 0; t < view.length; t += 1) {
-      const cell = element("div", "gantt-cell");
+      const cell = element("button", "gantt-cell");
+      cell.type = "button";
       cell.dataset.row = row.id;
       cell.dataset.time = String(t);
+      cell.dataset.focus = "cell:" + row.id + ":" + t;
+      cell.setAttribute("aria-label", fill(UI_TEXT.paint.cellLabel, { p: row.id, a: t, b: t + 1 }));
       grid.appendChild(cell);
       paintCells[row.id].push(cell);
     }
@@ -2373,6 +2438,7 @@ function paintGrid() {
   grid.addEventListener("pointerdown", onPaintDown);
   grid.addEventListener("pointermove", onPaintMove);
   grid.addEventListener("pointerleave", onPaintLeave);
+  grid.addEventListener("click", onPaintKeyClick);
   dom.ganttPanel.appendChild(grid);
   dom.grid = grid;
   decorateCells();
@@ -2428,10 +2494,6 @@ function queueRow(level, entries, flag) {
   return row;
 }
 
-function criterionFor(algorithm) {
-  return UI_TEXT.queues.criterion[algorithm] || null;
-}
-
 function readyGloss(algorithm) {
   const criterion = criterionFor(algorithm);
   return criterion ? STATES.ready.label + " \u00b7 " + criterion : STATES.ready.label;
@@ -2470,12 +2532,12 @@ function renderState() {
   }
   const devices = stateBlock(UI_TEXT.queues.devices, null, null);
   const deviceList = deviceResources(view.resources);
-  deviceList.forEach(function (res, position) {
+  deviceList.forEach(function (res) {
     const card = element("div", "dev-card");
     card.appendChild(element("span", "dev-name", res.label));
     const holder = step.assign[res.id];
     card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", UI_TEXT.queues.free));
-    if (position === 0 && step.devq.length > 0) {
+    if (deviceList.length === 1 && step.devq.length > 0) {
       const wait = element("div", "waiting-for");
       wait.appendChild(element("span", null, UI_TEXT.queues.deviceQueue));
       step.devq.forEach(function (entry) { wait.appendChild(processChip(entry.id, null, "dev")); });
@@ -2619,6 +2681,7 @@ function renderTools() {
   view.resources.forEach(function (res, position) {
     const button = element("button", "tool-" + res.kind);
     button.type = "button";
+    button.dataset.focus = "tool:" + res.id;
     button.setAttribute("aria-pressed", current.id === res.id ? "true" : "false");
     button.appendChild(element("span", "swatch"));
     button.appendChild(element("span", null, res.label));
@@ -2631,8 +2694,10 @@ function renderTools() {
 function pickTool(resId) {
   state.tool = resId;
   state.hover = null;
-  renderTools();
-  decorateCells();
+  keepFocus(function () {
+    renderTools();
+    decorateCells();
+  });
 }
 
 function cycleTool() {
@@ -2724,7 +2789,6 @@ function undoPick() {
 }
 
 function finishAll() {
-  rememberPicks();
   const entries = settlePicks(true);
   openPicks(view, state.answers).forEach(function (spot) {
     state.answers[spot.t][spot.res] = { given: null, correct: false };
@@ -2733,6 +2797,7 @@ function finishAll() {
   state.runs = groupPicks(entries);
   state.notes = [];
   state.note = null;
+  state.history = [];
   state.index = maxIndex();
   render();
 }
@@ -2753,6 +2818,7 @@ function addToStroke(spot) {
 }
 
 function onPaintDown(event) {
+  if (event.button !== 0 || !event.isPrimary) return;
   const spot = spotFrom(event.clientX, event.clientY);
   if (!spot) return;
   event.preventDefault();
@@ -2761,6 +2827,16 @@ function onPaintDown(event) {
   state.stroke = [];
   dom.grid.setPointerCapture(event.pointerId);
   addToStroke(spot);
+}
+
+function onPaintKeyClick(event) {
+  if (event.detail !== 0) return;
+  const cell = event.target.closest ? event.target.closest(".gantt-cell") : null;
+  if (!cell || cell.dataset.row === undefined) return;
+  const t = Number(cell.dataset.time);
+  if (!paintableAt(t)) return;
+  stopPlay();
+  commitStroke([{ row: cell.dataset.row, t: t }]);
 }
 
 function onPaintMove(event) {
@@ -2812,7 +2888,8 @@ function renderNarration() {
       line.textContent = UI_TEXT.quiz.prompt;
     } else {
       line.textContent = fill(state.quizPick === chart.spec.answer ? UI_TEXT.quiz.correct : UI_TEXT.quiz.wrong, {
-        p: ALGORITHMS[chart.spec.answer].label
+        p: ALGORITHMS[chart.spec.answer].label,
+        c: ALGORITHMS[state.quizPick].label
       });
     }
     body.appendChild(line);
@@ -2837,16 +2914,13 @@ function renderNarration() {
 }
 
 function renderVerdicts(body) {
-  if (state.runs.length === 0 && state.notes.length === 0) {
-    body.appendChild(element("p", "narration-note", state.note || UI_TEXT.paint.idle));
-    return;
-  }
+  const closed = settledCount(view, state.answers) === view.length;
+  const runs = closed ? state.runs.filter(function (run) { return run.status !== "missing"; }) : state.runs;
+  const room = closed ? 1 : (state.notes.length > 0 ? 2 : 3);
   const list = element("ul", "verdict-list");
   if (state.note) list.appendChild(element("li", "note", state.note));
-  const closed = settledCount(view, state.answers) === view.length;
-  const room = closed ? 0 : (state.notes.length > 0 ? 2 : 3);
   let explained = false;
-  state.runs.slice(0, room).forEach(function (run) {
+  runs.slice(0, room).forEach(function (run) {
     const item = element("li", run.status === "hit" ? "hit" : "miss");
     appendRich(item, pickVerdict(view, run));
     const why = explained ? null : pickWhy(view, run);
@@ -2859,11 +2933,16 @@ function renderVerdicts(body) {
     }
     list.appendChild(item);
   });
-  if (room > 0 && state.runs.length > room) {
-    list.appendChild(element("li", "note", fill(UI_TEXT.paint.more, { n: state.runs.length - room })));
+  if (!closed && runs.length > room) {
+    list.appendChild(element("li", "note", fill(UI_TEXT.paint.more, { n: runs.length - room })));
   }
   state.notes.forEach(function (text) { list.appendChild(element("li", "early", text)); });
-  if (list.childNodes.length > 0) body.appendChild(list);
+  if (list.childNodes.length > 0) {
+    body.appendChild(list);
+    if (closed) return;
+  } else if (!closed) {
+    body.appendChild(element("p", "narration-note", UI_TEXT.paint.idle));
+  }
   if (!columnSettled(view, state.answers, Math.min(state.index, view.length - 1))) return;
   const reason = reasonFor(view, state.index);
   const line = element("p", "narration-note");
@@ -2917,7 +2996,20 @@ function renderControls() {
   dom.progressFill.style.transform = "scaleX(" + ((state.index + 1) / view.length) + ")";
 }
 
+function keepFocus(step) {
+  const before = document.activeElement;
+  const key = before && before.dataset ? before.dataset.focus : null;
+  step();
+  if (!key) return;
+  const back = document.querySelector('[data-focus="' + key + '"]');
+  if (back) back.focus();
+}
+
 function render() {
+  keepFocus(renderAll);
+}
+
+function renderAll() {
   renderLadder();
   renderModes();
   renderVariants();
@@ -2939,8 +3031,10 @@ function render() {
 
 function resetProgress() {
   state.index = 0;
-  state.answers = [];
-  state.early = [];
+  state.answers = emptyPicks();
+  state.early = emptyPicks();
+  state.ok = 0;
+  state.asked = 0;
   state.runs = [];
   state.notes = [];
   state.note = null;
@@ -2975,6 +3069,8 @@ function selectExample(position) {
 function goTo(index) {
   if (isQuiz()) return;
   const limit = maxIndex();
+  state.runs = [];
+  state.note = null;
   state.index = Math.max(0, Math.min(index, limit));
   render();
 }
@@ -3049,13 +3145,14 @@ window.addEventListener("pointercancel", cancelStroke);
 
 document.addEventListener("keydown", function (event) {
   const painting = !isQuiz() && state.mode === "solve";
+  const onButton = event.target.tagName === "BUTTON";
   if (event.key === "Escape") { cancelStroke(); return; }
   if (painting && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
     event.preventDefault();
     undoPick();
     return;
   }
-  if (painting && (event.key === " " || event.key === "Spacebar")) {
+  if (painting && !onButton && (event.key === " " || event.key === "Spacebar")) {
     event.preventDefault();
     cycleTool();
     return;
@@ -3068,7 +3165,7 @@ document.addEventListener("keydown", function (event) {
       return;
     }
   }
-  if (event.target.tagName === "BUTTON") {
+  if (onButton) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") return;
   }
   if (event.key === "ArrowRight") { stopPlay(); goTo(state.index + 1); event.preventDefault(); }

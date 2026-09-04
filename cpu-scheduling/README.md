@@ -72,7 +72,16 @@ con dos variantes adentro de un ejemplo.
   **Se pinta sobre el diagrama.** Al pasar el mouse, el casillero se muestra con
   opacidad —así se ve dónde vas a marcar antes de marcar— y se pinta con un clic o
   **arrastrando** para varios instantes seguidos. `Esc` cancela el trazo antes de
-  soltar y **`Ctrl+Z` deshace** el último, todas las veces que haga falta.
+  soltar y **`Ctrl+Z` deshace** el último, todas las veces que haga falta. La vista
+  previa muestra siempre el color del recurso que tenés elegido, aunque el proceso
+  todavía no haya llegado o ya haya terminado: si el clic se acepta, la vista previa
+  lo tiene que mostrar, y de paso no adelanta nada del diagrama.
+
+  **Cada casillero es un `<button>`.** Se llega con `Tab` y se pinta con `Enter` o
+  con la barra espaciadora, igual que cualquier otro control de la página. Por eso
+  la barra espaciadora rota de recurso sólo cuando el foco **no** está en un botón:
+  adentro de un botón, la barra es lo que lo activa. Las teclas `1`…`9` funcionan
+  siempre.
 
   **La pregunta es siempre la misma: quién ocupa este recurso en este instante.**
   Por eso la unidad de corrección es el par instante–recurso y no el casillero: en
@@ -96,28 +105,48 @@ con dos variantes adentro de un ejemplo.
   nada.
 
   **Al corregir, el diagrama pasa a decir la verdad.** El casillero correcto queda
-  pintado; si te equivocaste, el que sí iba aparece con la etiqueta `iba` y el que
-  pintaste de más queda rayado y tachado. Lo que el estudiante mira al final es
-  siempre el diagrama correcto, no su borrador. La devolución agrupa instantes
-  contiguos: un trazo de cuatro casilleros errados sale como una sola frase, no
-  como cuatro. Siempre se avanza; nunca queda trabado. Hay un contador discreto de
-  aciertos, y **deshacer no lo toca**: recuperás el casillero para volver a
-  pintarlo, no el punto.
+  pintado; si te equivocaste, el que sí iba aparece con la etiqueta `iba`. El que
+  pintaste de más queda rayado y tachado **si el casillero estaba vacío**; si ese
+  proceso en ese instante ocupaba otra cosa —o ya había terminado, o el diagrama es
+  la banda de estados del 16— el casillero sigue diciendo la verdad y el error va
+  como etiqueta `no iba`. Nunca se tapa un hecho con una marca. Lo que el estudiante
+  mira al final es siempre el diagrama correcto, no su borrador. La devolución
+  agrupa instantes contiguos: un trazo de cuatro casilleros errados sale como una
+  sola frase, no como cuatro. Siempre se avanza; nunca queda trabado. Hay un
+  contador discreto de aciertos, **que arranca de cero en cada ejemplo** —el número
+  está al lado de un ejemplo, así que habla de ese ejemplo— y al que **deshacer no
+  toca**: recuperás el casillero para volver a pintarlo, no el punto.
 
   **Cuando se erra la CPU, la devolución dice por qué.** No alcanza con «era B»:
   en los ejemplos que deciden con una cuenta, lo que hay que ver son los dos
   números. La explicación sale de la cola del instante, que ya viene anotada con
   el número que decide, así que dice lo mismo que el panel de estado y no puede
-  contradecirlo. Sale una sola por trazo, pegada al primer error, y tiene cinco
-  formas según lo que haya pasado:
+  contradecirlo. Sale una sola por trazo, pegada al primer error. **Nunca dice algo
+  que la traza no diga**: si el que elegiste no estaba en la cola, la frase no puede
+  hablar de su lugar en la cola. De ahí salen las formas:
 
   | Cuando | Dice |
   |---|---|
+  | El que elegiste todavía no había llegado | «C todavía no había llegado: llega recién en el 2» |
   | Los dos estaban en la cola con números distintos | «Ahí el criterio era la ráfaga restante: B tenía 1, y C, 2» |
   | Los dos tenían el mismo número | «Ahí los dos tenían Q1, así que decidía el orden de la cola» |
-  | El algoritmo no anota números (FIFO, RR) | «Ahí decidía el orden de la cola, y A estaba antes que B» |
+  | El algoritmo no anota números y los dos estaban en la cola | «Ahí decidía el orden de la cola, y A estaba antes que B» |
+  | El algoritmo no anota números y el que elegiste no estaba | «Ahí decidía el orden de la cola, y el primero era A» |
   | El que elegiste no estaba en la cola | «B tenía 2. A no estaba en la cola de listos en ese instante» |
   | El que ganó ya venía ejecutando | «A ya venía ejecutando, y este algoritmo no desaloja» |
+
+  **En los ejemplos de dos niveles la explicación es de dos niveles.** La cola de
+  listos que ahí importa no es la de KLT —esa tiene KLT adentro, no ULT— sino la
+  lista de ULT del KLT que ganó, y el criterio es el de la biblioteca
+  (`ultAlgorithm`), no el del sistema operativo. Si el ULT que elegiste es de otro
+  KLT, la explicación es sobre KLT y no sobre ráfagas:
+
+  | Cuando | Dice |
+  |---|---|
+  | El KLT del que elegiste estaba bloqueado | «KLT1 estaba bloqueado: mientras un ULT suyo espera una I/O, ninguno de sus ULT puede correr» |
+  | Su KLT sí tenía otro procesador (el 15) | «KLTB sí tenía procesador —estaba en la CPU 2—, pero ahí su biblioteca eligió a ULT3, no a ULT4» |
+  | El que elegiste ya estaba en el otro procesador | «Ahí la CPU 2 fue para KLTB, y adentro su biblioteca eligió a ULT3» |
+  | Su KLT no fue el elegido | «Ahí la CPU fue para KLT1: el sistema operativo elige KLT, y KLT2 no era el elegido» |
 
   Y cuando el error es **de recurso** y no de proceso —pintar el router donde iba
   la impresora— la devolución lo dice con esas palabras: «K1 estaba en la
@@ -130,7 +159,11 @@ con dos variantes adentro de un ejemplo.
   palabras.
 
   El botón **«Terminé»** cierra el diagrama: corrige lo que haya en suspenso y
-  completa lo que falte, marcándolo como lo que te faltó.
+  completa lo que falte. Lo que nunca contestaste **no lleva marca**: la marca `iba`
+  es la corrección de una respuesta tuya, y cerrar un diagrama en blanco no puede
+  llenar el tablero de etiquetas que no corrigen nada. Terminé **borra el historial
+  de deshacer**, así que no se puede usar para espiar la respuesta y volver atrás
+  con el contador intacto.
 
 ---
 
@@ -170,14 +203,10 @@ repositorio.
   El bloque de eventos ocupa **lo que quede de su fila**: si arranca fila propia se
   extiende a lo ancho, y si no, comparte fila con el de dispositivos.
 
-  El 15 es el que más apretado queda —tres recursos, cinco opciones cada uno y
-  cuatro filas de diagrama— y durante un tiempo tuvo un acomodo propio. Se sacó: lo
-  que hacía falta eran 22 px, y aparecieron sin tocar el acomodo. El más grande de
-  esos ahorros vale la pena entenderlo: al confirmar, el veredicto («era ULT1»)
-  estaba **después** de los botones y empujaba la fila a dos renglones, 23 px de
-  golpe. Ahora va **abajo de la etiqueta del recurso**, en una columna que ya
-  existía y estaba vacía. Si volvés a moverlo al lado de los botones, el 15 se
-  desborda de nuevo.
+  El 15 es el que más apretado queda —tres recursos y cuatro filas de diagrama— y
+  es el que hay que medir cada vez que se agrega un renglón al pie: es el único
+  donde el panel de estado se pasa, y se pasa por 2 px. Cualquier cosa que crezca
+  abajo se le come el margen a ese ejemplo antes que a ninguno.
 - **Cuándo aparece el `FIN`.** Se pinta solo, en cuanto se responde **el último
   instante que ese proceso ocupa algo**, sin esperar a que cierre la columna ni a
   que se cierre el ejemplo. No revela nada: que un proceso terminó se deduce del
@@ -222,7 +251,8 @@ tema; los descartes pasaron a serlo.
    respuesta, `Q`/`Q+`, `Q1`/`Q2`), salvo en FIFO y RR, donde no decide ningún
    número.
 4. **Narración.** La devolución del último trazo, más la razón del instante
-   cuando la columna quedó resuelta.
+   cuando la columna quedó resuelta. Moverse con las flechas borra la devolución:
+   habla del trazo que acabás de hacer, no del instante que estás mirando.
 
 El panel de decisión ya no existe: la decisión se toma sobre el diagrama. En modo
 Resolver el diagrama ocupa el lugar que tenía, igual que en modo Ver.
@@ -238,8 +268,8 @@ escrito adentro del motor ni del render.
   y de razones. Cambiar `UI_TEXT.reasons.fifo` cambia la frase en los diez
   instantes donde FIFO elige a alguien.
 - `UI_TEXT.paint` — todo lo del modo Resolver: los rótulos de la barra, las
-  etiquetas `antes` e `iba`, las plantillas de devolución y las cinco `why*`, que
-  son las que explican por qué la decisión de CPU estaba mal. Hay una familia por
+  etiquetas `antes`, `iba` y `no iba`, las plantillas de devolución y las `why*`,
+  que son las que explican por qué la decisión de CPU estaba mal. Hay una familia por
   tipo de recurso: `hit` / `missOther` / `missFree` / `missing` para los que se
   ocupan, y las mismas con el sufijo `Mem` para «fuera de memoria», que no se
   puede decir con las mismas palabras.
@@ -333,10 +363,12 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   cola del dispositivo. En el ejemplo 1 —donde ese es justamente el tema— el
   casillero lleva además el borde punteado.
 - **El tope de líneas de la devolución.** Se muestran como mucho tres —dos si
-  además hay algo en suspenso— y **ninguna cuando el ejemplo ya se cerró**: ahí
-  quedan sólo la razón del instante y la tarjeta de cierre. No es estética. La
-  devolución vive en el pie, el pie empuja al `main`, y el `main` es de donde
-  salen los paneles: sin tope, terminar un ejemplo con «Terminé» listaba diez
+  además hay algo en suspenso— y **una sola cuando el ejemplo ya se cerró**, que
+  además reemplaza a la razón del instante en vez de sumarse a ella. No es
+  estética, y el «reemplaza» es la parte que importa: con la tarjeta de cierre en
+  pantalla el pie no tiene lugar para un renglón más, medido, en ninguno de los
+  diecisiete. La devolución vive en el pie, el pie empuja al `main`, y el `main` es
+  de donde salen los paneles: sin tope, terminar un ejemplo con «Terminé» listaba diez
   líneas y comprimía el panel de estado unos 50 px. Con el tope, el recurso
   scrollea igual o menos que la versión de selectores en los diecisiete.
 
@@ -419,10 +451,12 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   los de `process-lifecycle` (`RUNNING` azul, `BLOCKED` rojo, `READY` verde,
   `TERMINATED` gris, y los dos suspendidos naranja y amarillo). No se inventó
   ningún color acá.
-- **Lo correcto y lo incorrecto se marcan sin color.** Al confirmar queda
-  encendida la opción correcta, la elegida queda tachada, y al lado dice «bien» o
-  «era X». El rojo y el verde ya significan `BLOCKED` y `READY` acá, así que
-  gastarlos en «esto estuvo mal» los haría chocar con el material.
+- **Lo correcto y lo incorrecto se marcan sin color.** En el diagrama, el rayado
+  y las etiquetas `iba` y `no iba` son achromáticas —tinta, no tono—; en el 17, la
+  narración dice qué elegiste y qué era. El rojo y el verde ya significan `BLOCKED`
+  y `READY` acá, así que gastarlos en «esto estuvo mal» los haría chocar con el
+  material. Ojo con `antes`, que sí usa el naranja de `BLOCKED SUSPENDED`: es la
+  única marca con tono, y se banca porque no dice «mal» sino «todavía no».
 - **Se pinta sobre el diagrama, y eso trajo de vuelta el modo.** Hubo dos
   versiones anteriores: un desplegable por recurso —dos clics, opciones
   escondidas, la vista lejos del diagrama— y después un grupo de botones por
@@ -434,7 +468,9 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   paga el costo del modo son cuatro cosas: el botón activo está pegado al
   diagrama y pintado del color que va a salir, la vista previa con opacidad muestra
   el resultado antes del clic, la barra espaciadora hace barato cambiar, y
-  `Ctrl+Z` deshace. **Lo que el deshacer no borra es el error del marcador**: si
+  `Ctrl+Z` deshace. La vista previa muestra el color del recurso elegido en
+  cualquier casillero que acepte el clic, justamente para que el modo se vea.
+  **Lo que el deshacer no borra es el error del marcador**: si
   esto se revisa alguna vez, esa es la decisión a revisar primero, porque hoy
   equivocarse de modo cuesta un punto.
 
@@ -462,3 +498,11 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
 7. Que en modo Resolver el diagrama termine siendo el diagrama correcto, se haya
    respondido bien o mal.
 8. Los dos diagramas del ejemplo 17, respondiendo uno bien y uno mal.
+9. Cambiar de modo y volver, y cambiar de variante en el 15: pintar después de
+   cada cambio. Es el camino que rompió una vez, porque reiniciar el progreso y
+   reconstruir la vista tienen que pasar en ese orden.
+10. Con el teclado solo: llegar a un casillero con `Tab`, pintarlo con `Enter` y
+    con la barra espaciadora, y comprobar que el foco no se va al activar un botón
+    de la escalera, del modo o de la barra de recursos.
+11. Mirar el diagrama con **cada** recurso elegido, no sólo con el primero: lo que
+    ya está contestado se tiene que ver igual con cualquier herramienta activa.
