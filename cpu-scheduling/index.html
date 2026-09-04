@@ -1639,16 +1639,6 @@ function cellState(view, rowId, index) {
   return null;
 }
 
-function swapKeepsState(view, rowId, index) {
-  const memory = view.resources.filter(function (res) { return res.kind === "memory"; })[0];
-  if (!memory || index === 0) return null;
-  if (view.steps[index - 1].assign[memory.id] === rowId) return null;
-  const before = cellState(view, rowId, index - 1);
-  if (before === "blocked") return "bsusp";
-  if (before === "ready") return "rsusp";
-  return null;
-}
-
 function cellTag(view, rowId, index) {
   const status = cellState(view, rowId, index);
   if (!status) return "";
@@ -2245,19 +2235,9 @@ function shownHolder(index, resId) {
   return answerAt(state.answers, index, resId) ? view.steps[index].assign[resId] || null : null;
 }
 
-function stillOutside(index, resId) {
-  if (answerAt(state.answers, index, resId)) return null;
-  if (columnSettled(view, state.answers, index)) return null;
-  if (index === 0 || !answerAt(state.answers, index - 1, resId)) return null;
-  return shownHolder(index - 1, resId);
-}
-
 function paintedAssign(index) {
   const assign = {};
   view.resources.forEach(function (res) { assign[res.id] = shownHolder(index, res.id); });
-  view.resources.forEach(function (res) {
-    if (res.kind === "memory" && !assign[res.id]) assign[res.id] = stillOutside(index, res.id);
-  });
   return assign;
 }
 
@@ -2317,19 +2297,6 @@ function paintFace(cell, rowId, index) {
         cell.title = fill(UI_TEXT.paint.missTitle, { r: marks.wrong.label });
         return;
       }
-      const pending = view.resources.filter(function (res) {
-        return res.kind === "memory" && answerAt(state.answers, index, res.id) && step.assign[res.id] === rowId;
-      })[0];
-      if (pending) {
-        const kept = swapKeepsState(view, rowId, index);
-        if (kept) {
-          faceOf(cell, kept, UI_TEXT.cells[kept] || "", marks);
-          return;
-        }
-        cell.textContent = pending.short;
-        cell.title = pending.label;
-        return;
-      }
       cell.classList.add("blank");
       return;
     }
@@ -2373,10 +2340,10 @@ function rowHolds(rowId, index) {
 }
 
 function statusKnown(rowId, index) {
-  const held = holdingResources(view.resources).some(function (res) {
+  const onCpu = cpuResources(view.resources).some(function (res) {
     return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
   });
-  return held || columnSettled(view, state.answers, index);
+  return onCpu || columnSettled(view, state.answers, index);
 }
 
 function paintableFor(res, rowId, index) {
@@ -2424,9 +2391,8 @@ function advanceTool(opened) {
 
 function previewStatus(res, rowId, index) {
   if (!view.steps[index].states) return res.kind === "cpu" ? "running" : "blocked";
-  if (res.kind === "memory" && !statusKnown(rowId, index) && !settledApartFrom(view, state.answers, index, res.id)) {
-    return swapKeepsState(view, rowId, index);
-  }
+  const onCpu = res.kind === "cpu";
+  if (!onCpu && !statusKnown(rowId, index) && !settledApartFrom(view, state.answers, index, res.id)) return null;
   const assign = paintedAssign(index);
   assign[res.id] = rowId;
   return assignedStatus(view, rowId, assign);
@@ -2448,7 +2414,7 @@ function decorateCells() {
       if (!marked && !hovered) continue;
       const status = previewStatus(res, row.id, t);
       cell.className = "gantt-cell paintable " + (status ? STATES[status].css + " " : "") + (marked ? "stroke" : "ghost");
-      cell.textContent = status && view.steps[t].states ? (UI_TEXT.cells[status] || "") : res.short;
+      cell.textContent = view.steps[t].states ? (status ? UI_TEXT.cells[status] || "" : "") : res.short;
       cell.title = status ? STATES[status].label : res.label;
       if (t === state.index) cell.classList.add("now");
     }

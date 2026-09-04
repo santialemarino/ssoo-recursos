@@ -115,30 +115,40 @@ con dos variantes adentro de un ejemplo.
   **En el 16 hacen falta dos respuestas para decir `B/S`, y se componen.** No hay un
   pincel de «bloqueado y suspendido»: se dice que el proceso tiene el dispositivo y
   se dice que está fuera de memoria, y de las dos juntas sale `B/S`. Con una sola
-  dada, lo que se afirmó es exactamente «bloqueado», así que eso es lo que se ve. La
-  vista previa muestra siempre lo que el clic va a producir —medido: 880 vistas
-  previas, 0 diferencias con el resultado— y lo provisional se corrige siempre dentro
-  de la misma columna, porque un instante con dispositivo y memoria no cierra hasta
-  tener los dos. El renglón de arranque del ejemplo lo dice con todas las letras
-  (`idleBand`), porque no se adivina.
+  dada, el estado **no está decidido**, así que el casillero no dice nada. El renglón
+  de arranque del ejemplo lo avisa (`idleBand`), porque no se adivina.
 
-  **Y si se contesta la memoria antes que el dispositivo, hay que separar dos cosas.**
-  Cuando el swap **empieza** —el instante en que se lo llevan— vale leer el casillero
-  de la izquierda: al que sacan bloqueado le queda `B/S` y al que sacan listo, `R/S`,
-  porque sacarlo de memoria no cambia si estaba esperando una I/O. Eso está
-  implementado (`swapKeepsState`) y es lo que hace que contestar la memoria primero en
-  el instante 3 dé `B/S` derecho.
+  **La regla de dibujo del 16, entera: una fila se pinta cuando lo que muestra es
+  cierto pase lo que pase con lo que falta contestar.** Eso pasa en exactamente dos
+  casos, y `statusKnown` es literalmente eso:
 
-  Cuando el swap **sigue** —los instantes en que ya estaba afuera— leer la izquierda
-  no sirve, y se midió: acierta en el 4, el 5, el 7 y el 8 y **falla en el 6**, donde
-  `B/S` pasa a `R/S` porque terminó la I/O. Ahí no se está decidiendo nada sobre
-  memoria: se está repitiendo una condición que ya valía, y lo que cambió es otra
-  cosa. Así que si falta el dispositivo, el casillero no adivina: muestra el `short`
-  del recurso, `FM`, sin color de estado —«dijiste que está afuera; el estado sale
-  cuando se sepa lo del dispositivo»—. La vista previa muestra lo mismo, así que sigue
-  valiendo que lo que se ve es lo que va a pasar: 880 vistas previas, 0 diferencias
-  con el resultado. Con el recorrido automático nada de esto aparece, porque el
-  dispositivo se contesta antes.
+  - **le diste la CPU a esa fila** —tener la CPU es `RUNNING` sin importar el
+    dispositivo ni la memoria, y `verifyView` garantiza que nadie tiene la CPU
+    estando afuera—, o
+  - **la columna está completa**, y entonces sale todo de una.
+
+  Todo lo demás queda en blanco: la fila que acabás de poner en el dispositivo y la
+  fila que acabás de marcar fuera de memoria. No es cautela: es que con una sola de
+  las dos el estado es `I/O` **o** `B/S` y el recurso no lo sabe. El acuse de recibo
+  del clic no es el color del casillero —es el pincel que se apaga, la devolución en
+  el pie y el contador—.
+
+  **Por qué no se dibuja igual y se corrige después.** Se probó de las dos maneras y
+  se midió sobre los 66 tableros parciales que salen de las seis órdenes posibles por
+  los doce instantes (`mem4.mjs`). Dibujar antes de tiempo daba **51 tableros con
+  problema**: en 10 el casillero mostraba el estado suspendido *antes* de contestar la
+  memoria —o sea, contestarla era un trámite, que es exactamente lo que se sintió al
+  usarlo—, y en el resto el tablero decía algo falso: `I/O` donde iba `B/S` en el
+  instante 3, `R/S` donde ya había vuelto a memoria en el 9, o el rótulo `FM`, que ni
+  siquiera está en la referencia de colores. Con la regla de arriba: **0 de 66**.
+
+  Y ojo con el atajo que parece razonable: **heredar el estado del casillero de la
+  izquierda**. Para la decisión de swap *es* así —al que sacan bloqueado le queda
+  `B/S` y al que sacan listo, `R/S`—, pero como regla de dibujo está mal y se midió:
+  acierta en los instantes 3, 4, 5, 7 y 8 y **falla justo en el 6**, que es donde
+  `B/S` pasa a `R/S` porque la I/O terminó sola. Ese cambio no lo decide nadie: lo
+  decide el fin de la I/O. Errar ahí sería errar en el único instante que enseña la
+  diferencia.
 
   **Y `B/S` → `R/S` se dice como cualquier otro fin de I/O: dejando de pintar el
   dispositivo.** No hace falta ningún pincel de «vuelve a estar listo», igual que en
@@ -148,38 +158,18 @@ con dos variantes adentro de un ejemplo.
   volver es implícito, igual que empezar una I/O es explícito y terminarla es
   implícita.
 
-  **Estar fuera de memoria se arrastra solo mientras la columna está abierta.** Salir
-  de memoria no es un evento de un instante: es una condición que dura hasta que a
-  alguien lo dejan volver. Por eso, mientras el instante no cierre, si no contestaste
-  la memoria pero **en el instante anterior dijiste que ese proceso estaba afuera**, se
-  asume que sigue afuera. Sin eso, en los instantes 4 y 5 el casillero pasaba de `B/S`
-  a `I/O` y volvía a `B/S` un clic después: un parpadeo rojo en el medio de una racha
-  naranja, que es justo lo que no pasa en la realidad —a nadie lo devuelven a memoria
-  y lo sacan de nuevo en el mismo instante—. Con el arrastre, el único paso intermedio
-  que queda es el **instante 3**, donde el swap efectivamente empieza, y ahí ver
-  primero `I/O` y después `B/S` es la composición que el ejemplo enseña. El arrastre
-  vale sólo para el dibujo provisional: apenas cierra la columna, el estado sale de
-  las respuestas reales.
+  **El pincel arranca cada instante por el primer recurso**, así que el recorrido
+  automático es siempre CPU → dispositivo → memoria. Ya no lo necesita la corrección
+  —con la regla de arriba ningún orden parpadea ni delata nada—, pero es el orden en
+  que conviene preguntar: primero quién ejecuta, después quién espera, y al final
+  quién está afuera. Se ordena el recorrido en vez de **prohibir** los otros órdenes
+  justamente para no delatar nada: apagar el pincel de memoria hasta contestar el
+  dispositivo coincidía con «hay alguien en el dispositivo» en 8 de los 12 instantes.
 
-  **Ojo con "heredar el estado de la izquierda".** Suena bien —«lo mando a memoria
-  tal como estaba»— y para la decisión de swap *es* así: al que sacan bloqueado le
-  queda `B/S` y al que sacan listo, `R/S`. Pero como regla de dibujo está mal, y se
-  midió: heredar el casillero anterior acierta en los instantes 3, 4, 5, 7 y 8 y
-  **falla justo en el 6**, que es donde `B/S` pasa a `R/S` porque la I/O terminó
-  sola. Ese cambio no lo decide nadie: lo decide el fin de la I/O, y por eso el
-  color tiene que salir de si el proceso tiene el dispositivo **en ese instante** y
-  no de lo que había un casillero antes. Errar ahí sería errar en el único instante
-  que enseña la diferencia.
-
-  **Y por eso el pincel arranca cada instante por el primer recurso.** Al abrirse una
-  columna, el pincel vuelve al primero que tenga trabajo, así que el recorrido
-  automático es siempre CPU → dispositivo → memoria. No es cosmético: si la memoria
-  se contestara antes que el dispositivo, el casillero mostraría `R/S` y se corregiría
-  a `B/S` un clic después, porque en ese momento el recurso todavía no sabe que el
-  proceso tiene el dispositivo. Con este orden acierta los seis de seis y no
-  parpadea. Se ordena el recorrido en vez de **prohibir** el otro orden justamente
-  para no delatar nada: apagar el pincel de memoria hasta contestar el dispositivo
-  coincidía con «hay alguien en el dispositivo» en 8 de los 12 instantes.
+  La vista previa muestra siempre lo que el clic va a producir, incluido el caso en
+  que el clic no pinta color: si el estado va a quedar indeciso, la previa es el
+  contorno solo, sin rótulo. Medido en `k4.mjs`, que compara previa contra resultado
+  en todas las combinaciones.
 
   **Sólo se puede pintar la columna del instante actual.** Es la regla entera. La
   columna viva es la primera que todavía no está resuelta —la del anillo, la del
@@ -221,14 +211,11 @@ con dos variantes adentro de un ejemplo.
   respuesta, y hay que poder equivocarse ahí—.
 
   **El 16 agrega una vuelta más.** Ahí el diagrama es una banda de estados, así que
-  el color de un casillero no sale de un recurso sino de los tres. La regla es:
-  **una fila se dibuja apenas alguna respuesta tuya la nombra**, con el estado que
-  se deduce de lo que dijiste hasta ahí, y se corrige sola cuando agregás el resto.
-  Contestás que A tiene el dispositivo y A se pinta de `I/O`; contestás que además
-  está fuera de memoria y pasa a `B/S`. Ese cambio no es un parche: es exactamente
-  lo que el ejemplo enseña, y verlo pasar vale más que esperar a que la columna
-  cierre. Una fila que **no** nombraste espera a que cierre la columna, y eso es lo
-  que evita afirmar un `LISTO` falso sobre alguien que todavía no colocaste.
+  el color de un casillero no sale de un recurso sino de los tres, y por eso una
+  respuesta sola casi nunca alcanza para decidir el estado de una fila. La regla
+  completa está más arriba, en «la regla de dibujo del 16»: se pinta lo que ya es
+  cierto pase lo que pase con lo que falta, o sea la fila a la que le diste la CPU y,
+  cuando cierra la columna, todas.
 
   **Lo que no se hace es obligar a un orden.** Hubo una versión que exigía contestar
   el dispositivo antes que la memoria, para que la vista previa nunca dijera `R/S`
@@ -536,12 +523,13 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   casillero lleva además el borde punteado.
 - **Que en el 16 una fila no se dibuje mientras su estado sea una suposición.** El
   color de cada casillero se deriva de la asignación de CPU, dispositivo y memoria,
-  así que con la fila a medias la derivación es falsa: contestar sólo la CPU del
-  instante 2 pintaba a A de `LISTO` cuando A estaba en el dispositivo. La regla que
-  lo evita está arriba —una fila se dibuja apenas una respuesta la nombra, porque
-  ahí su estado ya está decidido— y lo que **no** se puede hacer es dibujar filas
-  que ninguna respuesta nombró todavía. La devolución sí aparece al instante, así
-  que no se pierde nada: lo que se pierde es la afirmación falsa.
+  así que con la columna a medias la derivación es una apuesta sobre lo que falta
+  contestar. Cuando se dibujaba igual, el tablero terminaba filtrando la respuesta
+  —mostraba `B/S` antes de preguntar por la memoria, y contestarla era un trámite— o
+  mintiendo, y eran 51 de 66 tableros parciales. La regla que lo evita está arriba y
+  es la única que se puede defender: se pinta lo que es cierto pase lo que pase con
+  lo que falta. La devolución sí aparece al instante, así que no se pierde nada: lo
+  que se pierde es la afirmación falsa.
 
 - **El tooltip es el mismo componente que en los otros dos recursos.** El disparador
   es un `<button class="tip">` —no un `<span tabindex>`—, y la caja usa el mismo
@@ -725,3 +713,7 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
     cambiando solo, y cada columna revelarse cuando se contesta su tercer recurso.
 16. En cualquier ejemplo, terminar un recurso y comprobar que su botón queda
     apagado y que el pincel salta al que todavía tiene trabajo.
+17. En el 16, contestar un instante en los seis órdenes posibles y mirar el tablero
+    entre respuesta y respuesta: lo único que puede aparecer antes de cerrar la
+    columna es la fila que recibió la CPU. Si con el dispositivo contestado ya se ve
+    `B/S`, la última respuesta pasó a ser un trámite y hay un problema.
