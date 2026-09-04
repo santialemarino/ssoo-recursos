@@ -768,6 +768,7 @@ const UI_TEXT = {
     noEvents: "Nada nuevo.",
     kltBlocked: "KLT bloqueado",
     free: "libre",
+    pending: "sin contestar",
     criterion: {
       sjf: "ráfaga restante",
       sjfP: "ráfaga restante",
@@ -2516,6 +2517,10 @@ function readyGloss(algorithm) {
   return criterion ? STATES.ready.label + " \u00b7 " + criterion : STATES.ready.label;
 }
 
+function toldResource(resId, index) {
+  return state.mode !== "solve" || answerAt(state.answers, index, resId) || columnSettled(view, state.answers, index);
+}
+
 function tellableEvents(entries, index) {
   if (state.mode !== "solve" || columnSettled(view, state.answers, index)) return entries;
   return entries.filter(function (entry) { return DECIDING_EVENTS.indexOf(entry[0]) === -1; });
@@ -2549,16 +2554,25 @@ function renderState() {
     grid.appendChild(queueBlock(UI_TEXT.queues.ready, readyGloss(example.algorithm), step.ready));
   }
   if (example.memory) {
-    grid.appendChild(queueBlock(UI_TEXT.queues.memory, null,
-      (step.mem || []).map(function (id) { return { id: id, note: null }; }), null, "mem", true));
+    const swap = view.resources.filter(function (res) { return res.kind === "memory"; })[0];
+    if (!swap || toldResource(swap.id, state.index)) {
+      grid.appendChild(queueBlock(UI_TEXT.queues.memory, null,
+        (step.mem || []).map(function (id) { return { id: id, note: null }; }), null, "mem", true));
+    } else {
+      const block = stateBlock(UI_TEXT.queues.memory, null, null);
+      block.appendChild(element("div", "queue-empty", UI_TEXT.queues.pending));
+      grid.appendChild(block);
+    }
   }
   const devices = stateBlock(UI_TEXT.queues.devices, null, null);
   const deviceList = deviceResources(view.resources);
   deviceList.forEach(function (res) {
     const card = element("div", "dev-card");
     card.appendChild(element("span", "dev-name", res.label));
-    const holder = step.assign[res.id];
-    card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", UI_TEXT.queues.free));
+    const told = toldResource(res.id, state.index);
+    const holder = told ? step.assign[res.id] : null;
+    const empty = told ? UI_TEXT.queues.free : UI_TEXT.queues.pending;
+    card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", empty));
     if (deviceList.length === 1 && step.devq.length > 0) {
       const wait = element("div", "waiting-for");
       wait.appendChild(element("span", null, UI_TEXT.queues.deviceQueue));

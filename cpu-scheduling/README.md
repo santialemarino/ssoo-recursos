@@ -169,6 +169,16 @@ con dos variantes adentro de un ejemplo.
   Ver no se toca**: ahí se muestran los 161 pasos completos, que es donde la
   narración es el contenido.
 
+  **Y el panel tampoco muestra el valor de un recurso que no contestaste.** La
+  tarjeta del dispositivo decía quién lo ocupaba en la columna abierta —66 instantes,
+  31 de ellos con un ocupante nuevo, o sea la respuesta— y el bloque «En memoria» del
+  16 decía por complemento quién estaba afuera. Los dos muestran ahora «sin
+  contestar» hasta que contestás ese recurso o cierra la columna. **La cola de listos
+  no se toca y no filtra**: es el estado de entrada al instante, y por eso el que ya
+  venía ejecutando no aparece encolado y el que está por ser despachado sí. Se
+  verificó: los 77 instantes donde el de la CPU no está en la cola son todos «venía
+  ejecutando».
+
   **Y `B/S` → `R/S` se dice como cualquier otro fin de I/O: dejando de pintar el
   dispositivo.** No hace falta ningún pincel de «vuelve a estar listo», igual que en
   los otros dieciséis no hace falta uno para pasar de `I/O` a la cola de listos. Lo
