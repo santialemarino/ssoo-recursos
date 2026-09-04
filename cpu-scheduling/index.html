@@ -780,7 +780,7 @@ const UI_TEXT = {
   },
   paint: {
     label: "Estás pintando",
-    idle: "Elegí un recurso arriba y pintá quién lo ocupa en cada instante. Cada recurso se resuelve por separado y en orden: se pinta hasta el primer instante suyo sin contestar, y el resto espera.",
+    idle: "Se resuelve un instante por vez. Elegí un recurso arriba y pintá quién lo ocupa en la columna marcada; cuando estén contestados todos los recursos de ese instante, se abre el siguiente.",
     undo: "Deshacer",
     undone: "Deshiciste lo último que pintaste. Los errores que ya contaste siguen contados.",
     more: "y {n} más.",
@@ -888,7 +888,7 @@ const TOOLTIPS = {
 
 const PANEL_TIPS = {
   statement: { title: "Enunciado", body: "La tabla de procesos con su llegada y sus ráfagas, el algoritmo y los parámetros." },
-  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos: elegí un recurso arriba y pintá quién lo ocupa en cada instante, arrastrando para pintar varios seguidos. Cada recurso se resuelve en orden, así que sólo se pinta hasta el primer instante suyo sin contestar. Espacio cambia de recurso, Esc cancela el trazo y Ctrl+Z deshace el último." },
+  gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos, un instante por vez: sólo se pinta la columna marcada, y se abre la siguiente cuando estén contestados todos los recursos de ésta. El pincel pasa solo al recurso que falte, y el que ya contestaste en ese instante queda apagado. Espacio cambia de recurso y Ctrl+Z deshace." },
   state: { title: "Estado del instante", body: "Cómo queda el sistema después de las llegadas y los fines de I/O, y justo antes de que el planificador elija. Con esto alcanza para justificar la decisión." },
   quiz: { title: "¿Qué algoritmo era?", body: "Un diagrama ya resuelto de un ejemplo anterior. Acá el trabajo es al revés: mirar el resultado y reconocer la regla que lo produjo." },
   elim: { title: "Qué descarta a cada uno", body: "Para cada algoritmo que no era, el instante donde el diagrama lo deja afuera. Es la única parte del recurso que explica por eliminación, porque acá eliminar es el ejercicio." }
@@ -2352,26 +2352,11 @@ function inStroke(rowId, index) {
   return state.stroke.some(function (spot) { return spot.row === rowId && spot.t === index; });
 }
 
-function resourceEdge(resId) {
+function resourceDone(resId) {
   for (let t = 0; t < view.length; t += 1) {
-    if (!view.steps[t].assign[resId]) continue;
-    if (answerAt(state.answers, t, resId)) continue;
-    if (state.stroke.some(function (spot) { return spot.t === t; })) continue;
-    return t;
+    if (view.steps[t].assign[resId] && !answerAt(state.answers, t, resId)) return false;
   }
-  return -1;
-}
-
-function paintingEdge(resId) {
-  const edge = resourceEdge(resId);
-  if (edge < 0 || !view.example.stateBand) return edge;
-  return Math.min(edge, settledCount(view, state.answers));
-}
-
-function paintedThrough(resId) {
-  let done = -1;
-  for (let t = 0; t < view.length; t += 1) if (answerAt(state.answers, t, resId)) done = t;
-  return done;
+  return true;
 }
 
 function rowHolds(rowId, index) {
@@ -2406,12 +2391,11 @@ function devicesSettled(index) {
 }
 
 function paintableFor(res, rowId, index) {
+  if (index !== settledCount(view, state.answers)) return false;
   if (answerAt(state.answers, index, res.id)) return false;
   if (finishedAt(rowId, index)) return false;
-  if (view.steps[index].states && columnSettled(view, state.answers, index)) return false;
   if (res.kind === "memory" ? !devicesSettled(index) : rowHolds(rowId, index)) return false;
-  const edge = paintingEdge(res.id);
-  return edge >= 0 && index > paintedThrough(res.id) && index <= edge;
+  return !resourceDone(res.id);
 }
 
 function paintableAt(rowId, index) {
@@ -2853,35 +2837,23 @@ function finishAll() {
   render();
 }
 
-function spotFrom(x, y, open) {
+function spotFrom(x, y) {
   const node = document.elementFromPoint(x, y);
   if (!node || !node.dataset || node.dataset.row === undefined) return null;
   const t = Number(node.dataset.time);
-  if (open ? !paintableAt(node.dataset.row, t) : answerAt(state.answers, t, toolResource().id)) return null;
+  if (!paintableAt(node.dataset.row, t)) return null;
   return { row: node.dataset.row, t: t };
-}
-
-function markStroke(spot) {
-  state.stroke = state.stroke.filter(function (item) { return item.t !== spot.t; });
-  state.stroke.push(spot);
 }
 
 function addToStroke(spot) {
   if (!spot || inStroke(spot.row, spot.t)) return;
-  const last = state.stroke[state.stroke.length - 1];
-  if (last && Math.abs(spot.t - last.t) > 1) {
-    const step = spot.t > last.t ? 1 : -1;
-    for (let t = last.t + step; t !== spot.t; t += step) {
-      if (!answerAt(state.answers, t, toolResource().id) && !finishedAt(spot.row, t)) markStroke({ row: spot.row, t: t });
-    }
-  }
-  markStroke(spot);
+  state.stroke = [spot];
   decorateCells();
 }
 
 function onPaintDown(event) {
   if (event.button !== 0 || !event.isPrimary) return;
-  const spot = spotFrom(event.clientX, event.clientY, true);
+  const spot = spotFrom(event.clientX, event.clientY);
   if (!spot) return;
   event.preventDefault();
   stopPlay();
@@ -2902,7 +2874,7 @@ function onPaintKeyClick(event) {
 }
 
 function onPaintMove(event) {
-  const spot = spotFrom(event.clientX, event.clientY, !state.painting);
+  const spot = spotFrom(event.clientX, event.clientY);
   if (state.painting) {
     addToStroke(spot);
     return;

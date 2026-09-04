@@ -1,8 +1,8 @@
 # Planificación de procesos
 
-El estudiante **pinta el diagrama de Gantt**: elige un recurso —la CPU, cada
-dispositivo de I/O— y pinta, casillero por casillero o arrastrando, quién lo
-ocupa en cada instante. El recurso le dice si acertó y, cuando no, le muestra la
+El estudiante **pinta el diagrama de Gantt**: va instante por instante y, para
+cada uno, elige un recurso —la CPU, cada dispositivo de I/O— y pinta quién lo
+ocupa. El recurso le dice si acertó y, cuando no, le muestra la
 respuesta correcta y por qué es esa. Es un ensayo del ejercicio de parcial, con
 la misma tabla y el mismo dibujo, hecho de la misma forma: dibujando.
 
@@ -69,10 +69,10 @@ con dos variantes adentro de un ejemplo.
   con la **barra espaciadora**, que rota entre los recursos sin sacar la mano del
   diagrama.
 
-  **Se pinta sobre el diagrama.** Al pasar el mouse, el casillero se muestra con
-  opacidad —así se ve dónde vas a marcar antes de marcar— y se pinta con un clic o
-  **arrastrando** para varios instantes seguidos. `Esc` cancela el trazo antes de
-  soltar y **`Ctrl+Z` deshace** el último, todas las veces que haga falta. La vista
+  **Se pinta sobre el diagrama, un instante por vez.** Al pasar el mouse, el
+  casillero se muestra con opacidad —así se ve dónde vas a marcar antes de marcar— y
+  se pinta con un clic. `Esc` cancela antes de soltar y **`Ctrl+Z` deshace** el
+  último, todas las veces que haga falta. La vista
   previa muestra siempre el color del recurso que tenés elegido, y aparece
   exactamente en los casilleros donde el clic va a hacer algo: si no hay vista
   previa, no hay clic. Sale igual sobre un proceso que todavía no llegó, porque
@@ -103,66 +103,55 @@ con dos variantes adentro de un ejemplo.
   `verifyView` comprueba esa derivación contra los doce estados que resolvió la
   cátedra, así que no es una interpretación: es la regla, chequeada.
 
-  **Sólo se puede pintar lo que se puede corregir.** Cada recurso se resuelve en
-  orden, y lo pintable es una **ventana**: arranca después del último instante que
-  contestaste de ese recurso y termina en el primero que todavía ocupa alguien.
-  Fuera de esa ventana no se pinta: no hay cursor de cruz, no hay vista previa y el
-  clic no hace nada. Tampoco se pinta un casillero de un proceso que el tablero ya
-  da por terminado —ahí dice `FIN`, y volver a ocuparlo no es un error interesante,
-  es una contradicción.
+  **Sólo se puede pintar la columna del instante actual.** Es la regla entera. La
+  columna viva es la primera que todavía no está resuelta —la del anillo, la del
+  contador, la que muestra el panel de estado—, y fuera de ella no se pinta: no hay
+  cursor de cruz, no hay vista previa y el clic no hace nada. Se contestan los
+  recursos de ese instante, se revela, y se abre el siguiente.
 
-  **Un recurso sin instantes ocupados por contestar no tiene ventana.** Ni un
-  casillero: ni siquiera los instantes ociosos que le quedan por delante. Si no, la
-  Impresora del 10 seguía «pintable» en el instante 6 —donde la respuesta correcta
-  es no pintar nada— y el recurso se veía con trabajo cuando ya estaba terminado.
+  **Por qué así, y qué costó.** Antes cada recurso avanzaba a su propio ritmo, y eso
+  hacía que el tablero se contradijera con el resto de la pantalla: en el 10, al
+  contestar la CPU del instante 2 sus casilleros pintables saltaban al instante 3
+  mientras el anillo, el contador y el panel de estado seguían en el 2, y el botón de
+  la CPU quedaba encendido porque «tenía trabajo» —en otra columna—. Cinco señales
+  diciendo dos cosas distintas. Con la columna trabada las cinco dicen lo mismo, y un
+  botón apagado pasa a significar exactamente lo que uno espera: **ese recurso ya
+  está contestado en este instante.**
 
-  **Ningún pincel entra en un casillero cuya fila ya ocupa otra cosa.** Una fila no
-  puede tener dos recursos en el mismo instante, así que con el pincel rojo encima
-  de una fila que ya tiene la CPU la vista previa decía «CPU», que es lo contrario
-  de lo que iba a pasar. La memoria es la excepción, y tiene que serlo: estar fuera
-  de memoria y tener el dispositivo pasan juntos, y de ahí sale `B/S`.
+  El precio, medido: **se dejó de poder arrastrar.** Resolver los diecisiete son 219
+  clics, contra 110 gestos cuando una ráfaga entera se pintaba de un trazo —unos seis
+  gestos más por ejemplo, y el tramo más largo que se perdió es de seis casilleros—.
+  Se pagó a propósito: la confusión aparecía en cada ejemplo y el arrastre ahorraba
+  seis gestos.
+
+  **Tampoco se pinta un casillero de un proceso que el tablero ya da por terminado**
+  —ahí dice `FIN`, y volver a ocuparlo no es un error interesante, es una
+  contradicción— **ni uno cuya fila ya ocupa otra cosa**: una fila no puede tener dos
+  recursos en el mismo instante, así que con el pincel rojo encima de una fila que ya
+  tiene la CPU la vista previa decía «CPU», que es lo contrario de lo que iba a pasar.
+  La memoria es la excepción, y tiene que serlo: estar fuera de memoria y tener el
+  dispositivo pasan juntos, y de ahí sale `B/S`.
 
   **El pincel se cambia solo cuando se queda sin trabajo, y el que no tiene se
-  apaga.** Es la otra mitad del bloqueo, y sin ella el bloqueo se siente roto:
-  quedaba pasar a un recurso ya resuelto, o quedarse con uno que en ese momento no
-  puede pintar nada, y el tablero entero se veía inerte sin decir por qué. Ahora el
-  botón de un recurso sin nada que hacer queda deshabilitado —se ve que está
-  terminado, o que le toca a otro— y al contestar, si el pincel activo se agota,
-  salta solo al que sigue teniendo trabajo. La barra espaciadora y las teclas
-  `1`…`9` respetan lo mismo.
+  apaga.** Es la otra mitad del bloqueo, y sin ella el bloqueo se siente roto: el
+  tablero entero se veía inerte sin decir por qué. La barra de recursos pasa a ser el
+  parte de lo que le falta al instante: el botón de un recurso ya contestado en esta
+  columna queda apagado, y al contestar, si el pincel activo se agota, salta solo al
+  que todavía deba algo. La barra espaciadora y las teclas `1`…`9` respetan lo mismo.
+  Cuidado con leerlo al revés: que un botón esté encendido **no** quiere decir que
+  ese recurso lo ocupe alguien en este instante —dejarlo vacío también es una
+  respuesta, y hay que poder equivocarse ahí—.
 
-  **En el 16 la ventana es la columna.** Ahí el diagrama es una banda de estados y el
-  color de un casillero sale de los tres recursos juntos, así que no se puede mostrar
-  hasta tenerlos los tres. Por eso en ese ejemplo —y sólo en ese— ningún recurso pasa
-  de la primera columna sin resolver: se contestan los tres del instante, la columna
-  se revela entera, y recién ahí se abre la siguiente. De los tres clics, los dos
-  primeros no cambian el tablero; la devolución contesta en los tres, y la
-  alternativa era mostrar un color a medio derivar, que es mentir. El precio es que
-  ahí no se arrastra: el trazo más largo posible es un casillero, contra 4 a 13 en
-  los otros dieciséis. Es el precio correcto, porque la regla dice su propio motivo:
-  **se traba exactamente donde un casillero necesita más de una respuesta.**
-
-  Las dos puntas de la ventana tienen su motivo. **Termina en el primer instante
-  ocupado** porque más allá no se puede corregir sin revelar lo anterior. **Y
-  arranca donde arranca** para que no queden colgando, a diez columnas de distancia,
-  los instantes ociosos que nunca contestaste: antes se podía pintar el dispositivo
-  en el 0 y en el 1 durante todo el ejemplo, mucho después de haberlo resuelto hasta
-  el 6, y eso se leía como que el bloqueo no funcionaba. Una vez contestado el primer
-  instante de un recurso, la ventana es de una sola columna.
-
-  Al empezar, la ventana de un dispositivo que arranca ocioso puede ser de varias
-  columnas —en el 5 y en el 6 son seis—, y **está bien que lo sea**: en todas ellas
-  la respuesta correcta es «no lo tiene nadie», y el estudiante tiene que poder
-  equivocarse ahí. Es justo el error del ejemplo 1. Estrechar la ventana a la
-  columna del primer instante ocupado revelaría cuál es.
-
-  El borde es **por recurso**, no por columna, y de ahí salen dos cosas que
-  importan: el arrastre largo sigue siendo posible —A puede tener el dispositivo del
-  2 al 6 aunque en el medio la CPU cambie de dueño tres veces, porque el trazo
-  arranca en el borde del dispositivo y avanza con él— y un recurso que en ese
-  instante no ocupa nadie no traba nada. Un trazo arranca en el borde y pinta
-  **corrido** desde ahí; si el mouse va rápido y saltea casilleros, se rellenan
-  solos, sin agujeros.
+  **El 16 agrega una vuelta más.** Ahí el diagrama es una banda de estados, así que
+  el color de un casillero no sale de un recurso sino de los tres. Cada fila se
+  dibuja **en cuanto su estado queda decidido**, que no es lo mismo que cuando cierra
+  la columna: una fila que tiene la CPU es `RUNNING` y ya no puede ser otra cosa
+  —`verifyView` prueba que nadie ocupa dos recursos a la vez ni está fuera de memoria
+  teniendo la CPU—, así que se pinta apenas se contesta. Una que tiene el dispositivo
+  espera a la memoria, y una que está fuera de memoria espera al dispositivo, porque
+  ahí sí falta un dato. Y una fila que todavía no colocaste espera a que cierre la
+  columna, que es lo que evita afirmar un `LISTO` falso. De los 23 casilleros del
+  ejemplo, 19 se dibujan en el momento; los otros 4 llevan el renglón que lo explica.
 
   **Esto reemplazó al «en suspenso».** Antes se podía pintar en cualquier lado y lo
   adelantado quedaba esperando, con la etiqueta `antes`, hasta que se resolviera lo
@@ -602,9 +591,8 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
 4. A 390 px de ancho: legible, en una columna, sin scroll horizontal del `body`.
 5. Recorrido completo para adelante y para atrás en modo Ver: el estado inicial
    queda idéntico.
-6. En modo Resolver, sobre el diagrama: pintar un trazo bien y uno mal, arrastrar
-   una ráfaga entera de un tirón y también de un saque rápido, deshacer, y «Terminé».
-   Que el contador y la corrección hagan lo que dicen.
+6. En modo Resolver, sobre el diagrama: pintar un casillero bien y uno mal,
+   deshacer, y «Terminé». Que el contador y la corrección hagan lo que dicen.
 7. Que en modo Resolver el diagrama termine siendo el diagrama correcto, se haya
    respondido bien o mal.
 8. Los dos diagramas del ejemplo 17, respondiendo uno bien y uno mal.
@@ -616,14 +604,12 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
     de la escalera, del modo o de la barra de recursos.
 11. Mirar el diagrama con **cada** recurso elegido, no sólo con el primero: lo que
     ya está contestado se tiene que ver igual con cualquier herramienta activa.
-    Y mirar la ventana pintable de cada uno: después de la primera respuesta de ese
-    recurso tiene que ser **una sola columna**, sin casilleros sueltos atrás.
+    Y comprobar que un recurso ya contestado en ese instante tiene el botón apagado.
 12. Pintar un recurso donde iba otro y después acertar el que iba: el casillero tiene
     que quedar limpio, diciendo la verdad, sin ninguna marca que contradiga a la
     narración.
-13. Con cada recurso elegido, mirar dónde está el borde: los casilleros pintables
-    tienen borde lleno y cruz; el resto, borde punteado y nada. El anillo del
-    instante actual tiene que caer sobre la columna pintable de la CPU.
+13. Con cada recurso elegido, mirar qué se puede pintar: **siempre la columna del
+    anillo y ninguna otra**, con borde lleno y cruz; el resto, punteado y nada.
 14. Intentar pintar sobre un `FIN`, sobre un casillero lejano y sobre uno ya
     resuelto: no tiene que pasar nada, no tiene que haber vista previa, y el
     contador no se tiene que mover.
