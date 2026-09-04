@@ -150,6 +150,25 @@ con dos variantes adentro de un ejemplo.
   decide el fin de la I/O. Errar ahí sería errar en el único instante que enseña la
   diferencia.
 
+  **El panel de eventos no cuenta la decisión hasta que la columna cierra.** En modo
+  Resolver, los eventos que dicen quién ocupa un recurso en ese mismo instante
+  —`DECIDING_EVENTS`: empezar una I/O, conseguir el dispositivo, desalojar, irse a
+  I/O con quantum sin usar, que la biblioteca ponga un ULT, bloquear el KLT entero,
+  quedar suspendido, quedar `READY SUSPENDED`, y «nadie usa la CPU»— se guardan
+  mientras la columna está abierta y aparecen apenas cierra. Los demás se muestran
+  siempre: las llegadas, los fines de I/O, los fines de quantum, las terminaciones y
+  las vueltas a memoria son o datos del enunciado o consecuencias de lo que ya
+  pintaste.
+
+  No es una sutileza. Estaba, medido, en **15 de los 17 ejemplos y 34 instantes**: en
+  el 3, parado en la columna viva y sin haber pintado nada, el panel decía **«B
+  desaloja a A»**, que es exactamente la pregunta del ejemplo. Se paga barato: sobre
+  las 161 columnas que se recorren resolviendo los diecisiete, se guardan 31
+  renglones y sólo 7 columnas pasan a decir «Nada nuevo». Y no se pierde la
+  explicación, porque el pie ya da la razón del instante apenas contestás. **El modo
+  Ver no se toca**: ahí se muestran los 161 pasos completos, que es donde la
+  narración es el contenido.
+
   **Y `B/S` → `R/S` se dice como cualquier otro fin de I/O: dejando de pintar el
   dispositivo.** No hace falta ningún pincel de «vuelve a estar listo», igual que en
   los otros dieciséis no hace falta uno para pasar de `I/O` a la cola de listos. Lo

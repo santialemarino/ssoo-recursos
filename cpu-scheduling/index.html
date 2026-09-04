@@ -1712,6 +1712,8 @@ function reasonFor(view, index) {
   return { main: main, extra: deviceReason(view, index), key: false };
 }
 
+const DECIDING_EVENTS = ["ioStart", "ioStartOn", "ioGet", "quantumLeft", "preempt", "libDispatch", "kltBlock", "kltBlockJacket", "suspend", "readySusp", "idle"];
+
 function eventText(entry) {
   const template = UI_TEXT.events[entry[0]];
   return fill(template, { p: entry[1], v: entry[2] });
@@ -2514,6 +2516,11 @@ function readyGloss(algorithm) {
   return criterion ? STATES.ready.label + " \u00b7 " + criterion : STATES.ready.label;
 }
 
+function tellableEvents(entries, index) {
+  if (state.mode !== "solve" || columnSettled(view, state.answers, index)) return entries;
+  return entries.filter(function (entry) { return DECIDING_EVENTS.indexOf(entry[0]) === -1; });
+}
+
 function renderState() {
   const body = dom.statePanel;
   body.textContent = "";
@@ -2566,11 +2573,12 @@ function renderState() {
     events.classList.add("tuck");
     grid.children[0].classList.add("span");
   }
-  if (step.events.length === 0) {
+  const told = tellableEvents(step.events, state.index);
+  if (told.length === 0) {
     events.appendChild(element("div", "queue-empty", UI_TEXT.queues.noEvents));
   } else {
     const list = element("ul", "event-list");
-    step.events.forEach(function (entry) { list.appendChild(element("li", null, eventText(entry))); });
+    told.forEach(function (entry) { list.appendChild(element("li", null, eventText(entry))); });
     events.appendChild(list);
   }
   grid.appendChild(events);
