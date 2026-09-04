@@ -113,6 +113,16 @@ con dos variantes adentro de un ejemplo.
   tener los dos. El renglón de arranque del ejemplo lo dice con todas las letras
   (`idleBand`), porque no se adivina.
 
+  **Y si se contesta la memoria antes que el dispositivo, el casillero no adivina.**
+  Ahí falta el dato que decide entre `B/S` y `R/S`, así que en vez de mostrar `R/S`
+  —que era lo que hacía, y se corregía a `B/S` un clic después— el casillero muestra
+  el `short` del recurso, `FM`, sin color de estado: «dijiste que está afuera; el
+  estado sale cuando se sepa lo del dispositivo». La vista previa muestra lo mismo,
+  así que sigue valiendo que lo que se ve es lo que va a pasar: 880 vistas previas, 0
+  diferencias con el resultado. Con el recorrido automático esto no aparece nunca,
+  porque el dispositivo se contesta antes; aparece sólo si uno elige el pincel de
+  memoria a mano y primero.
+
   **Estar fuera de memoria se arrastra solo mientras la columna está abierta.** Salir
   de memoria no es un evento de un instante: es una condición que dura hasta que a
   alguien lo dejan volver. Por eso, mientras el instante no cierre, si no contestaste

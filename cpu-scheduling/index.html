@@ -1750,6 +1750,12 @@ function frontierOf(view, answers, resId) {
   return view.length - 1;
 }
 
+function settledApartFrom(view, answers, index, resId) {
+  return view.resources.every(function (res) {
+    return res.id === resId || resourceSettled(view, answers, index, res.id);
+  });
+}
+
 function columnSettled(view, answers, index) {
   return view.resources.every(function (res) { return resourceSettled(view, answers, index, res.id); });
 }
@@ -2333,6 +2339,14 @@ function paintFace(cell, rowId, index) {
         cell.title = fill(UI_TEXT.paint.missTitle, { r: marks.wrong.label });
         return;
       }
+      const pending = view.resources.filter(function (res) {
+        return res.kind === "memory" && answerAt(state.answers, index, res.id) && step.assign[res.id] === rowId;
+      })[0];
+      if (pending) {
+        cell.textContent = pending.short;
+        cell.title = pending.label;
+        return;
+      }
       cell.classList.add("blank");
       return;
     }
@@ -2376,10 +2390,10 @@ function rowHolds(rowId, index) {
 }
 
 function statusKnown(rowId, index) {
-  const named = view.resources.some(function (res) {
+  const held = holdingResources(view.resources).some(function (res) {
     return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
   });
-  return named || columnSettled(view, state.answers, index);
+  return held || columnSettled(view, state.answers, index);
 }
 
 function paintableFor(res, rowId, index) {
@@ -2427,6 +2441,7 @@ function advanceTool(opened) {
 
 function previewStatus(res, rowId, index) {
   if (!view.steps[index].states) return res.kind === "cpu" ? "running" : "blocked";
+  if (res.kind === "memory" && !statusKnown(rowId, index) && !settledApartFrom(view, state.answers, index, res.id)) return null;
   const assign = paintedAssign(index);
   assign[res.id] = rowId;
   return assignedStatus(view, rowId, assign);
@@ -2447,9 +2462,9 @@ function decorateCells() {
       const hovered = !state.painting && state.hover && state.hover.row === row.id && state.hover.t === t;
       if (!marked && !hovered) continue;
       const status = previewStatus(res, row.id, t);
-      cell.className = "gantt-cell paintable " + STATES[status].css + (marked ? " stroke" : " ghost");
-      cell.textContent = view.steps[t].states ? (UI_TEXT.cells[status] || "") : res.short;
-      cell.title = STATES[status].label;
+      cell.className = "gantt-cell paintable " + (status ? STATES[status].css + " " : "") + (marked ? "stroke" : "ghost");
+      cell.textContent = status && view.steps[t].states ? (UI_TEXT.cells[status] || "") : res.short;
+      cell.title = status ? STATES[status].label : res.label;
       if (t === state.index) cell.classList.add("now");
     }
   });
