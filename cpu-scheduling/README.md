@@ -143,15 +143,22 @@ con dos variantes adentro de un ejemplo.
   respuesta, y hay que poder equivocarse ahí—.
 
   **El 16 agrega una vuelta más.** Ahí el diagrama es una banda de estados, así que
-  el color de un casillero no sale de un recurso sino de los tres. Cada fila se
-  dibuja **en cuanto su estado queda decidido**, que no es lo mismo que cuando cierra
-  la columna: una fila que tiene la CPU es `RUNNING` y ya no puede ser otra cosa
-  —`verifyView` prueba que nadie ocupa dos recursos a la vez ni está fuera de memoria
-  teniendo la CPU—, así que se pinta apenas se contesta. Una que tiene el dispositivo
-  espera a la memoria, y una que está fuera de memoria espera al dispositivo, porque
-  ahí sí falta un dato. Y una fila que todavía no colocaste espera a que cierre la
-  columna, que es lo que evita afirmar un `LISTO` falso. De los 23 casilleros del
-  ejemplo, 19 se dibujan en el momento; los otros 4 llevan el renglón que lo explica.
+  el color de un casillero no sale de un recurso sino de los tres. La regla es:
+  **una fila se dibuja apenas alguna respuesta tuya la nombra**, con el estado que
+  se deduce de lo que dijiste hasta ahí, y se corrige sola cuando agregás el resto.
+  Contestás que A tiene el dispositivo y A se pinta de `I/O`; contestás que además
+  está fuera de memoria y pasa a `B/S`. Ese cambio no es un parche: es exactamente
+  lo que el ejemplo enseña, y verlo pasar vale más que esperar a que la columna
+  cierre. Una fila que **no** nombraste espera a que cierre la columna, y eso es lo
+  que evita afirmar un `LISTO` falso sobre alguien que todavía no colocaste.
+
+  **Lo que no se hace es obligar a un orden.** Hubo una versión que exigía contestar
+  el dispositivo antes que la memoria, para que la vista previa nunca dijera `R/S`
+  donde iba `B/S`. Estaba mal por dos motivos: el botón de «fuera de memoria»
+  aparecía apagado justo en los instantes en que el dispositivo estaba ocupado, así
+  que **delataba la respuesta** —coincidía en 8 de los 12 instantes—, y encima nadie
+  entendía por qué estaba apagado. Los tres recursos de un instante se contestan en
+  el orden que uno quiera.
 
   **Esto reemplazó al «en suspenso».** Antes se podía pintar en cualquier lado y lo
   adelantado quedaba esperando, con la etiqueta `antes`, hasta que se resolviera lo

@@ -800,7 +800,6 @@ const UI_TEXT = {
     cellLabel: "{p}, instante {a} a {b}",
     flagShown: "iba",
     missTitle: "{r}: acá no iba",
-    bandPending: "El estado se dibuja cuando estén contestados todos los recursos del instante.",
     hit: "Bien: {p} tiene {r} de {a} a {b}.",
     missOther: "De {a} a {b}, {r} no era de {p} sino de {q}.",
     missElsewhereOther: "De {a} a {b}, {p} estaba en {r2}: {r} era de {q}.",
@@ -2365,36 +2364,18 @@ function rowHolds(rowId, index) {
   });
 }
 
-function memorySettled(index) {
-  return view.resources.every(function (res) {
-    return res.kind !== "memory" || resourceSettled(view, state.answers, index, res.id);
-  });
-}
-
-function namedBy(kind, rowId, index) {
-  return view.resources.some(function (res) {
-    return res.kind === kind && answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
-  });
-}
-
 function statusKnown(rowId, index) {
-  if (namedBy("cpu", rowId, index)) return true;
-  if (namedBy("device", rowId, index) && memorySettled(index)) return true;
-  if (namedBy("memory", rowId, index) && devicesSettled(index)) return true;
-  return columnSettled(view, state.answers, index);
-}
-
-function devicesSettled(index) {
-  return view.resources.every(function (res) {
-    return res.kind !== "device" || resourceSettled(view, state.answers, index, res.id);
+  const named = view.resources.some(function (res) {
+    return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
   });
+  return named || columnSettled(view, state.answers, index);
 }
 
 function paintableFor(res, rowId, index) {
   if (index !== settledCount(view, state.answers)) return false;
   if (answerAt(state.answers, index, res.id)) return false;
   if (finishedAt(rowId, index)) return false;
-  if (res.kind === "memory" ? !devicesSettled(index) : rowHolds(rowId, index)) return false;
+  if (res.kind !== "memory" && rowHolds(rowId, index)) return false;
   return !resourceDone(res.id);
 }
 
@@ -2960,12 +2941,6 @@ function feedbackLines(closed) {
   return lines.slice(0, cap);
 }
 
-function bandPending(run) {
-  if (!view.example.stateBand || !run.given) return null;
-  if (statusKnown(run.given, run.from)) return null;
-  return UI_TEXT.paint.bandPending;
-}
-
 function renderVerdicts(body) {
   const closed = settledCount(view, state.answers) === view.length;
   const list = element("ul", "verdict-list");
@@ -2977,7 +2952,7 @@ function renderVerdicts(body) {
     }
     const item = element("li", line.run.status === "hit" ? "hit" : "miss");
     appendRich(item, pickVerdict(view, line.run));
-    const why = explained ? null : (pickWhy(view, line.run) || bandPending(line.run));
+    const why = explained ? null : pickWhy(view, line.run);
     if (why) {
       explained = true;
       item.appendChild(document.createTextNode(" "));
