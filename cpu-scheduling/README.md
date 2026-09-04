@@ -111,6 +111,17 @@ con dos variantes adentro de un ejemplo.
   da por terminado —ahí dice `FIN`, y volver a ocuparlo no es un error interesante,
   es una contradicción.
 
+  **Un recurso sin instantes ocupados por contestar no tiene ventana.** Ni un
+  casillero: ni siquiera los instantes ociosos que le quedan por delante. Si no, la
+  Impresora del 10 seguía «pintable» en el instante 6 —donde la respuesta correcta
+  es no pintar nada— y el recurso se veía con trabajo cuando ya estaba terminado.
+
+  **Ningún pincel entra en un casillero cuya fila ya ocupa otra cosa.** Una fila no
+  puede tener dos recursos en el mismo instante, así que con el pincel rojo encima
+  de una fila que ya tiene la CPU la vista previa decía «CPU», que es lo contrario
+  de lo que iba a pasar. La memoria es la excepción, y tiene que serlo: estar fuera
+  de memoria y tener el dispositivo pasan juntos, y de ahí sale `B/S`.
+
   **El pincel se cambia solo cuando se queda sin trabajo, y el que no tiene se
   apaga.** Es la otra mitad del bloqueo, y sin ella el bloqueo se siente roto:
   quedaba pasar a un recurso ya resuelto, o quedarse con uno que en ese momento no

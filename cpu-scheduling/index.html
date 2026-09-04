@@ -2358,12 +2358,12 @@ function resourceEdge(resId) {
     if (state.stroke.some(function (spot) { return spot.t === t; })) continue;
     return t;
   }
-  return view.length - 1;
+  return -1;
 }
 
 function paintingEdge(resId) {
   const edge = resourceEdge(resId);
-  if (!view.example.stateBand) return edge;
+  if (edge < 0 || !view.example.stateBand) return edge;
   return Math.min(edge, settledCount(view, state.answers));
 }
 
@@ -2373,9 +2373,7 @@ function paintedThrough(resId) {
   return done;
 }
 
-function cellResolved(rowId, index) {
-  if (finishedAt(rowId, index)) return true;
-  if (view.steps[index].states) return columnSettled(view, state.answers, index);
+function rowHolds(rowId, index) {
   return holdingResources(view.resources).some(function (res) {
     return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
   });
@@ -2389,9 +2387,11 @@ function devicesSettled(index) {
 
 function paintableFor(res, rowId, index) {
   if (answerAt(state.answers, index, res.id)) return false;
-  if (cellResolved(rowId, index)) return false;
-  if (res.kind === "memory" && !devicesSettled(index)) return false;
-  return index > paintedThrough(res.id) && index <= paintingEdge(res.id);
+  if (finishedAt(rowId, index)) return false;
+  if (view.steps[index].states && columnSettled(view, state.answers, index)) return false;
+  if (res.kind === "memory" ? !devicesSettled(index) : rowHolds(rowId, index)) return false;
+  const edge = paintingEdge(res.id);
+  return edge >= 0 && index > paintedThrough(res.id) && index <= edge;
 }
 
 function paintableAt(rowId, index) {
