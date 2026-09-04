@@ -632,6 +632,32 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
 
 ## Decisiones que conviene revisar
 
+- **Volver de swap no se evalúa, y es un agujero conocido.** Salir de memoria lo dice
+  el alumno pintando; volver, no lo dice nadie: como `assign` del recurso de memoria
+  queda en nulo, ese instante se salda solo. Peor: en el instante en que A vuelve, en
+  el 16, el botón de «fuera de memoria» ya está **apagado** y `paintableFor` da
+  `false`, así que el recurso **impide** la respuesta equivocada en vez de corregirla.
+  No es una omisión de diseño: volver de swap lo decide el planificador de mediano
+  plazo —*cuándo* se liberó un marco y *quién* entra— y es tan decisión como sacar a
+  alguien.
+
+  **Lo que haría falta**, si alguna vez se cierra: un recurso nuevo, «vuelve a
+  memoria», con verdad derivada de las trazas que ya están (`assign.swap[t-1]` cuando
+  cambia). Tiene que ser un `kind` propio y **no** `memory`, o `assignedStatus` lo
+  cuenta como «está afuera» y rompe la banda del 16. Toca `paintableFor`,
+  `resourceDone`, `resourceHasWork`, `advanceTool`, `verifyView`, la vista previa, las
+  plantillas de devolución y el deshacer.
+
+  **Y por qué no se hizo:** hoy no hay ejemplo que lo justifique. En el 16 hay un solo
+  suspendido, así que el «quién» tiene un candidato único y el «cuándo» lo delata que
+  la columna no cierre: la pregunta sería una ceremonia de un clic. Lo que la haría
+  valer es una traza con dos suspendidos compitiendo por volver, o un intercambio en
+  el mismo instante, y eso pide además que `assign` del recurso de memoria pase de un
+  id a una lista —**hoy el modelo admite un proceso afuera por vez**—. La traza es
+  material de cátedra, así que el mecanismo y el ejemplo son una sola pieza de
+  trabajo, no dos: hacer el mecanismo solo agrega ceremonia y superficie sin enseñar
+  nada nuevo.
+
 - **El ejemplo 5 es el único que no viene de una resolución previa de la
   cátedra.** Lo derivó un agente a partir de las convenciones del 3 y del 4, y
   cierra contra su propio enunciado —`verifyView` lo verifica—. Las tres
