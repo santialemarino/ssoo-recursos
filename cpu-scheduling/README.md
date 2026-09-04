@@ -95,12 +95,35 @@ con dos variantes adentro de un ejemplo.
   dieciséis ejemplos da siempre el mismo color porque ahí cada recurso corresponde
   a un estado y nada más.
 
+  Dicho al revés, que es como se entiende: **la diferencia entre los dos suspendidos
+  es la misma que entre BLOCKED y READY.** Al que sacan de memoria estando bloqueado
+  le queda `B/S`; al que sacan estando listo, `R/S`; y el que estaba en `B/S` pasa a
+  `R/S` cuando termina su I/O, sin volver a memoria. Por eso el color sale de si ese
+  proceso tiene el dispositivo **en ese mismo instante**, y no del casillero anterior.
+  `verifyView` comprueba esa derivación contra los doce estados que resolvió la
+  cátedra, así que no es una interpretación: es la regla, chequeada.
+
   **Sólo se puede pintar lo que se puede corregir.** Cada recurso se resuelve en
-  orden, y el borde de cada uno es el primer instante suyo que todavía no
-  contestaste. Los casilleros más allá del borde **no se pintan**: no tienen el
-  cursor de cruz, no muestran la vista previa y el clic no hace nada. Tampoco se
-  pinta un casillero de un proceso que el tablero ya da por terminado —ahí dice
-  `FIN`, y volver a ocuparlo no es un error interesante, es una contradicción.
+  orden, y lo pintable es una **ventana**: arranca después del último instante que
+  contestaste de ese recurso y termina en el primero que todavía ocupa alguien.
+  Fuera de esa ventana no se pinta: no hay cursor de cruz, no hay vista previa y el
+  clic no hace nada. Tampoco se pinta un casillero de un proceso que el tablero ya
+  da por terminado —ahí dice `FIN`, y volver a ocuparlo no es un error interesante,
+  es una contradicción.
+
+  Las dos puntas de la ventana tienen su motivo. **Termina en el primer instante
+  ocupado** porque más allá no se puede corregir sin revelar lo anterior. **Y
+  arranca donde arranca** para que no queden colgando, a diez columnas de distancia,
+  los instantes ociosos que nunca contestaste: antes se podía pintar el dispositivo
+  en el 0 y en el 1 durante todo el ejemplo, mucho después de haberlo resuelto hasta
+  el 6, y eso se leía como que el bloqueo no funcionaba. Una vez contestado el primer
+  instante de un recurso, la ventana es de una sola columna.
+
+  Al empezar, la ventana de un dispositivo que arranca ocioso puede ser de varias
+  columnas —en el 5 y en el 6 son seis—, y **está bien que lo sea**: en todas ellas
+  la respuesta correcta es «no lo tiene nadie», y el estudiante tiene que poder
+  equivocarse ahí. Es justo el error del ejemplo 1. Estrechar la ventana a la
+  columna del primer instante ocupado revelaría cuál es.
 
   El borde es **por recurso**, no por columna, y de ahí salen dos cosas que
   importan: el arrastre largo sigue siendo posible —A puede tener el dispositivo del
@@ -132,6 +155,13 @@ con dos variantes adentro de un ejemplo.
   contador discreto de aciertos, **que arranca de cero en cada ejemplo** —el número
   está al lado de un ejemplo, así que habla de ese ejemplo— y al que **deshacer no
   toca**: recuperás el casillero para volver a pintarlo, no el punto.
+
+  **La referencia de colores explica colores, y nada más.** Las marcas de corrección
+  no son colores: la etiqueta `iba` dice su propio nombre encima del casillero, y el
+  rayado se explica solo, con el nombre del recurso tachado adentro y la devolución
+  nombrándolo abajo. Estaban en la referencia y se sacaron, porque en el 16 —el único
+  con seis estados— empujaban la lista a dos renglones. Ahora entra en uno en los
+  diecisiete.
 
   **Una marca sólo puede señalar lo que el casillero muestra.** Son tres y nada más:
   el relleno del estado (lo que pasó de verdad), la etiqueta `iba` (esto es lo que
@@ -234,17 +264,16 @@ repositorio.
   El bloque de eventos ocupa **lo que quede de su fila**: si arranca fila propia se
   extiende a lo ancho, y si no, comparte fila con el de dispositivos.
 
-  El 15 es el que más apretado queda —tres recursos y cuatro filas de diagrama— y
-  es el que hay que medir cada vez que se agrega un renglón al pie. Con el pie en dos
-  renglones, su panel de estado **se pasa 14 px en el instante 2 y 4 px en el 3**, y
-  ningún otro ejemplo se pasa en ningún instante. Viene de antes de que se pintara
-  sobre el diagrama y es puramente aritmético: la fila del diagrama es `auto` y la del
-  panel de estado es `1fr`, así que cada píxel que crece el pie se lo saca al panel de
-  estado, y en el 15 el panel necesita 189 px y a dos renglones le quedan 175. Se
-  cierra de dos maneras, las dos con costo: bajar el tope a un solo renglón —y perder
-  la mitad de la devolución en los diecisiete— o dejar de darle fila propia al bloque
-  de eventos cuando la cantidad de bloques es par, que ahorraría 60 px pero cambia el
-  acomodo del panel en varios ejemplos. Las dos son decisión de cátedra.
+  El 15 es el que más apretado queda —tres recursos y cuatro filas de diagrama— y es
+  el que hay que medir cada vez que se agrega un renglón al pie. Durante un tiempo se
+  pasaba 14 px, y lo que lo arregló fue **el acomodo de los bloques**: cuando hay dos
+  bloques además del de eventos, el de eventos ya no se lleva una fila entera a lo
+  ancho, sino que se mete **abajo del de dispositivos**, y el de colas se estira en la
+  columna de la izquierda. El bloque de dispositivos ocupaba 53 px de contenido y
+  estiraba la fila a 109; ahora esos 56 px los usa el de eventos. Son 60 px y hacían
+  falta 14. Con eso **ningún panel se pasa en ningún instante de ningún ejemplo**, y
+  el tope del pie puede quedarse en dos renglones —tres todavía se pasa por 8 px en el
+  15, así que dos es el techo real, medido.
 - **Cuándo aparece el `FIN`.** Se pinta solo, en cuanto se responde **el último
   instante que ese proceso ocupa algo**, sin esperar a que cierre la columna ni a
   que se cierre el ejemplo. No revela nada: que un proceso terminó se deduce del
@@ -400,6 +429,14 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   diría que tiene un dispositivo que no tiene. Que está esperando se ve en la
   cola del dispositivo. En el ejemplo 1 —donde ese es justamente el tema— el
   casillero lleva además el borde punteado.
+- **Que en el 16 la banda no diga nada hasta que la columna esté completa.** El
+  color de cada casillero se deriva de la asignación de CPU, dispositivo y memoria,
+  así que con la columna a medias la derivación es falsa: contestar sólo la CPU del
+  instante 2 pintaba a A de `LISTO` cuando A estaba en el dispositivo. Ahora la
+  columna no muestra nada hasta que **todos** sus recursos estén resueltos, y
+  entonces muestra la verdad de una vez. La devolución sí aparece al instante, así
+  que no se pierde nada: lo que se pierde es la afirmación falsa.
+
 - **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
   **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
   instante en vez de sumarse a ella. No es estética: el tope tiene que contar todos
@@ -542,6 +579,8 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
     de la escalera, del modo o de la barra de recursos.
 11. Mirar el diagrama con **cada** recurso elegido, no sólo con el primero: lo que
     ya está contestado se tiene que ver igual con cualquier herramienta activa.
+    Y mirar la ventana pintable de cada uno: después de la primera respuesta de ese
+    recurso tiene que ser **una sola columna**, sin casilleros sueltos atrás.
 12. Pintar un recurso donde iba otro y después acertar el que iba: el casillero tiene
     que quedar limpio, diciendo la verdad, sin ninguna marca que contradiga a la
     narración.
