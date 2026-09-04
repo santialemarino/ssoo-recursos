@@ -2315,7 +2315,7 @@ function paintFace(cell, rowId, index) {
   if (step.states) {
     const status = finishedAt(rowId, index)
       ? "term"
-      : (columnSettled(view, state.answers, index) ? stateFrom(view, rowId, index, assign) : null);
+      : (statusKnown(rowId, index) ? stateFrom(view, rowId, index, assign) : null);
     if (!status) {
       if (marks.wrong) {
         cell.classList.add("wrong");
@@ -2378,6 +2378,25 @@ function rowHolds(rowId, index) {
   return holdingResources(view.resources).some(function (res) {
     return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
   });
+}
+
+function memorySettled(index) {
+  return view.resources.every(function (res) {
+    return res.kind !== "memory" || resourceSettled(view, state.answers, index, res.id);
+  });
+}
+
+function namedBy(kind, rowId, index) {
+  return view.resources.some(function (res) {
+    return res.kind === kind && answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
+  });
+}
+
+function statusKnown(rowId, index) {
+  if (namedBy("cpu", rowId, index)) return true;
+  if (namedBy("device", rowId, index) && memorySettled(index)) return true;
+  if (namedBy("memory", rowId, index) && devicesSettled(index)) return true;
+  return columnSettled(view, state.answers, index);
 }
 
 function devicesSettled(index) {
@@ -2970,8 +2989,8 @@ function feedbackLines(closed) {
 }
 
 function bandPending(run) {
-  if (!view.example.stateBand) return null;
-  if (columnSettled(view, state.answers, run.from)) return null;
+  if (!view.example.stateBand || !run.given) return null;
+  if (statusKnown(run.given, run.from)) return null;
   return UI_TEXT.paint.bandPending;
 }
 
