@@ -800,6 +800,7 @@ const UI_TEXT = {
     cellLabel: "{p}, instante {a} a {b}",
     flagShown: "iba",
     missTitle: "{r}: acá no iba",
+    bandPending: "El estado se dibuja cuando estén contestados todos los recursos del instante.",
     hit: "Bien: {p} tiene {r} de {a} a {b}.",
     missOther: "De {a} a {b}, {r} no era de {p} sino de {q}.",
     missElsewhereOther: "De {a} a {b}, {p} estaba en {r2}: {r} era de {q}.",
@@ -2433,7 +2434,9 @@ function decorateCells() {
       const cell = paintCells[row.id][t];
       paintFace(cell, row.id, t);
       if (t === state.index) cell.classList.add("now");
-      if (!paintableAt(row.id, t)) continue;
+      const open = paintableAt(row.id, t);
+      cell.tabIndex = open ? 0 : -1;
+      if (!open) continue;
       cell.classList.add("paintable");
       const marked = inStroke(row.id, t);
       const hovered = !state.painting && state.hover && state.hover.row === row.id && state.hover.t === t;
@@ -2773,7 +2776,7 @@ function copyPicks(list) {
 }
 
 function rememberPicks() {
-  state.history.push({ answers: copyPicks(state.answers), index: state.index });
+  state.history.push({ answers: copyPicks(state.answers), tool: toolResource().id, index: state.index });
 }
 
 function elsewhereAt(index, resId, rowId) {
@@ -2810,6 +2813,7 @@ function undoPick() {
   const last = state.history.pop();
   if (!last) return;
   state.answers = last.answers;
+  state.tool = last.tool;
   state.runs = [];
   state.note = UI_TEXT.paint.undone;
   state.index = Math.min(last.index, maxIndex());
@@ -2965,6 +2969,12 @@ function feedbackLines(closed) {
   return lines.slice(0, cap);
 }
 
+function bandPending(run) {
+  if (!view.example.stateBand) return null;
+  if (columnSettled(view, state.answers, run.from)) return null;
+  return UI_TEXT.paint.bandPending;
+}
+
 function renderVerdicts(body) {
   const closed = settledCount(view, state.answers) === view.length;
   const list = element("ul", "verdict-list");
@@ -2976,7 +2986,7 @@ function renderVerdicts(body) {
     }
     const item = element("li", line.run.status === "hit" ? "hit" : "miss");
     appendRich(item, pickVerdict(view, line.run));
-    const why = explained ? null : pickWhy(view, line.run);
+    const why = explained ? null : (pickWhy(view, line.run) || bandPending(line.run));
     if (why) {
       explained = true;
       item.appendChild(document.createTextNode(" "));
