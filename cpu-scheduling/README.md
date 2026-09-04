@@ -103,6 +103,26 @@ con dos variantes adentro de un ejemplo.
   `verifyView` comprueba esa derivación contra los doce estados que resolvió la
   cátedra, así que no es una interpretación: es la regla, chequeada.
 
+  **Ojo con "heredar el estado de la izquierda".** Suena bien —«lo mando a memoria
+  tal como estaba»— y para la decisión de swap *es* así: al que sacan bloqueado le
+  queda `B/S` y al que sacan listo, `R/S`. Pero como regla de dibujo está mal, y se
+  midió: heredar el casillero anterior acierta en los instantes 3, 4, 5, 7 y 8 y
+  **falla justo en el 6**, que es donde `B/S` pasa a `R/S` porque la I/O terminó
+  sola. Ese cambio no lo decide nadie: lo decide el fin de la I/O, y por eso el
+  color tiene que salir de si el proceso tiene el dispositivo **en ese instante** y
+  no de lo que había un casillero antes. Errar ahí sería errar en el único instante
+  que enseña la diferencia.
+
+  **Y por eso el pincel arranca cada instante por el primer recurso.** Al abrirse una
+  columna, el pincel vuelve al primero que tenga trabajo, así que el recorrido
+  automático es siempre CPU → dispositivo → memoria. No es cosmético: si la memoria
+  se contestara antes que el dispositivo, el casillero mostraría `R/S` y se corregiría
+  a `B/S` un clic después, porque en ese momento el recurso todavía no sabe que el
+  proceso tiene el dispositivo. Con este orden acierta los seis de seis y no
+  parpadea. Se ordena el recorrido en vez de **prohibir** el otro orden justamente
+  para no delatar nada: apagar el pincel de memoria hasta contestar el dispositivo
+  coincidía con «hay alguien en el dispositivo» en 8 de los 12 instantes.
+
   **Sólo se puede pintar la columna del instante actual.** Es la regla entera. La
   columna viva es la primera que todavía no está resuelta —la del anillo, la del
   contador, la que muestra el panel de estado—, y fuera de ella no se pinta: no hay

@@ -2390,7 +2390,17 @@ function resourceHasWork(res) {
   });
 }
 
-function advanceTool() {
+function firstWithWork() {
+  return view.resources.filter(function (res) { return resourceHasWork(res); })[0];
+}
+
+function advanceTool(opened) {
+  const start = opened ? firstWithWork() : null;
+  if (start) {
+    state.tool = start.id;
+    state.hover = null;
+    return;
+  }
   if (resourceHasWork(toolResource())) return;
   const ids = view.resources.map(function (item) { return item.id; });
   const from = ids.indexOf(toolResource().id);
@@ -2779,6 +2789,7 @@ function judgeInto(entries, index, resId, given) {
 }
 
 function commitStroke(stroke) {
+  const before = settledCount(view, state.answers);
   const res = toolResource();
   const fresh = stroke.filter(function (spot) { return !answerAt(state.answers, spot.t, res.id); })
     .sort(function (one, two) { return one.t - two.t; });
@@ -2789,7 +2800,7 @@ function commitStroke(stroke) {
   state.runs = groupPicks(entries);
   state.note = null;
   state.index = maxIndex();
-  advanceTool();
+  advanceTool(settledCount(view, state.answers) > before);
   render();
 }
 
