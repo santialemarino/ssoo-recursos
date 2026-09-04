@@ -75,7 +75,7 @@
   button:hover:not([disabled]):not(.gantt-cell) { border-color: var(--faint); }
   button:active:not([disabled]):not(.gantt-cell) { transform: translateY(1px); }
 
-  button:focus-visible, [tabindex]:focus-visible, select:focus-visible {
+  button:focus-visible, [tabindex]:focus-visible {
     outline: 3px solid var(--marked);
     outline-offset: 2px;
   }
@@ -84,7 +84,7 @@
 
   header { display: flex; flex-direction: column; gap: 7px; flex: 0 0 auto; }
 
-  .head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
   header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
 
@@ -191,9 +191,9 @@
 
   .panel > h2::before {
     content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
     background: var(--line-strong);
     flex: 0 0 auto;
   }
@@ -203,10 +203,18 @@
   .panel.state > h2::before { background: var(--ready); }
   .panel.decision > h2::before { background: var(--marked); }
 
-  .panel-title {
+  .tip {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
     border-bottom: 1px dotted var(--running);
     cursor: help;
+    border-radius: 0;
   }
+
+  .tip:hover { border-bottom-style: solid; }
 
   .panel-when {
     font-size: 11px;
@@ -529,7 +537,7 @@
 
   .narration-body { padding: 2px 14px 5px; min-height: 38px; }
   .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
-  .narration-note { font-size: 13.5px; color: var(--muted); margin: 3px 0 0; }
+  .narration-note { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
   .verdict-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 
   .verdict-list li {
@@ -569,12 +577,12 @@
 
   .takeaway .line { font-size: 15px; font-weight: 700; color: var(--ink); }
 
-  .progress-row { display: flex; align-items: center; gap: 9px; padding: 0 14px; }
-  .progress-track { flex: 1; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--running); border-radius: 999px; transform-origin: left center; transition: transform var(--fast) ease-out; }
-  .progress { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+  .progress-track { flex: 1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--running); border-radius: 2px; transition: transform var(--fast) ease-out; transform-origin: left center; }
+  .progress { font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 14px 8px; }
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 12px 8px; }
   .controls .spacer { flex: 1; }
   .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
   .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
@@ -583,25 +591,24 @@
 
   #tooltip {
     position: fixed;
-    z-index: 40;
-    display: none;
+    z-index: 20;
     max-width: 330px;
-    padding: 8px 11px;
-    border-radius: 8px;
-    background: var(--marked);
+    background: var(--ink);
     color: #fff;
-    font-size: 12.5px;
-    line-height: 1.4;
-    box-shadow: 0 6px 22px rgba(16, 21, 29, 0.24);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.42;
+    box-shadow: 0 6px 20px rgba(16, 21, 29, 0.3);
+    display: none;
   }
 
-  #tooltip.open { display: block; }
+  #tooltip.open { display: block; animation: flash var(--fast) ease-out; }
   #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
 
-  .term {
-    border-bottom: 1px dotted var(--running);
-    cursor: help;
-    font-weight: 620;
+  @keyframes flash {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
   }
 
   em { font-style: normal; font-weight: 700; }
@@ -646,12 +653,12 @@
 
 <main>
   <section class="panel statement">
-    <h2><span class="panel-title" data-tip="statement" tabindex="0" id="statementTitle"></span></h2>
+    <h2><button type="button" class="tip" data-tip="statement" id="statementTitle"></button></h2>
     <div class="panel-body" id="statementPanel"></div>
   </section>
   <section class="panel gantt">
     <h2>
-      <span class="panel-title" data-tip="gantt" tabindex="0" id="ganttTitle"></span>
+      <button type="button" class="tip" data-tip="gantt" id="ganttTitle"></button>
       <span class="tool-row" id="toolRow">
         <span class="toggle-label" id="paintLabel"></span>
         <span class="switch" id="toolBar" role="group" aria-labelledby="paintLabel"></span>
@@ -663,11 +670,11 @@
     </div>
   </section>
   <section class="panel state">
-    <h2><span class="panel-title" data-tip="state" tabindex="0" id="stateTitle"></span></h2>
+    <h2><button type="button" class="tip" data-tip="state" id="stateTitle"></button></h2>
     <div class="panel-body" id="statePanel"></div>
   </section>
   <section class="panel decision" id="decisionPanel">
-    <h2><span class="panel-title" tabindex="0" id="decisionTitle"></span><span class="panel-when" id="decisionWhen"></span></h2>
+    <h2><button type="button" class="tip" id="decisionTitle"></button><span class="panel-when" id="decisionWhen"></span></h2>
     <div class="panel-body" id="decisionBody"></div>
   </section>
 </main>
@@ -1974,8 +1981,8 @@ function appendRich(parent, text) {
     if (match[3]) {
       parent.appendChild(element("em", null, match[3]));
     } else {
-      const term = element("span", "term", match[2]);
-      term.setAttribute("tabindex", "0");
+      const term = element("button", "tip", match[2]);
+      term.type = "button";
       term.dataset.term = match[1];
       parent.appendChild(term);
     }
@@ -2261,10 +2268,6 @@ function paintedAssign(index) {
 
 
 
-function columnTouched(index) {
-  return view.resources.some(function (res) { return Boolean(answerAt(state.answers, index, res.id)); });
-}
-
 function flagNode(text) {
   return element("span", "flag", text);
 }
@@ -2311,8 +2314,14 @@ function paintFace(cell, rowId, index) {
   if (step.states) {
     const status = finishedAt(rowId, index)
       ? "term"
-      : (columnSettled(view, state.answers, index) && columnTouched(index) ? stateFrom(view, rowId, index, assign) : null);
+      : (columnSettled(view, state.answers, index) ? stateFrom(view, rowId, index, assign) : null);
     if (!status) {
+      if (marks.wrong) {
+        cell.classList.add("wrong");
+        cell.textContent = marks.wrong.short || marks.wrong.label;
+        cell.title = fill(UI_TEXT.paint.missTitle, { r: marks.wrong.label });
+        return;
+      }
       cell.classList.add("blank");
       return;
     }
@@ -2342,8 +2351,7 @@ function inStroke(rowId, index) {
   return state.stroke.some(function (spot) { return spot.row === rowId && spot.t === index; });
 }
 
-function paintingEdge() {
-  const resId = toolResource().id;
+function resourceEdge(resId) {
   for (let t = 0; t < view.length; t += 1) {
     if (!view.steps[t].assign[resId]) continue;
     if (answerAt(state.answers, t, resId)) continue;
@@ -2353,17 +2361,62 @@ function paintingEdge() {
   return view.length - 1;
 }
 
-function paintedThrough() {
-  const resId = toolResource().id;
+function paintingEdge(resId) {
+  const edge = resourceEdge(resId);
+  if (!view.example.stateBand) return edge;
+  return Math.min(edge, settledCount(view, state.answers));
+}
+
+function paintedThrough(resId) {
   let done = -1;
   for (let t = 0; t < view.length; t += 1) if (answerAt(state.answers, t, resId)) done = t;
   return done;
 }
 
+function cellResolved(rowId, index) {
+  if (finishedAt(rowId, index)) return true;
+  if (view.steps[index].states) return columnSettled(view, state.answers, index);
+  return holdingResources(view.resources).some(function (res) {
+    return answerAt(state.answers, index, res.id) && view.steps[index].assign[res.id] === rowId;
+  });
+}
+
+function devicesSettled(index) {
+  return view.resources.every(function (res) {
+    return res.kind !== "device" || resourceSettled(view, state.answers, index, res.id);
+  });
+}
+
+function paintableFor(res, rowId, index) {
+  if (answerAt(state.answers, index, res.id)) return false;
+  if (cellResolved(rowId, index)) return false;
+  if (res.kind === "memory" && !devicesSettled(index)) return false;
+  return index > paintedThrough(res.id) && index <= paintingEdge(res.id);
+}
+
 function paintableAt(rowId, index) {
-  if (answerAt(state.answers, index, toolResource().id)) return false;
-  if (finishedAt(rowId, index)) return false;
-  return index > paintedThrough() && index <= paintingEdge();
+  return paintableFor(toolResource(), rowId, index);
+}
+
+function resourceHasWork(res) {
+  return view.rows.some(function (row) {
+    for (let t = 0; t < view.length; t += 1) if (paintableFor(res, row.id, t)) return true;
+    return false;
+  });
+}
+
+function advanceTool() {
+  if (resourceHasWork(toolResource())) return;
+  const ids = view.resources.map(function (item) { return item.id; });
+  const from = ids.indexOf(toolResource().id);
+  for (let k = 1; k <= ids.length; k += 1) {
+    const next = resourceOf(view, ids[(from + k) % ids.length]);
+    if (resourceHasWork(next)) {
+      state.tool = next.id;
+      state.hover = null;
+      return;
+    }
+  }
 }
 
 function previewStatus(res, rowId, index) {
@@ -2677,12 +2730,14 @@ function renderTools() {
     button.appendChild(element("span", "swatch"));
     button.appendChild(element("span", null, res.label));
     button.appendChild(element("span", "key", String(position + 1)));
+    button.disabled = !resourceHasWork(res);
     button.addEventListener("click", function () { pickTool(res.id); });
     dom.toolBar.appendChild(button);
   });
 }
 
 function pickTool(resId) {
+  if (!resourceHasWork(resourceOf(view, resId))) return;
   state.tool = resId;
   state.hover = null;
   keepFocus(function () {
@@ -2693,8 +2748,14 @@ function pickTool(resId) {
 
 function cycleTool() {
   const ids = view.resources.map(function (res) { return res.id; });
-  const position = ids.indexOf(toolResource().id);
-  pickTool(ids[(position + 1) % ids.length]);
+  const from = ids.indexOf(toolResource().id);
+  for (let k = 1; k <= ids.length; k += 1) {
+    const next = ids[(from + k) % ids.length];
+    if (resourceHasWork(resourceOf(view, next))) {
+      pickTool(next);
+      return;
+    }
+  }
 }
 
 function emptyPicks() {
@@ -2741,6 +2802,7 @@ function commitStroke(stroke) {
   state.runs = groupPicks(entries);
   state.note = null;
   state.index = maxIndex();
+  advanceTool();
   render();
 }
 
@@ -2751,6 +2813,7 @@ function undoPick() {
   state.runs = [];
   state.note = UI_TEXT.paint.undone;
   state.index = Math.min(last.index, maxIndex());
+  advanceTool();
   render();
 }
 

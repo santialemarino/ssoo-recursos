@@ -111,6 +111,26 @@ con dos variantes adentro de un ejemplo.
   da por terminado —ahí dice `FIN`, y volver a ocuparlo no es un error interesante,
   es una contradicción.
 
+  **El pincel se cambia solo cuando se queda sin trabajo, y el que no tiene se
+  apaga.** Es la otra mitad del bloqueo, y sin ella el bloqueo se siente roto:
+  quedaba pasar a un recurso ya resuelto, o quedarse con uno que en ese momento no
+  puede pintar nada, y el tablero entero se veía inerte sin decir por qué. Ahora el
+  botón de un recurso sin nada que hacer queda deshabilitado —se ve que está
+  terminado, o que le toca a otro— y al contestar, si el pincel activo se agota,
+  salta solo al que sigue teniendo trabajo. La barra espaciadora y las teclas
+  `1`…`9` respetan lo mismo.
+
+  **En el 16 la ventana es la columna.** Ahí el diagrama es una banda de estados y el
+  color de un casillero sale de los tres recursos juntos, así que no se puede mostrar
+  hasta tenerlos los tres. Por eso en ese ejemplo —y sólo en ese— ningún recurso pasa
+  de la primera columna sin resolver: se contestan los tres del instante, la columna
+  se revela entera, y recién ahí se abre la siguiente. De los tres clics, los dos
+  primeros no cambian el tablero; la devolución contesta en los tres, y la
+  alternativa era mostrar un color a medio derivar, que es mentir. El precio es que
+  ahí no se arrastra: el trazo más largo posible es un casillero, contra 4 a 13 en
+  los otros dieciséis. Es el precio correcto, porque la regla dice su propio motivo:
+  **se traba exactamente donde un casillero necesita más de una respuesta.**
+
   Las dos puntas de la ventana tienen su motivo. **Termina en el primer instante
   ocupado** porque más allá no se puede corregir sin revelar lo anterior. **Y
   arranca donde arranca** para que no queden colgando, a diez columnas de distancia,
@@ -437,6 +457,12 @@ Eso lo garantiza el origen, y por eso está la sección que sigue.
   entonces muestra la verdad de una vez. La devolución sí aparece al instante, así
   que no se pierde nada: lo que se pierde es la afirmación falsa.
 
+- **El tooltip es el mismo componente que en los otros dos recursos.** El disparador
+  es un `<button class="tip">` —no un `<span tabindex>`—, y la caja usa el mismo
+  fondo, tipografía, sombra y animación de apertura que `instruction-cycle-interrupts`
+  y `process-lifecycle`. Había derivado en seis propiedades y se notaba al pasar de un
+  recurso a otro. Si tocás uno, tocá los tres.
+
 - **El tope de líneas de la devolución: dos, contando todo.** `FEEDBACK_LINES`. Y
   **una sola cuando el ejemplo ya se cerró**, que además reemplaza a la razón del
   instante en vez de sumarse a ella. No es estética: el tope tiene que contar todos
@@ -587,5 +613,10 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
 13. Con cada recurso elegido, mirar dónde está el borde: los casilleros pintables
     tienen borde lleno y cruz; el resto, borde punteado y nada. El anillo del
     instante actual tiene que caer sobre la columna pintable de la CPU.
-14. Intentar pintar sobre un `FIN` y sobre un casillero lejano: no tiene que pasar
-    nada, y el contador no se tiene que mover.
+14. Intentar pintar sobre un `FIN`, sobre un casillero lejano y sobre uno ya
+    resuelto: no tiene que pasar nada, no tiene que haber vista previa, y el
+    contador no se tiene que mover.
+15. Resolver el 16 entero sin tocar la barra de recursos: el pincel tiene que ir
+    cambiando solo, y cada columna revelarse cuando se contesta su tercer recurso.
+16. En cualquier ejemplo, terminar un recurso y comprobar que su botón queda
+    apagado y que el pincel salta al que todavía tiene trabajo.
