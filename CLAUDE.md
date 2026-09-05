@@ -82,8 +82,14 @@ this section.
   needs a comment to be understood, rename or split it until it does not. Prose
   goes in a `README.md`.
 - A resource is **one self-contained HTML file**: no framework, no build, no
-  bundler, no npm dependency, no runtime network calls, no `localStorage` or
-  persistence of any kind. It has to work over `file://`.
+  bundler, no npm dependency, no runtime network calls. It has to work over
+  `file://`. **`localStorage` is allowed for one purpose and no other:**
+  remembering what the student already answered, so that changing example — or
+  reloading the page — does not throw their work away. It is a convenience, never
+  a dependency: every read and write goes inside a `try`/`catch`, and the resource
+  has to load and behave the same with storage empty, full, refused or missing,
+  because over `file://` some browsers deny it outright. Nothing a resource needs
+  in order to teach may live only in storage. No `sessionStorage`, no cookies.
 - **English for code and process** — identifiers, file and folder names, skills,
   these context files, commit messages, and pull request titles and bodies.
   **Spanish (Argentine, voseante) for anything a student reads**, plus `README.md`

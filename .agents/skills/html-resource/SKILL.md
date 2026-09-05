@@ -18,8 +18,12 @@ Not preferences. A resource that breaks one of these is wrong.
 - **No external resources**, with one exception: a `<link>` to a web font. With no
   network it must fall back to a system font stack and look just as good. No JS or
   CSS from a CDN.
-- **No `localStorage`, `sessionStorage`, cookies or persistence of any kind.**
-  State lives in memory for the session.
+- **`localStorage` only to remember the student's own progress** — what they
+  already answered — so that changing example or reloading does not throw their
+  work away. Wrap every read and write in `try`/`catch` and fall back to memory:
+  over `file://` some browsers refuse storage outright, and the resource has to
+  work exactly the same when it does. Everything else lives in memory and in the
+  data block. **No `sessionStorage`, no cookies.**
 - **No network calls at runtime.**
 - **Must work opened over `file://`** by double-clicking, with no server.
 
