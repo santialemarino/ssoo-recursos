@@ -360,6 +360,46 @@ con dos variantes adentro de un ejemplo.
 
 ---
 
+## Cada ejemplo se acuerda de dónde lo dejaste
+
+Cambiar de ejemplo ya no borra nada. Al salir, lo que tenías queda guardado —las
+respuestas, el instante en el que estabas, el marcador, el historial de deshacer
+y el recurso que tenías elegido— y al volver se restaura **exactamente igual**.
+Los ejemplos con dos variantes guardan una por variante, porque son dos trazas
+distintas y las respuestas de una no valen para la otra. El 17 se acuerda de en
+qué diagrama del cuestionario estaba.
+
+En la escalera de arriba, **un ✓ marca los ejemplos que ya cerraste**. Cerrado
+quiere decir completo, no perfecto: se puede terminar un ejemplo con errores y
+el ✓ aparece igual — el marcador es el que dice cómo te fue. Los ejemplos de dos
+variantes lo muestran cuando cerraste **las dos**.
+
+**Y sobrevive a recargar la página.** El progreso se guarda en `localStorage`,
+bajo una sola clave —`ssoo-recursos:cpu-scheduling:1`, con el número de versión
+al final— así que cerrar la pestaña y volver mañana no pierde nada. Para eso se
+cambió la regla de `CLAUDE.md` que prohibía toda persistencia; la regla nueva
+permite `localStorage` **sólo** para esto.
+
+Es una comodidad y nunca una dependencia, y de ahí salen cuatro cuidados que hay
+que respetar si alguien toca esta parte:
+
+- **Toda lectura y toda escritura van dentro de un `try`/`catch`.** Sobre
+  `file://` hay navegadores que directamente niegan el almacenamiento, y el
+  recurso tiene que funcionar igual: si falla, el progreso vive en memoria y sólo
+  se pierde el recuerdo entre sesiones.
+- **Lo que se lee se valida antes de usarlo.** Un progreso guardado con una traza
+  vieja —otro largo, otro recurso, un proceso que ya no existe— se descarta y se
+  borra, en vez de intentar dibujarlo. Si cambiás una traza, el progreso viejo de
+  ese ejemplo se tira solo; si cambiás muchas, subí el número de la clave.
+- **Nada que el recurso necesite para enseñar vive ahí.** Sólo respuestas del
+  estudiante. Con el almacenamiento vacío, el recurso es exactamente el mismo.
+- **Tiene que haber forma de volver a empezar.** Es el botón «Empezar de nuevo»,
+  que borra el progreso guardado del ejemplo en el que estás. Sin él, resolver un
+  ejemplo una vez lo dejaría resuelto para siempre y el estudiante no podría
+  practicarlo de nuevo — que es justo lo que un ensayo de parcial necesita.
+
+---
+
 ## El chasis se comparte; el canvas se deriva
 
 Está también en `CLAUDE.md` porque vale para todo el repositorio.

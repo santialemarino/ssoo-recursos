@@ -117,6 +117,9 @@
   .examples button .short { display: none; font-weight: 650; }
   .examples button[aria-current="true"] .short { display: inline; }
   .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
+  .examples button.solved { border-color: var(--faint); }
+  .examples button .tick { font-size: 10px; font-weight: 800; color: var(--muted); }
+  .examples button[aria-current="true"] .tick { color: #fff; }
 
   .toggle-label { font-size: 12.5px; color: var(--muted); }
 
@@ -700,6 +703,7 @@
       <button type="button" class="small" id="playPause"></button>
       <button type="button" class="small" id="undoPick"></button>
       <button type="button" class="small" id="finishBoard"></button>
+      <button type="button" class="small" id="restartExample"></button>
       <span class="spacer"></span>
       <span class="score" id="score"></span>
     </div>
@@ -714,6 +718,8 @@ const UI_TEXT = {
   modeLabel: "Modo",
   modes: { solve: "Resolver", watch: "Ver" },
   groups: { base: "Base", dispositivos: "Dispositivos", hilos: "Hilos", cierre: "Cierre" },
+  solvedMark: "✓",
+  solvedTip: "ya lo resolviste",
   firstStep: "Primero",
   prevStep: "Anterior",
   nextStep: "Siguiente",
@@ -799,6 +805,7 @@ const UI_TEXT = {
     whyKeeps: "{q} ya venía ejecutando, y este algoritmo no [[desalojo:desaloja]]: la CPU no se le saca hasta que termine su ráfaga.",
     whyKeepsPreempt: "{q} ya venía ejecutando y en ese instante no apareció nadie que lo desalojara.",
     finish: "Terminé",
+    restart: "Empezar de nuevo",
     cellLabel: "{p}, instante {a} a {b}",
     flagShown: "iba",
     missTitle: "{r}: acá no iba",
@@ -1897,6 +1904,7 @@ const dom = {
   playPause: document.getElementById("playPause"),
   undoPick: document.getElementById("undoPick"),
   finishBoard: document.getElementById("finishBoard"),
+  restartExample: document.getElementById("restartExample"),
   toolRow: document.getElementById("toolRow"),
   paintLabel: document.getElementById("paintLabel"),
   toolBar: document.getElementById("toolBar"),
@@ -1930,6 +1938,8 @@ const FEEDBACK_LINES = 2;
 
 let view = null;
 let paintCells = {};
+const progress = {};
+const STORE_KEY = "ssoo-recursos:cpu-scheduling:1";
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -2011,6 +2021,11 @@ function renderLadder() {
     button.appendChild(element("span", "num", String(example.number)));
     button.appendChild(element("span", "short", example.short));
     if (position === state.exampleIndex) button.setAttribute("aria-current", "true");
+    if (solvedBefore(example)) {
+      button.classList.add("solved");
+      button.title = example.short + " · " + UI_TEXT.solvedTip;
+      button.appendChild(element("span", "tick", UI_TEXT.solvedMark));
+    }
     button.addEventListener("click", function () { selectExample(position); });
     dom.exampleList.appendChild(button);
   });
@@ -2057,10 +2072,12 @@ function renderVariants() {
   });
   renderSwitch(dom.variantBar, entries, String(state.variantIndex), function (key) {
     if (Number(key) === state.variantIndex) return;
+    storeProgress();
     state.variantIndex = Number(key);
     stopPlay();
     resetProgress();
     rebuildView();
+    restoreProgress();
     render();
   });
 }
@@ -2804,6 +2821,14 @@ function commitStroke(stroke) {
   render();
 }
 
+function restartExample() {
+  stopPlay();
+  delete progress[progressKey(state.exampleIndex, state.variantIndex)];
+  resetProgress();
+  rebuildView();
+  render();
+}
+
 function undoPick() {
   const last = state.history.pop();
   if (!last) return;
@@ -3014,14 +3039,18 @@ function renderControls() {
   dom.lastStep.disabled = quiz || state.index >= maxIndex();
   dom.playPause.hidden = quiz || state.mode !== "watch";
   const painting = !quiz && state.mode === "solve";
+  const solving = state.mode === "solve";
   dom.undoPick.hidden = !painting;
   dom.finishBoard.hidden = !painting;
+  dom.restartExample.hidden = !solving;
   dom.undoPick.textContent = UI_TEXT.paint.undo;
   dom.finishBoard.textContent = UI_TEXT.paint.finish;
+  dom.restartExample.textContent = UI_TEXT.paint.restart;
   if (painting) {
     dom.undoPick.disabled = state.history.length === 0;
     dom.finishBoard.disabled = settledCount(view, state.answers) === view.length;
   }
+  if (solving) dom.restartExample.disabled = quiz ? !state.quizAnswered && state.quizChart === 0 : state.asked === 0;
   dom.score.textContent = state.asked === 0 ? "" : fill(UI_TEXT.score, { ok: state.ok, total: state.asked });
   if (quiz) {
     dom.progress.textContent = fill(UI_TEXT.quiz.chartOf, { n: state.quizChart + 1, total: currentExample().quiz.charts.length });
@@ -3046,6 +3075,7 @@ function render() {
 }
 
 function renderAll() {
+  storeProgress();
   renderLadder();
   renderModes();
   renderVariants();
@@ -3063,6 +3093,104 @@ function renderAll() {
   renderDecision();
   renderNarration();
   renderControls();
+}
+
+function readStore() {
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function writeStore() {
+  try {
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(progress));
+  } catch (error) {
+    return;
+  }
+}
+
+function usableProgress(saved) {
+  if (!saved || !Array.isArray(saved.answers) || saved.answers.length !== view.length) return false;
+  if (typeof saved.index !== "number" || saved.index < 0 || saved.index >= view.length) return false;
+  const ids = view.resources.map(function (res) { return res.id; });
+  const rows = view.rows.map(function (row) { return row.id; });
+  return saved.answers.every(function (entry) {
+    if (!entry || typeof entry !== "object") return false;
+    return Object.keys(entry).every(function (key) {
+      const answer = entry[key];
+      return ids.indexOf(key) !== -1
+        && answer && typeof answer === "object"
+        && (answer.given === null || rows.indexOf(answer.given) !== -1);
+    });
+  });
+}
+
+function copyHistory(list) {
+  return list.map(function (entry) {
+    return { answers: copyPicks(entry.answers), tool: entry.tool, index: entry.index };
+  });
+}
+
+function progressKey(exampleIndex, variantIndex) {
+  const example = EXAMPLES[exampleIndex];
+  return example.variants ? example.id + ":" + variantIndex : example.id;
+}
+
+function exampleDone() {
+  if (isQuiz()) return state.quizAnswered && state.quizChart + 1 === currentExample().quiz.charts.length;
+  return settledCount(view, state.answers) === view.length;
+}
+
+function storeProgress() {
+  progress[progressKey(state.exampleIndex, state.variantIndex)] = {
+    index: state.index,
+    answers: copyPicks(state.answers),
+    tool: state.tool,
+    runs: state.runs.slice(),
+    note: state.note,
+    history: copyHistory(state.history),
+    ok: state.ok,
+    asked: state.asked,
+    quizChart: state.quizChart,
+    quizPick: state.quizPick,
+    quizAnswered: state.quizAnswered,
+    done: exampleDone()
+  };
+  writeStore();
+}
+
+function restoreProgress() {
+  const key = progressKey(state.exampleIndex, state.variantIndex);
+  const saved = progress[key];
+  if (!saved) return;
+  if (!isQuiz() && !usableProgress(saved)) {
+    delete progress[key];
+    writeStore();
+    return;
+  }
+  state.index = saved.index;
+  state.answers = copyPicks(saved.answers);
+  state.tool = saved.tool;
+  state.runs = saved.runs.slice();
+  state.note = saved.note;
+  state.history = copyHistory(saved.history || []);
+  state.ok = saved.ok;
+  state.asked = saved.asked;
+  state.quizChart = saved.quizChart;
+  state.quizPick = saved.quizPick;
+  state.quizAnswered = saved.quizAnswered;
+  if (isQuiz()) rebuildView();
+}
+
+function solvedBefore(example) {
+  const keys = example.variants
+    ? example.variants.map(function (variant, position) { return example.id + ":" + position; })
+    : [example.id];
+  return keys.every(function (key) { return Boolean(progress[key] && progress[key].done); });
 }
 
 function resetProgress() {
@@ -3092,10 +3220,12 @@ function rebuildView() {
 function selectExample(position) {
   if (position === state.exampleIndex) return;
   stopPlay();
+  storeProgress();
   state.exampleIndex = position;
   state.variantIndex = 0;
   resetProgress();
   rebuildView();
+  restoreProgress();
   render();
 }
 
@@ -3214,6 +3344,7 @@ dom.lastStep.addEventListener("click", function () { stopPlay(); goTo(maxIndex()
 dom.playPause.addEventListener("click", togglePlay);
 dom.undoPick.addEventListener("click", undoPick);
 dom.finishBoard.addEventListener("click", finishAll);
+dom.restartExample.addEventListener("click", restartExample);
 
 EXAMPLES.forEach(function (example) {
   if (example.quiz) return;
@@ -3222,7 +3353,9 @@ EXAMPLES.forEach(function (example) {
   });
 });
 
+Object.assign(progress, readStore());
 rebuildView();
+restoreProgress();
 render();
 </script>
 
