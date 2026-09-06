@@ -152,10 +152,11 @@ con dos variantes adentro de un ejemplo.
 
   **El panel de eventos no cuenta la decisión hasta que la columna cierra.** En modo
   Resolver, los eventos que dicen quién ocupa un recurso en ese mismo instante
-  —`DECIDING_EVENTS`: empezar una I/O, conseguir el dispositivo, desalojar, irse a
-  I/O con quantum sin usar, que la biblioteca ponga un ULT, bloquear el KLT entero,
-  quedar suspendido, quedar `READY SUSPENDED`, y «nadie usa la CPU»— se guardan
-  mientras la columna está abierta y aparecen apenas cierra. Los demás se muestran
+  —`DECIDING_EVENTS`: empezar una I/O, conseguir el dispositivo, **pedir un
+  dispositivo que está ocupado**, desalojar, irse a I/O con quantum sin usar, que la
+  biblioteca ponga un ULT, bloquear el KLT entero, quedar suspendido, quedar
+  `READY SUSPENDED`, y «nadie usa la CPU»— se guardan mientras la columna está
+  abierta y aparecen apenas cierra. Los demás se muestran
   siempre: las llegadas, los fines de I/O, los fines de quantum, las terminaciones y
   las vueltas a memoria son o datos del enunciado o consecuencias de lo que ya
   pintaste.
@@ -173,11 +174,26 @@ con dos variantes adentro de un ejemplo.
   tarjeta del dispositivo decía quién lo ocupaba en la columna abierta —66 instantes,
   31 de ellos con un ocupante nuevo, o sea la respuesta— y el bloque «En memoria» del
   16 decía por complemento quién estaba afuera. Los dos muestran ahora «sin
-  contestar» hasta que contestás ese recurso o cierra la columna. **La cola de listos
-  no se toca y no filtra**: es el estado de entrada al instante, y por eso el que ya
-  venía ejecutando no aparece encolado y el que está por ser despachado sí. Se
-  verificó: los 77 instantes donde el de la CPU no está en la cola son todos «venía
-  ejecutando».
+  contestar» hasta que contestás ese recurso o cierra la columna.
+
+  **Y la lista de quién espera el dispositivo espera a que cierre la columna entera**,
+  no a que contestes el dispositivo. La tarjeta decía «sin contestar» arriba y
+  «Esperando B» abajo, que es una contradicción: si B espera, B **no** tiene el
+  dispositivo y B **no** está en la CPU, o sea que el renglón afirmaba dos respuestas
+  que todavía no diste. Pasa en el 1 en el instante 6 y en el 2 en el 5, y el del 1 es
+  justo el instante que el ejemplo pregunta: con A en el dispositivo y B esperando, que
+  la CPU quede libre deja de ser una pregunta. Por eso el evento `ioWait` entró a
+  `DECIDING_EVENTS` y el renglón se rige por `toldColumn`, igual que el casillero
+  punteado rojo del diagrama, que ya esperaba a que la columna cerrara: eran dos reglas
+  distintas para el mismo hecho. Cuesta **2 renglones de evento y 2 columnas** que
+  pasan a decir «Nada nuevo»; `spoil1.mjs` recorre las 153 columnas abiertas y tiene que
+  dar 0 filtraciones. **La cola de listos
+  no filtra**: es el estado de entrada al instante, y por eso el que ya venía
+  ejecutando no aparece encolado y el que está por ser despachado sí. Se verificó: los
+  77 instantes donde el de la CPU no está en la cola son todos «venía ejecutando». Lo
+  que sí se puede es **sacarla de la pantalla entera** con el interruptor del panel de
+  estado, que es otra cosa: no es filtrar lo que dice, es no decir nada. Está descrito
+  en «Los paneles».
 
   **Y `B/S` → `R/S` se dice como cualquier otro fin de I/O: dejando de pintar el
   dispositivo.** No hace falta ningún pincel de «vuelve a estar listo», igual que en
@@ -382,19 +398,78 @@ repositorio.
 - **Qué muestra el panel de estado.** Con un solo nivel de planificación,
   una cola de listos. Con dos niveles (12 a 15), la cola de KLT y además la lista
   de ULT listos de cada KLT. El 16 agrega qué hay en memoria.
-- **Cuánto respira cada panel.** El acomodo de paneles y **el espaciado son los
-  mismos en los diecisiete**. Hubo una versión en la que el panel de estado se
-  apretaba solo cuando tenía muchos bloques, y estaba mal: se veía como si los
-  ejemplos de dos niveles hubieran quedado sin arreglar al lado de los primeros. Lo
-  único que se deriva es el alto de los casilleros del diagrama (más chico con
-  cuatro filas) y el de la tabla del enunciado (más chico con más de tres). Todo
-  sale de contar filas, nunca de una lista de ejemplos.
+- **Cuánto respira cada panel.** **El espaciado es el mismo en los diecisiete.**
+  Hubo una versión en la que el panel de estado se apretaba solo cuando tenía muchos
+  bloques, y estaba mal: se veía como si los ejemplos de dos niveles hubieran quedado
+  sin arreglar al lado de los primeros. Lo que se deriva es el alto de los casilleros
+  del diagrama (más chico con cuatro filas), el de la tabla del enunciado (más chico
+  con más de tres) y **el ancho de la columna del enunciado**. Todo sale de contar
+  filas y columnas, nunca de una lista de ejemplos.
+
+- **Cuánto mide la columna del enunciado.** La tabla del 4 y del 5 tiene ocho
+  columnas —las tres del estimador más las tres de ráfagas— y en el ancho de las
+  demás no entraba: se cortaban **las tres columnas de ráfagas enteras**, 103 px,
+  justo en los dos ejemplos donde el asunto es la estimación **contra** la ráfaga
+  real. Con `estimates`, el enunciado pasa de `0,58fr` a `0,86fr` (263 px → 354 px) y
+  el diagrama se queda con 889, que le sobran para los once instantes del 5. Además,
+  el apretado de celdas de la tabla (`.wide`) ya no depende de cuántas ráfagas hay
+  sino de **cuántas columnas tiene**, que es lo que la hace no entrar: con eso el 11
+  deja de cortar 27 px y el 17, 31.
+
+  **Los mínimos del `minmax` importan más que el `fr`, y son los que arreglan las
+  pantallas del medio.** A 1280 manda el `fr` y el mínimo no ata; entre 901 px —donde
+  arranca la grilla de tres columnas— y 1180 el `fr` da menos que la tabla, y ahí
+  **recortaba en dieciséis de los diecisiete**, entre 8 y 22 px, desde antes de este
+  cambio: media columna de ráfagas comida en una pantalla de portátil corriente. Los
+  mínimos pasaron de 236 px a **267** (a **322** con `estimates`, y de 224 a **229** en
+  el 17). Barrido de quince anchos de 320 a 1920 × los diecisiete, 255 tableros: **de
+  360 px para arriba no queda una sola columna oculta**; a 320 px el 4 y el 5 dejan
+  22 px afuera, que scrollean adentro de su propio contenedor —una tabla de ocho
+  columnas no entra en 292 px y no hay dónde ponerla—. El original recortaba 74 px ahí
+  y hasta 130 px a 901.
+
+  **Los números salieron de medir la holgura, no de mirar si recortaba.** Con los
+  mínimos apenas suficientes —260 y 316— no recortaba en ninguna parte y aun así estaba
+  mal: el 10 quedaba con **1,6 px** de aire entre su tabla y el borde, el 4 y el 5 con
+  2,3 y el 17 con 3,2. Eso es «anda en esta máquina»: otra tipografía, otro zoom u otro
+  motor y vuelve a recortar. Los mínimos de ahora dejan **8 px o más en los
+  diecisiete**, en el ancho donde cada uno está más apretado. Sale casi gratis porque
+  el que paga es el diagrama, y a 1280 al diagrama le sobran entre 334 y 628 px antes
+  de que un casillero toque su piso de 38: el enunciado pasa de 263 a 267 px y el
+  diagrama de 980 a 976.
+
+  Se paga en un solo lugar, y es el cambio bueno: a 901 px el diagrama del 5 pasa a
+  scrollear 8 px y el del 6, 30 px más. Recortar la tabla escondía columnas sin avisar;
+  el diagrama scrollea en un contenedor hecho para eso.
+
+  El acomodo de una sola columna de 900 px para abajo nombra a `main.wide-statement`
+  igual que a `main.solo` y a `main.quiz`. Hace falta: una media query no suma
+  especificidad, así que `main` a secas ahí adentro **pierde** contra `main.wide-statement`
+  de afuera. Hoy funcionaría igual porque todos los ejemplos llevan además `solo` o
+  `quiz`, que empatan y ganan por venir después — o sea que anda por accidente, que es
+  la peor forma de andar.
 - **Cuántos bloques tiene el panel de estado.** Con dos niveles de planificación,
   las colas van **en un solo bloque** con una fila por nivel (`KLT`, `ULT · KLT1`,
   `ULT · KLT2`) en vez de un bloque por cola. No es sólo estética: tres bloques con
   su encabezado y su línea no entran, y son lo que obligaba a apretar el espaciado.
-  El bloque de eventos ocupa **lo que quede de su fila**: si arranca fila propia se
-  extiende a lo ancho, y si no, comparte fila con el de dispositivos.
+  Las filas de ese bloque se acomodan en una grilla de dos columnas, así que **los
+  chips de todos los niveles arrancan en la misma vertical** aunque el rótulo de la
+  izquierda mida distinto (`KLT` contra `ULT · KLT1`). Antes el rótulo tenía un ancho
+  mínimo fijo de 52 px: el que no llegaba se estiraba a 52 y el que se pasaba corría
+  su fila 5,5 px a la derecha, o sea ni parejo ni alineado.
+
+  Cuando hay más de un dispositivo —el 10— las tarjetas van **una al lado de la
+  otra** en vez de apiladas: son dos recursos hermanos, y apiladas eran 30 px que en
+  el paso de cierre del 10 hacían que el panel se pasara.
+
+- **Los cuatro encabezados de panel miden lo mismo.** Los paneles que llevan una
+  barra de botones en el título —el diagrama con sus recursos, el estado con su
+  interruptor de cola— eran 3,8 px más altos que los otros dos, así que la línea
+  bajo «Diagrama» quedaba más abajo que la de «Enunciado» en los diecisiete
+  ejemplos. La barra se mete adentro del `padding` del encabezado con
+  `margin: -2px 0` en vez de estirarlo: sale gratis en alto, que acá importa —a
+  1280×720 el recurso no tiene margen vertical de sobra, y subir todos los
+  encabezados al alto del más alto costaba 8 px que el 15 y el 17 no tienen—.
 
   El 15 es el que más apretado queda —tres recursos y cuatro filas de diagrama— y es
   el que hay que medir cada vez que se agrega un renglón al pie. Durante un tiempo se
@@ -442,6 +517,25 @@ tema; los descartes pasaron a serlo.
    intervalo de `n−1` a `n`**, igual que en la planilla de la cátedra: por eso el
    `0` está a la izquierda, pegado a las etiquetas. Abajo, la referencia de
    colores, que dice explícitamente que **CPU = RUNNING** y que **I/O = BLOCKED**.
+
+   **Los números del eje son marcas de tiempo, no rótulos de casillero.** Cada uno
+   va centrado bajo una rayita, y la rayita cae en **el medio de la separación entre
+   dos casilleros**: ahí es donde está el instante, y no le pertenece a ninguno de los
+   dos. Antes iban centrados debajo del casillero, que es exactamente la lectura
+   equivocada —el `3` parecía nombrar la celda en vez del momento en que esa celda
+   termina—. El corrimiento sale del `gap` de la grilla (`var(--gap)`), así que el 17,
+   que usa una separación más chica, queda igual de centrado sin tocar nada. La marca
+   del instante abierto es la misma rayita, más alta y en el gris grafito de «esto
+   cambió».
+
+   Como el último número queda medio glifo **afuera** del último casillero, la grilla
+   lleva 13 px de `padding` a la derecha. No es de más: con 11 px el ejemplo 11 dejaba
+   0,95 px de aire entre el `10` y el borde, y cualquier fuente un pelo más ancha —otra
+   plataforma, la tipografía de reserva— lo cortaba. Medido también en WebKit, donde el
+   aire mínimo queda en 3 px. A la izquierda no hace falta nada: el `0` se corre hacia
+   la derecha, nunca hacia afuera. Se paga en los anchos donde el diagrama ya
+   scrolleaba —de 320 a 600 px scrollea 6 px más— y en ninguno empieza a scrollear por
+   esto.
 3. **Estado del instante.** Cómo queda el sistema **después** de procesar las
    llegadas y los fines de I/O y **antes** de que el planificador elija. Por eso
    el que está por entrar a la CPU **aparece** en la cola en ese instante y ya no
@@ -449,6 +543,17 @@ tema; los descartes pasaron a serlo.
    viene anotada con el número que decide (ráfaga restante, estimación, razón de
    respuesta, `Q`/`Q+`, `Q1`/`Q2`), salvo en FIFO y RR, donde no decide ningún
    número.
+
+   **La cola se puede ocultar, y ése es el control de dificultad del recurso.** En el
+   encabezado del panel hay un interruptor «Cola de listos · Mostrar / Ocultar», con la
+   misma forma que «Modo · Resolver / Ver» y en el mismo lugar en que el panel del
+   diagrama tiene su barra de recursos. Ocultarla saca el bloque entero —la cola, su
+   orden y el número que decide— y deja el ejemplo con el enunciado, el diagrama que
+   venís pintando y los eventos: hay que armar la cola de memoria. El interruptor vale
+   para los diecisiete, se mantiene al cambiar de ejemplo, y **sólo existe en modo
+   Resolver**: en Ver el recurso está mostrando la respuesta, así que esconder la cola
+   no esconde nada. En los ejemplos de dos niveles el rótulo cambia a «Colas de
+   listos», como el título del bloque, y se ocultan las dos.
 4. **Narración.** La devolución del último trazo, más la razón del instante
    cuando la columna quedó resuelta. Moverse con las flechas borra la devolución:
    habla del trazo que acabás de hacer, no del instante que estás mirando.
@@ -786,3 +891,13 @@ Hay que agregarla a la lista de `index.html` de la raíz y a la tabla del
     entre respuesta y respuesta: lo único que puede aparecer antes de cerrar la
     columna es la fila que recibió la CPU. Si con el dispositivo contestado ya se ve
     `B/S`, la última respuesta pasó a ser un trámite y hay un problema.
+19. Ocultar la cola de listos y resolver un ejemplo entero así, incluido uno de dos
+    niveles: ningún panel se tiene que pasar, el interruptor se tiene que mantener al
+    cambiar de ejemplo, y tiene que desaparecer al pasar a modo Ver y en el 17.
+20. Mirar el eje de tiempo con el diagrama vacío y con el diagrama lleno: cada número
+    centrado bajo su rayita, y cada rayita en el medio de la separación entre dos
+    casilleros, incluido el `0` y el último.
+21. En el 1, pararse en el instante 6 sin contestar nada: la tarjeta del dispositivo
+    tiene que decir «sin contestar» **y nada más** —ni el ocupante ni quién espera— y
+    los eventos, «Nada nuevo». Al contestar los dos recursos aparecen los dos eventos y
+    el renglón «Esperando B».
