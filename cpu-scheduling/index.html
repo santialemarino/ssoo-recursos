@@ -132,7 +132,7 @@
     flex: 1 1 auto;
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(236px, 0.58fr) minmax(0, 1.2fr) minmax(0, 0.94fr);
+    grid-template-columns: minmax(267px, 0.58fr) minmax(0, 1.2fr) minmax(0, 0.94fr);
     grid-template-rows: minmax(0, auto) minmax(0, 1fr);
     grid-template-areas:
       "statement chart chart"
@@ -147,7 +147,7 @@
   }
 
   main.quiz {
-    grid-template-columns: minmax(224px, 0.5fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-columns: minmax(229px, 0.55fr) minmax(0, 1.3fr) minmax(0, 1fr);
     grid-template-areas:
       "statement chart chart"
       "state     state decision";
@@ -159,8 +159,10 @@
       "state     state state";
   }
 
-  main.quiz.answered .elim { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); align-content: start; gap: 10px; }
+  main.quiz.answered .elim { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 396px), 1fr)); align-content: start; gap: 10px; }
   main.quiz.answered .elim-note { grid-column: 1 / -1; }
+
+  main.wide-statement { grid-template-columns: minmax(322px, 0.86fr) minmax(0, 1.2fr) minmax(0, 0.94fr); }
 
   .panel.statement { grid-area: statement; }
   .panel.gantt { grid-area: chart; }
@@ -187,7 +189,7 @@
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--faint);
-    padding: 9px 14px 8px;
+    padding: 9px 12px 8px;
     border-bottom: 1px solid var(--line);
     flex: 0 0 auto;
   }
@@ -227,7 +229,7 @@
     color: var(--muted);
   }
 
-  .panel-body { padding: 8px 14px 8px; overflow: auto; min-height: 0; flex: 1 1 auto; }
+  .panel-body { padding: 8px 12px 8px; overflow: auto; min-height: 0; flex: 1 1 auto; }
 
   .statement-scroll { overflow-x: auto; }
   .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -271,7 +273,7 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    margin-left: auto;
+    margin: -2px 0 -2px auto;
     text-transform: none;
     letter-spacing: 0;
   }
@@ -286,7 +288,7 @@
   .switch button .key { font-size: 10px; font-weight: 700; opacity: 0.65; }
   .grid-scroll { overflow-x: auto; overflow-y: hidden; padding-top: 6px; padding-bottom: 2px; display: flex; flex-direction: column; justify-content: safe center; flex: 1 1 auto; min-height: 0; }
 
-  .gantt-grid { display: grid; gap: 7px; padding: 3px; width: max-content; min-width: 100%; }
+  .gantt-grid { --gap: 7px; display: grid; gap: var(--gap); padding: 3px 13px 3px 3px; width: max-content; min-width: 100%; }
 
   .gantt-label {
     display: flex;
@@ -362,7 +364,7 @@
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: 1px 5px;
+    padding: 2px 6px;
     border-radius: 999px;
     background: var(--marked);
     color: #fff;
@@ -373,36 +375,53 @@
   .gantt-grid.painting { touch-action: none; }
   .gantt-grid.painting .gantt-cell.paintable { cursor: crosshair; }
   .gantt-grid.dense .gantt-cell { height: 20px; }
-  main.quiz .gantt-grid { gap: 4px; }
+  main.quiz .gantt-grid { --gap: 4px; }
   main.quiz .gantt-cell { height: 23px; }
 
   .gantt-axis {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     font-size: 11px;
     font-weight: 650;
     color: var(--ink-soft);
-    padding-top: 2px;
+    padding-top: 8px;
   }
 
-  .gantt-axis.origin { justify-content: flex-end; padding-right: 9px; color: var(--muted); }
+  .gantt-axis span { transform: translateX(calc(50% + var(--gap) / 2)); }
+
+  .gantt-axis::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: calc(var(--gap) / -2 - 0.5px);
+    width: 1px;
+    height: 6px;
+    background: var(--faint);
+  }
+
+  .gantt-axis.origin { color: var(--muted); }
   .gantt-axis.now { color: var(--marked); font-weight: 800; }
+  .gantt-axis.now::after { height: 9px; background: var(--marked); }
 
   .state-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; align-content: start; }
 
-  .queue-rows { display: flex; flex-direction: column; gap: 4px; }
-  .queue-row { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
+  .queue-rows {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: baseline;
+    gap: 4px 10px;
+  }
 
-  .queue-row .lvl {
-    flex: 0 0 auto;
-    min-width: 52px;
+  .queue-line { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
+
+  .queue-rows .lvl {
     font-size: 11px;
     font-weight: 700;
     color: var(--muted);
+    white-space: nowrap;
   }
-
-  .queue-row .flag { font-size: 11px; font-weight: 700; color: var(--bsusp); }
 
   .state-block { min-width: 0; }
   .state-block.tuck { grid-column: 2; grid-row: 2; }
@@ -427,7 +446,7 @@
   }
 
   .block-head .gloss { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: none; letter-spacing: 0; }
-  .block-head .flag, .queue-row .flag { font-size: 11px; font-weight: 700; color: var(--bsusp); }
+  .block-head .flag, .queue-line .flag { font-size: 11px; font-weight: 700; color: var(--bsusp); }
   .block-head .flag { margin-left: auto; }
 
   .queue-list { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
@@ -461,7 +480,10 @@
 
   .queue-empty { font-size: 12.5px; color: var(--muted); }
 
+  .dev-cards { display: flex; flex-wrap: wrap; gap: 4px; }
+
   .dev-card {
+    flex: 1 1 160px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -472,8 +494,6 @@
     background: var(--region-fill);
     font-size: 13px;
   }
-
-  .dev-card + .dev-card { margin-top: 3px; }
   .dev-card .dev-name { font-weight: 700; color: var(--ink-soft); flex: 1 1 auto; }
   .dev-card .dev-free { color: var(--muted); font-size: 12.5px; }
   .dev-card .waiting-for { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); flex: 1 1 100%; }
@@ -523,7 +543,7 @@
     align-items: baseline;
     gap: 10px;
     flex-wrap: wrap;
-    padding: 7px 14px 2px;
+    padding: 7px 12px 2px;
   }
 
   .narration-head .title { font-weight: 660; font-size: 14.5px; }
@@ -536,10 +556,10 @@
     background: var(--region-fill-alt);
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 2px 9px;
+    padding: 3px 10px;
   }
 
-  .narration-body { padding: 2px 14px 5px; min-height: 38px; }
+  .narration-body { padding: 2px 12px 5px; min-height: 38px; }
   .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
   .narration-note { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
   .verdict-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -621,7 +641,7 @@
     body { height: auto; overflow: auto; }
     .state-grid { grid-template-columns: minmax(0, 1fr); }
 
-    main, main.solo, main.quiz {
+    main, main.solo, main.quiz, main.wide-statement {
       grid-template-columns: 1fr;
       grid-template-rows: none;
       grid-template-areas: "statement" "chart" "state" "decision";
@@ -674,7 +694,13 @@
     </div>
   </section>
   <section class="panel state">
-    <h2><button type="button" class="tip" data-tip="state" id="stateTitle"></button></h2>
+    <h2>
+      <button type="button" class="tip" data-tip="state" id="stateTitle"></button>
+      <span class="tool-row" id="queueToggle">
+        <span class="toggle-label" id="queueLabel"></span>
+        <span class="switch" id="queueBar" role="group" aria-labelledby="queueLabel"></span>
+      </span>
+    </h2>
     <div class="panel-body" id="statePanel"></div>
   </section>
   <section class="panel decision" id="decisionPanel">
@@ -765,6 +791,8 @@ const UI_TEXT = {
   queues: {
     ready: "Cola de listos",
     readyBoth: "Colas de listos",
+    show: "Mostrar",
+    hide: "Ocultar",
     levelKlt: "KLT",
     levelUlt: "ULT · {klt}",
     devices: "Dispositivos",
@@ -895,7 +923,7 @@ const TOOLTIPS = {
 const PANEL_TIPS = {
   statement: { title: "Enunciado", body: "La tabla de procesos con su llegada y sus ráfagas, el algoritmo y los parámetros." },
   gantt: { title: "Diagrama", body: "Una fila por proceso y una columna por instante. El casillero n es el intervalo de n−1 a n. Acá lo armás vos, un instante por vez: sólo se pinta la columna marcada, y se abre la siguiente cuando estén contestados todos los recursos de ésta. El pincel pasa solo al recurso que falte, y el que ya contestaste en ese instante queda apagado. Espacio cambia de recurso y Ctrl+Z deshace." },
-  state: { title: "Estado del instante", body: "Cómo queda el sistema después de las llegadas y los fines de I/O, y justo antes de que el planificador elija. Con esto alcanza para justificar la decisión." },
+  state: { title: "Estado del instante", body: "Cómo queda el sistema después de las llegadas y los fines de I/O, y justo antes de que el planificador elija. Con esto alcanza para justificar la decisión. Si querés que cueste más, ocultá la cola de listos y armala vos con el enunciado y lo que ya pintaste." },
   quiz: { title: "¿Qué algoritmo era?", body: "Un diagrama ya resuelto de un ejemplo anterior. Acá el trabajo es al revés: mirar el resultado y reconocer la regla que lo produjo." },
   elim: { title: "Qué descarta a cada uno", body: "Para cada algoritmo que no era, el instante donde el diagrama lo deja afuera. Es la única parte del recurso que explica por eliminación, porque acá eliminar es el ejercicio." }
 };
@@ -1721,7 +1749,7 @@ function reasonFor(view, index) {
   return { main: main, extra: deviceReason(view, index), key: false };
 }
 
-const DECIDING_EVENTS = ["ioStart", "ioStartOn", "ioGet", "quantumLeft", "preempt", "libDispatch", "kltBlock", "kltBlockJacket", "suspend", "readySusp", "idle"];
+const DECIDING_EVENTS = ["ioStart", "ioStartOn", "ioGet", "ioWait", "quantumLeft", "preempt", "libDispatch", "kltBlock", "kltBlockJacket", "suspend", "readySusp", "idle"];
 
 function eventText(entry) {
   const template = UI_TEXT.events[entry[0]];
@@ -1883,6 +1911,9 @@ const dom = {
   statementPanel: document.getElementById("statementPanel"),
   stateTitle: document.getElementById("stateTitle"),
   statePanel: document.getElementById("statePanel"),
+  queueToggle: document.getElementById("queueToggle"),
+  queueLabel: document.getElementById("queueLabel"),
+  queueBar: document.getElementById("queueBar"),
   main: document.querySelector("main"),
   ganttTitle: document.getElementById("ganttTitle"),
   ganttPanel: document.getElementById("ganttPanel"),
@@ -1916,6 +1947,7 @@ const state = {
   exampleIndex: 0,
   variantIndex: 0,
   mode: "solve",
+  showQueue: true,
   index: 0,
   answers: [],
   tool: null,
@@ -2058,6 +2090,31 @@ function renderModes() {
   });
 }
 
+function queueTitle() {
+  return currentExample().twoLevel ? UI_TEXT.queues.readyBoth : UI_TEXT.queues.ready;
+}
+
+function queueShown() {
+  return state.showQueue || state.mode !== "solve";
+}
+
+function renderQueueToggle() {
+  const optional = !isQuiz() && state.mode === "solve";
+  dom.queueToggle.hidden = !optional;
+  if (!optional) return;
+  dom.queueLabel.textContent = queueTitle();
+  const entries = [
+    { key: "show", label: UI_TEXT.queues.show },
+    { key: "hide", label: UI_TEXT.queues.hide }
+  ];
+  renderSwitch(dom.queueBar, entries, state.showQueue ? "show" : "hide", function (key) {
+    const next = key === "show";
+    if (next === state.showQueue) return;
+    state.showQueue = next;
+    render();
+  });
+}
+
 function renderVariants() {
   const example = currentExample();
   if (!example.variants) {
@@ -2102,8 +2159,9 @@ function renderStatement() {
   const headRow = element("tr");
   const spec = example.table;
   const width = spec.rows.reduce(function (max, row) { return Math.max(max, row.bursts.length); }, 0);
+  const columns = width + 2 + (spec.kind === "thread" ? 1 : 0) + (spec.estimates ? 3 : 0);
   if (spec.rows.length > 3) table.classList.add("dense");
-  if (width > 3) table.classList.add("wide");
+  if (columns > 5 || isQuiz()) table.classList.add("wide");
   if (spec.kind === "thread") headRow.appendChild(element("th", null, spec.ownerHead));
   headRow.appendChild(element("th", null, spec.kind === "thread" ? spec.unitHead : UI_TEXT.statement.process));
   headRow.appendChild(element("th", null, UI_TEXT.statement.arrival));
@@ -2196,6 +2254,12 @@ function renderLegend() {
   shown.forEach(function (key) { addLegend(key); });
 }
 
+function axisOrigin() {
+  const origin = element("div", "gantt-axis origin");
+  origin.appendChild(element("span", null, "0"));
+  return origin;
+}
+
 function ganttFor(target, chartView, cursor, bound) {
   target.textContent = "";
   const grid = element("div", "gantt-grid");
@@ -2225,9 +2289,10 @@ function ganttFor(target, chartView, cursor, bound) {
       grid.appendChild(cell);
     }
   });
-  grid.appendChild(element("div", "gantt-axis origin", "0"));
+  grid.appendChild(axisOrigin());
   for (let t = 0; t < chartView.length; t += 1) {
-    const axis = element("div", "gantt-axis", String(t + 1));
+    const axis = element("div", "gantt-axis");
+    axis.appendChild(element("span", null, String(t + 1)));
     if (t === cursor) axis.classList.add("now");
     grid.appendChild(axis);
   }
@@ -2465,9 +2530,10 @@ function paintGrid() {
       paintCells[row.id].push(cell);
     }
   });
-  grid.appendChild(element("div", "gantt-axis origin", "0"));
+  grid.appendChild(axisOrigin());
   for (let t = 0; t < view.length; t += 1) {
-    const axis = element("div", "gantt-axis", String(t + 1));
+    const axis = element("div", "gantt-axis");
+    axis.appendChild(element("span", null, String(t + 1)));
     if (t === state.index) axis.classList.add("now");
     grid.appendChild(axis);
   }
@@ -2513,21 +2579,21 @@ function queueBlock(title, gloss, entries, flag, extra, unordered) {
   return block;
 }
 
-function queueRow(level, entries, flag) {
-  const row = element("div", "queue-row");
-  row.appendChild(element("span", "lvl", level));
+function appendQueueRow(rows, level, entries, flag) {
+  rows.appendChild(element("span", "lvl", level));
+  const line = element("div", "queue-line");
   if (!entries || entries.length === 0) {
-    row.appendChild(element("span", "queue-empty", UI_TEXT.queues.empty));
+    line.appendChild(element("span", "queue-empty", UI_TEXT.queues.empty));
   } else {
     const list = element("div", "queue-list");
     entries.forEach(function (entry, position) {
       if (position > 0) list.appendChild(element("span", "sep", "\u203a"));
       list.appendChild(processChip(entry.id, entry.note, null));
     });
-    row.appendChild(list);
+    line.appendChild(list);
   }
-  if (flag) row.appendChild(element("span", "flag", flag));
-  return row;
+  if (flag) line.appendChild(element("span", "flag", flag));
+  rows.appendChild(line);
 }
 
 function readyGloss(algorithm) {
@@ -2535,13 +2601,37 @@ function readyGloss(algorithm) {
   return criterion ? STATES.ready.label + " \u00b7 " + criterion : STATES.ready.label;
 }
 
+function toldColumn(index) {
+  return state.mode !== "solve" || columnSettled(view, state.answers, index);
+}
+
 function toldResource(resId, index) {
-  return state.mode !== "solve" || answerAt(state.answers, index, resId) || columnSettled(view, state.answers, index);
+  return toldColumn(index) || answerAt(state.answers, index, resId);
 }
 
 function tellableEvents(entries, index) {
-  if (state.mode !== "solve" || columnSettled(view, state.answers, index)) return entries;
+  if (toldColumn(index)) return entries;
   return entries.filter(function (entry) { return DECIDING_EVENTS.indexOf(entry[0]) === -1; });
+}
+
+function readyBlock(example, step) {
+  if (!example.twoLevel) {
+    return queueBlock(UI_TEXT.queues.ready, readyGloss(example.algorithm), step.ready);
+  }
+  const block = stateBlock(UI_TEXT.queues.readyBoth, criterionFor(example.ultAlgorithm), null);
+  const rows = element("div", "queue-rows");
+  appendQueueRow(rows, UI_TEXT.queues.levelKlt, step.ready, null);
+  view.groups.forEach(function (group) {
+    const entries = step.ults ? step.ults[group] : null;
+    if (entries === null || entries === undefined) return;
+    appendQueueRow(
+      rows,
+      fill(UI_TEXT.queues.levelUlt, { klt: group }),
+      entries,
+      step.blocked.indexOf(group) !== -1 ? UI_TEXT.queues.kltBlocked : null);
+  });
+  block.appendChild(rows);
+  return block;
 }
 
 function renderState() {
@@ -2554,23 +2644,7 @@ function renderState() {
   const step = view.steps[state.index];
   const example = currentExample();
   const grid = element("div", "state-grid");
-  if (example.twoLevel) {
-    const block = stateBlock(UI_TEXT.queues.readyBoth, criterionFor(example.ultAlgorithm), null);
-    const rows = element("div", "queue-rows");
-    rows.appendChild(queueRow(UI_TEXT.queues.levelKlt, step.ready, null));
-    view.groups.forEach(function (group) {
-      const entries = step.ults ? step.ults[group] : null;
-      if (entries === null || entries === undefined) return;
-      rows.appendChild(queueRow(
-        fill(UI_TEXT.queues.levelUlt, { klt: group }),
-        entries,
-        step.blocked.indexOf(group) !== -1 ? UI_TEXT.queues.kltBlocked : null));
-    });
-    block.appendChild(rows);
-    grid.appendChild(block);
-  } else {
-    grid.appendChild(queueBlock(UI_TEXT.queues.ready, readyGloss(example.algorithm), step.ready));
-  }
+  if (queueShown()) grid.appendChild(readyBlock(example, step));
   if (example.memory) {
     const swap = view.resources.filter(function (res) { return res.kind === "memory"; })[0];
     if (!swap || toldResource(swap.id, state.index)) {
@@ -2583,6 +2657,7 @@ function renderState() {
     }
   }
   const devices = stateBlock(UI_TEXT.queues.devices, null, null);
+  const deviceCards = element("div", "dev-cards");
   const deviceList = deviceResources(view.resources);
   deviceList.forEach(function (res) {
     const card = element("div", "dev-card");
@@ -2591,14 +2666,15 @@ function renderState() {
     const holder = told ? step.assign[res.id] : null;
     const empty = told ? UI_TEXT.queues.free : UI_TEXT.queues.pending;
     card.appendChild(holder ? processChip(holder, null, "dev") : element("span", "dev-free", empty));
-    if (deviceList.length === 1 && step.devq.length > 0) {
+    if (deviceList.length === 1 && step.devq.length > 0 && toldColumn(state.index)) {
       const wait = element("div", "waiting-for");
       wait.appendChild(element("span", null, UI_TEXT.queues.deviceQueue));
       step.devq.forEach(function (entry) { wait.appendChild(processChip(entry.id, null, "dev")); });
       card.appendChild(wait);
     }
-    devices.appendChild(card);
+    deviceCards.appendChild(card);
   });
+  devices.appendChild(deviceCards);
   grid.appendChild(devices);
   const events = stateBlock(UI_TEXT.queues.events, null, null);
   if (grid.children.length === 2) {
@@ -3078,12 +3154,14 @@ function renderAll() {
   storeProgress();
   renderLadder();
   renderModes();
+  renderQueueToggle();
   renderVariants();
   dom.statementTitle.textContent = UI_TEXT.panels.statement;
   dom.stateTitle.textContent = isQuiz() ? UI_TEXT.quiz.elimPanel : UI_TEXT.panels.state;
   dom.stateTitle.dataset.tip = isQuiz() ? "elim" : "state";
   dom.ganttTitle.textContent = UI_TEXT.panels.gantt;
   dom.main.classList.toggle("quiz", isQuiz());
+  dom.main.classList.toggle("wide-statement", !isQuiz() && Boolean(view.example.table.estimates));
   if (!isQuiz()) dom.main.classList.remove("answered");
   renderStatement();
   renderTools();
