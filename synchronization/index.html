@@ -252,7 +252,7 @@
 
   .code-line .num { color: var(--muted); min-width: 2ch; text-align: right; font-size: 11px; font-family: inherit; }
   .code-line.current .num { color: var(--ink-soft); }
-  .code-line .text { flex: 1 0 auto; }
+  .code-line .text { flex: 0 0 auto; }
   .code-line.frame { color: var(--muted); }
   .code-line.gloss { color: var(--ink); font-weight: 700; }
 
@@ -797,7 +797,7 @@ const UI_TEXT = {
   },
   variantLabel: "Ver el mismo caso con",
   listCount: "{count} de {capacity}",
-  listOver: "Se pasó por {over} de lo que le cabe.",
+  listOver: "{over} más de lo que le cabe.",
   listEmpty: "vacía",
   outputEmpty: "nada",
   firstStep: "Primero",
@@ -1000,9 +1000,9 @@ const PROGRAMS = {
     lines: [
       { t: "while (true) {", role: "frame" },
       "  while (turno != 0);",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  turno = 1;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1010,9 +1010,9 @@ const PROGRAMS = {
     lines: [
       { t: "while (true) {", role: "frame" },
       "  while (turno != 1);",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  turno = 0;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1021,9 +1021,9 @@ const PROGRAMS = {
       { t: "while (true) {", role: "frame" },
       "  interesado[0] = true;",
       "  while (interesado[1]);",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  interesado[0] = false;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1032,9 +1032,9 @@ const PROGRAMS = {
       { t: "while (true) {", role: "frame" },
       "  interesado[1] = true;",
       "  while (interesado[0]);",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  interesado[1] = false;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1044,9 +1044,9 @@ const PROGRAMS = {
       "  interesado[0] = true;",
       "  turno = 1;",
       "  while (interesado[1] && turno == 1);",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  interesado[0] = false;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1056,9 +1056,9 @@ const PROGRAMS = {
       "  interesado[1] = true;",
       "  turno = 0;",
       "  while (interesado[0] && turno == 0);",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  interesado[1] = false;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1076,7 +1076,7 @@ const PROGRAMS = {
       "  pasar a modo kernel",
       "  IF ← 1",
       "  volver a modo usuario",
-      "SECCIÓN RESTANTE"
+      { t: "SECCIÓN RESTANTE", role: "section" }
     ]
   },
   "interrupciones-p2": {
@@ -1093,16 +1093,16 @@ const PROGRAMS = {
       "  pasar a modo kernel",
       "  IF ← 1",
       "  volver a modo usuario",
-      "SECCIÓN RESTANTE"
+      { t: "SECCIÓN RESTANTE", role: "section" }
     ]
   },
   "testandset": {
     lines: [
       { t: "while (true) {", role: "frame" },
       "  while (TestAndSet(&lock));",
-      "  SECCIÓN CRÍTICA",
+      { t: "  SECCIÓN CRÍTICA", role: "section" },
       "  lock = false;",
-      "  SECCIÓN RESTANTE",
+      { t: "  SECCIÓN RESTANTE", role: "section" },
       { t: "}", role: "frame" }
     ]
   },
@@ -1620,7 +1620,7 @@ const EXAMPLES = [
         narration: "El proceso 0 vuelve a necesitar entrar. Pero *turno* vale {turno}, así que se queda girando en el while.",
         note: "Y el proceso 1 no está adentro de su sección crítica: está en su sección restante, haciendo algo que no necesitaba proteger."
       },
-      { actor: "P1", line: 5, narration: "El proceso 1 sigue en su sección restante. No está intentando entrar, y tampoco va a tocar *turno*: eso pasa recién cuando sale de su sección crítica, y ni siquiera entró." },
+      { actor: "P1", line: 5, narration: "El proceso 1 sigue en su sección restante. No está intentando entrar de nuevo, así que no va a volver a tocar *turno* hasta dar otra vuelta entera del bucle." },
       {
         actor: "P0",
         line: 2,
@@ -2257,7 +2257,7 @@ const EXAMPLES = [
         actor: "A1",
         line: 2,
         narration: "Cinco impresoras y seis procesos que las usan. El semáforo no arranca en 1: arranca en la cantidad de impresoras que hay. A1 hace wait y el valor queda en {contImpresoras}.",
-        note: "Los alumnos y los profesores corren el mismo programa y comparten el mismo semáforo: la pila de impresoras es una sola.",
+        note: "Los alumnos y los profesores corren el mismo programa y comparten el mismo semáforo: las impresoras son las mismas para todos.",
         ops: [{ op: "sem.wait", name: "contImpresoras" }]
       },
       { actor: "A2", line: 2, narration: "A2 hace wait y toma otra: quedan {contImpresoras} libres.", ops: [{ op: "sem.wait", name: "contImpresoras" }] },
@@ -2283,7 +2283,7 @@ const EXAMPLES = [
         narration: "A1 termina y hace signal: el valor queda en {contImpresoras} y, como sigue siendo cero o menos, se desbloquea al primero de la cola. La impresora de A1 pasa a P2.",
         ops: [{ op: "sem.signal", name: "contImpresoras" }]
       },
-      { actor: "P2", line: 3, narration: "P2 imprime, con la impresora que dejó A1. Siguen habiendo cinco en uso y {contImpresoras} libres." },
+      { actor: "P2", line: 3, narration: "P2 imprime, con la impresora que dejó A1. Sigue habiendo cinco en uso y {contImpresoras} libres." },
       {
         actor: "P2",
         line: 4,
@@ -2331,7 +2331,7 @@ const EXAMPLES = [
             actor: "P1",
             line: 2,
             narration: "*semP1* arranca en 1 y *semP2* en 0, así que sólo P1 puede pasar. Hace wait y el valor queda en {semP1}.",
-            note: "La diapo muestra los valores con P1 ya adentro, no los del arranque: por eso ahí *semP1* aparece en {semP1}. Acá arrancó en 1 y este paso es el que lo bajó.",
+            note: "La diapo lista los valores con P1 ya adentro, no los del arranque. Acá se ve el arranque —*semP1* en 1— y este paso es el que lo baja a {semP1}.",
             ops: [{ op: "sem.wait", name: "semP1" }]
           },
           {
@@ -2429,7 +2429,7 @@ const EXAMPLES = [
         ["El arranque decide quién empieza", "el que tiene su semáforo en 1"]
       ]
     },
-    closing: "Los semáforos se cruzan: cada uno avisa en el del otro, nunca en el propio."
+    closing: "Cada uno avisa en el semáforo del otro, y el arranque decide quién empieza."
   },
 
   {
@@ -2469,21 +2469,21 @@ const EXAMPLES = [
       {
         actor: "P1",
         line: 3,
-        narration: "El consumidor saca una tarea de la lista. La lista está vacía, así que se lleva {lista_taken}.",
+        narration: "El consumidor saca una tarea de la lista. La lista está vacía, así que se lleva algo que no es una tarea.",
         note: "Nadie corrompió nada: la lista está intacta. Lo que pasó es que no había nada para sacar.",
         ops: [{ op: "list.take", name: "lista" }]
       },
       {
         actor: "P1",
         line: 4,
-        narration: "El consumidor libera el mutex, que queda en {mutexLista}, y desbloquea al productor.",
+        narration: "El consumidor libera el mutex y desbloquea al productor. El valor queda en {mutexLista} y no en 1, porque el mutex no quedó libre: pasó derecho al que estaba esperándolo.",
         ops: [{ op: "sem.signal", name: "mutexLista" }]
       },
-      { actor: "P1", line: 5, narration: "Y ejecuta la tarea que se llevó, que es {lista_taken}." },
+      { actor: "P1", line: 5, narration: "Y ejecuta eso que sacó, que no era una tarea." },
       {
         actor: "P2",
         line: 4,
-        narration: "Recién ahora el productor agrega la suya: la lista pasa a tener {lista}.",
+        narration: "Recién ahora el productor agrega la suya: la lista queda con {lista} de {lista_capacity}.",
         ops: [{ op: "list.push", name: "lista", item: "T1" }]
       },
       {
@@ -2536,17 +2536,17 @@ const EXAMPLES = [
       },
       { actor: "P2", line: 2, narration: "El productor crea una tarea." },
       { actor: "P2", line: 3, narration: "Entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
-      { actor: "P2", line: 4, narration: "La agrega: la lista pasa a tener {lista}.", ops: [{ op: "list.push", name: "lista", item: "T1" }] },
+      { actor: "P2", line: 4, narration: "La agrega: la lista queda con {lista} de {lista_capacity}.", ops: [{ op: "list.push", name: "lista", item: "T1" }] },
       { actor: "P2", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
       {
         actor: "P2",
         line: 6,
-        narration: "Y ahora sí avisa: signal de *tareasPendientes*, que queda en {tareasPendientes}, y el consumidor se desbloquea.",
+        narration: "Y ahora sí avisa: signal de *tareasPendientes*, que queda en {tareasPendientes}, y el consumidor se desbloquea. El semáforo dice {tareasPendientes} y la lista tiene {lista}: esa tarea ya tiene dueño, es la que el consumidor va a sacar.",
         note: "El aviso va *después* de soltar el mutex. Si fuera antes, el consumidor se despertaría para chocar contra un mutex tomado.",
         ops: [{ op: "sem.signal", name: "tareasPendientes" }]
       },
       { actor: "P1", line: 3, narration: "El consumidor retoma y entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
-      { actor: "P1", line: 4, narration: "Saca una tarea y se lleva {lista_taken}. La lista queda con {lista}.", ops: [{ op: "list.take", name: "lista" }] },
+      { actor: "P1", line: 4, narration: "Saca una tarea y se lleva {lista_taken}. La lista queda con {lista} de {lista_capacity}.", ops: [{ op: "list.take", name: "lista" }] },
       { actor: "P1", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
       {
         actor: "P1",
@@ -2556,13 +2556,13 @@ const EXAMPLES = [
       },
       {
         narration: "Mientras el consumidor está ocupado ejecutando, el productor sigue solo: da veinte vueltas y la lista llega a las {lista} tareas que le caben.",
-        note: "Cada vuelta agregó una tarea y avisó una vez, así que *tareasPendientes* quedó en {tareasPendientes}: hay veinte esperando que alguien las saque.",
+        note: "Cada vuelta agregó una tarea y avisó una vez, así que *tareasPendientes* quedó en {tareasPendientes}: hay {tareasPendientes} esperando que alguien las saque.",
         ops: [
           { op: "list.fill", name: "lista", count: 20, prefix: "T" },
           { op: "sem.set", name: "tareasPendientes", value: 20 }
         ]
       },
-      { actor: "P2", line: 2, narration: "Y el productor crea la vuelta veintiuno." },
+      { actor: "P2", line: 2, narration: "El productor arranca la vuelta veintiuno y crea otra tarea." },
       { actor: "P2", line: 3, narration: "Entra al mutex, que queda en {mutexLista}. Nadie se lo impide: el mutex sólo mira que no haya dos adentro.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
       {
         actor: "P2",
@@ -2632,7 +2632,7 @@ const EXAMPLES = [
       },
       { actor: "P1", line: 2, narration: "El consumidor pide una tarea: *tareasPendientes* queda en {tareasPendientes} y pasa de largo, porque hay de sobra.", ops: [{ op: "sem.wait", name: "tareasPendientes" }] },
       { actor: "P1", line: 3, narration: "Entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
-      { actor: "P1", line: 4, narration: "Saca {lista_taken}. La lista queda con {lista}.", ops: [{ op: "list.take", name: "lista" }] },
+      { actor: "P1", line: 4, narration: "Saca {lista_taken}. La lista queda con {lista} de {lista_capacity}.", ops: [{ op: "list.take", name: "lista" }] },
       { actor: "P1", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
       {
         actor: "P1",
@@ -2709,7 +2709,7 @@ const EXAMPLES = [
         boards: [{ id: "turnos", label: "Sin herencia", gloss: "cada proceso corre con su propia prioridad", counter: "P3 esperó bloqueado: {P3_BLOCKED} de {units}" }],
         steps: [
       {
-        narration: "Prioridades: P3 es la más alta, P2 la del medio y P1 la más baja. P1 ya tomó el recurso R con wait(semM) y está adentro de su sección crítica. P2 y P3 todavía no llegaron.",
+        narration: "Prioridades: P3 es la más alta, P2 la del medio y P1 la más baja. P1 ya hizo wait y tomó el recurso R: está adentro de su sección crítica. P2 y P3 todavía no llegaron.",
         note: "Este eje es el tiempo, como en el ejemplo 12: cada paso es una unidad. El carril punteado quiere decir que ese proceso todavía no está en el sistema.",
         ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "absent", P3: "absent" } }]
       },
@@ -2727,7 +2727,7 @@ const EXAMPLES = [
         ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING", P3: "BLOCKED" } }]
       },
       {
-        narration: "P2 sigue. Van tres unidades con P3 bloqueado.",
+        narration: "P2 sigue. Van {turnos_P3_BLOCKED} unidades con P3 bloqueado.",
         ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING", P3: "BLOCKED" } }]
       },
       {
@@ -2765,7 +2765,7 @@ const EXAMPLES = [
       },
       {
         narration: "Llega P2 y no puede desalojar a P1, porque P1 está corriendo con la prioridad de P3, que es más alta que la de P2. P2 queda en READY.",
-        note: "Compará con el otro caso: en esta misma unidad, sin herencia, la CPU se la llevaba P2.",
+        note: "En esta misma unidad, sin herencia, la CPU se la llevaba P2.",
         ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY", P3: "BLOCKED" } }]
       },
       {
@@ -2816,6 +2816,8 @@ function showValue(value) {
   if (value === false) return "false";
   return String(value).replace("-", MINUS);
 }
+
+const EXECUTABLE = { code: true, section: true };
 
 function programLines(key) {
   if (!PROGRAMS[key]) return [];
@@ -3305,6 +3307,9 @@ function verifyOp(op, label, example, names, problems, step) {
     const kind = targets[field];
     if (!names[kind][op[field]]) problems.push(label + ": la operación " + op.op + " apunta a " + op[field] + ", que el ejemplo no declara");
   });
+  if (op.op === "state.set" && example.processes && !STATES[op.value]) {
+    problems.push(label + " pone a " + op.process + " en " + op.value + ", que no es un estado de proceso");
+  }
   if (op.op === "sem.set" && step.actor) {
     problems.push(label + " le pone un valor a un semáforo desde un paso que ejecuta un proceso: eso sólo vale para un salto narrado");
   }
@@ -3414,11 +3419,21 @@ function verifyStructure(example, problems) {
     problems.push("apunta a la definición " + example.definition + ", que no existe");
   }
   if (example.sharedProgram) {
+    if (!PROGRAMS[example.sharedProgram]) problems.push("muestra el listado " + example.sharedProgram + ", que no existe");
     const shown = (example.processes || []).map(function (item) { return item.program; });
     if (shown.filter(function (key) { return key !== shown[0]; }).length) {
       problems.push("muestra un solo listado y sus procesos no corren el mismo programa");
     }
+    if (shown.length && shown[0] !== example.sharedProgram) {
+      problems.push("muestra un listado que no es el programa que corren sus procesos");
+    }
   }
+  (example.shared || []).forEach(function (item) {
+    if (item.kind !== "list") return;
+    if (!item.capacity || item.capacity < 1) problems.push("la lista " + item.name + " no declara cuántas tareas le caben");
+    if ((item.fill || 0) > item.capacity) problems.push("la lista " + item.name + " arranca con más tareas de las que le caben");
+  });
+  if (panels.indexOf("output") !== -1 && !example.output) problems.push("muestra el panel de salida y no declara sus textos");
   const printsHere = example.steps && example.steps.some(function (step) {
     return (step.ops || []).some(function (op) { return op.op === "output.print"; });
   });
@@ -3434,7 +3449,7 @@ function verifyStructure(example, problems) {
     const lines = programLines(item.program);
     Object.keys(example.guards[id]).forEach(function (number) {
       const line = lines[Number(number) - 1];
-      if (!line || line.role !== "code") problems.push("la condición de espera de " + id + " apunta a la línea " + number + ", que no es ejecutable");
+      if (!line || !EXECUTABLE[line.role]) problems.push("la condición de espera de " + id + " apunta a la línea " + number + ", que no es ejecutable");
       example.guards[id][number].forEach(function (clause) {
         if (!names.shared[clause.key]) problems.push("la condición de espera de " + id + " lee " + clause.key + ", que no es una variable compartida");
       });
@@ -3446,7 +3461,7 @@ function verifyStructure(example, problems) {
     if (!item) { problems.push("hay una región dibujada sobre " + id + ", que no es un proceso"); return; }
     const lines = programLines(item.program);
     example.regions[id].forEach(function (number) {
-      if (!lines[number - 1] || lines[number - 1].role !== "code") {
+      if (!lines[number - 1] || !EXECUTABLE[lines[number - 1].role]) {
         problems.push("la región de " + id + " llega a la línea " + number + ", que no es ejecutable");
       }
     });
@@ -3458,7 +3473,7 @@ function verifyLine(example, problems, label, actor, number) {
   if (!item) { problems.push(label + " ejecuta " + actor + ", que no es un proceso"); return; }
   const line = programLines(item.program)[number - 1];
   if (!line) problems.push(label + " apunta a la línea " + number + ", que no existe en " + item.program);
-  else if (line.role !== "code") problems.push(label + " apunta a la línea " + number + ", que no es ejecutable");
+  else if (!EXECUTABLE[line.role]) problems.push(label + " apunta a la línea " + number + ", que no es ejecutable");
 }
 
 function verifySteps(example, problems) {
@@ -3507,10 +3522,16 @@ function verifySnapshots(example, snapshots, problems) {
   });
 
   example.steps.forEach(function (step, index) {
-    if (!snapshots[index].spinning || !step.actor) return;
+    if (!step.actor || !step.line) return;
     const later = example.steps.slice(index + 1).filter(function (other) { return other.actor === step.actor; })[0];
-    if (later && later.line !== step.line) {
+    if (snapshots[index].spinning && later && later.line !== step.line) {
       problems.push("paso " + (index + 1) + ": " + step.actor + " gira y su próximo paso cambia de línea");
+    }
+    if (snapshots[index].spinning || !later || later.line !== step.line) return;
+    const item = processById(example, step.actor);
+    const line = item ? programLines(item.program)[step.line - 1] : null;
+    if (!line || line.role !== "section") {
+      problems.push("paso " + (index + 1) + ": " + step.actor + " repite la línea " + step.line + " sin girar y sin que sea una sección");
     }
   });
 
@@ -3662,6 +3683,9 @@ function buildExample(example) {
   const problems = [];
   built.forEach(function (one) { one.problems.forEach(function (problem) { problems.push(problem); }); });
   if (variants.some(function (variant) { return !variant.variantLabel; })) problems.push("hay una variante sin nombre");
+  if (variants.length < 2) problems.push("declara variantes y tiene menos de dos: el selector no se muestra");
+  const labels = variants.map(function (variant) { return variant.variantLabel; });
+  if (new Set(labels).size !== labels.length) problems.push("hay dos variantes con el mismo nombre");
   return { example: example, variants: built, problems: problems };
 }
 
@@ -4045,6 +4069,7 @@ function listBox(item, snapshot) {
   if (item.gloss) head.appendChild(element("span", "list-gloss", item.gloss));
   box.appendChild(head);
   const bar = element("div", "list-bar");
+  bar.setAttribute("aria-hidden", "true");
   const slots = element("div", "list-slots");
   slots.style.gridTemplateColumns = "repeat(" + state.capacity + ", minmax(0, 1fr))";
   for (let n = 0; n < state.capacity; n += 1) {
@@ -4181,6 +4206,7 @@ function laneCells(grid, name, segments, isCpu, units, maxUnits, freshUnits) {
   });
   if (units >= maxUnits) return;
   const rest = element("div", "lane-seg pending");
+  rest.setAttribute("aria-hidden", "true");
   rest.style.gridColumn = "span " + (maxUnits - units);
   grid.appendChild(rest);
 }

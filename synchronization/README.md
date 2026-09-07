@@ -570,7 +570,15 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
 
 - **Toda la narración la escribió un agente y no la revisó nadie de la cátedra.**
   Es lo primero que hay que leer, línea por línea, los 214 pasos. Los programas
-  salen del apunte; el español que los rodea, no.
+  salen del apunte; el español que los rodea, no. Lo que sí se barrió por código:
+  ninguna palabra de la lista de arriba aparece en pantalla, no hay voseo ni
+  segunda persona (2550 cadenas distintas revisadas), y ninguna afirmación
+  numérica de la narración se contradice con el estado del paso.
+- **El título del ejemplo 2 es la única excepción a «nada de segunda persona».**
+  Se llama *El intercalado en tus manos*, y viene así del planteo. El resto del
+  ejemplo respeta la regla: la narración dice «el orden lo elige quien mira». Si la
+  cátedra prefiere unificar, las dos alternativas naturales son *El intercalado a
+  mano* y *Elegir el intercalado*, y el cambio es una línea.
 - **El registro es impersonal o en primera del plural** («se apila», «vemos»), no
   voseante. Es el mismo criterio que el recurso de procesos, y se aparta a
   propósito del recurso del ciclo.
