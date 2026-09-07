@@ -1,0 +1,3436 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23b45309%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%229.5%22%20width%3D%2213%22%20height%3D%2213%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%2F%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M13%209.5V5M19%209.5V5M13%2027v-4.5M19%2027v-4.5M9.5%2013H5M9.5%2019H5M27%2013h-4.5M27%2019h-4.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<title>Sincronización</title>
+<style>
+  :root {
+    --ink: #10151d;
+    --ink-soft: #35404f;
+    --muted: #5f6877;
+    --faint: #6b7484;
+    --line: #e3e7ee;
+    --line-strong: #c6ccd8;
+    --page: #edf0f6;
+    --card: #ffffff;
+
+    --running: #1d4ed8;
+    --running-soft: #e8eefc;
+    --ready: #1a7a3f;
+    --ready-soft: #e6f4ec;
+    --blocked: #c0392f;
+    --blocked-soft: #fbeae8;
+
+    --marked: #1c2534;
+    --marked-soft: #e3e8f1;
+    --region-fill: #fbfcfe;
+    --region-fill-alt: #f2f5f9;
+    --spin-fill: repeating-linear-gradient(135deg, #e8eefc 0 5px, #cdddfb 5px 10px);
+
+    --radius: 11px;
+    --shadow: 0 1px 2px rgba(16, 21, 29, 0.05), 0 1px 8px rgba(16, 21, 29, 0.04);
+    --fast: 160ms;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--page);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 10px 14px 12px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 640; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
+  }
+
+  button:hover:not([disabled]) { border-color: var(--faint); }
+  button:active:not([disabled]) { transform: translateY(1px); }
+
+  button:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--marked);
+    outline-offset: 2px;
+  }
+
+  button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  header { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+
+  .head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
+
+  .toggle-label { font-size: 12.5px; color: var(--muted); }
+
+  .choices { display: flex; gap: 6px; flex-wrap: wrap; }
+  .choices button { padding: 3px 10px; font-size: 12.5px; }
+  .choices button[aria-pressed="true"] { background: var(--running); border-color: var(--running); color: #fff; }
+
+  .examples { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .examples button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px 5px 6px;
+    font-size: 12.5px;
+    text-align: left;
+    box-shadow: var(--shadow);
+  }
+
+  .examples button .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
+  .examples button[aria-current="true"] .num { background: rgba(0, 0, 0, 0.22); color: #fff; }
+
+  main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  main.has-wide { grid-template-rows: minmax(0, 1fr) auto; }
+
+  .panel.wide { grid-column: 1 / -1; }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .panel > h2 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 9px 12px 8px;
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+
+  .panel > h2::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line-strong);
+    flex: 0 0 auto;
+  }
+
+  .panel.processes > h2::before, .panel.lanes > h2::before { background: var(--running); }
+  .panel.registers > h2::before, .panel.shared > h2::before { background: var(--ink-soft); }
+
+  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; text-transform: inherit; white-space: nowrap; }
+  .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
+
+  .panel > h2 .panel-note {
+    margin-left: auto;
+    min-width: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--faint);
+    text-align: right;
+  }
+
+  .panel-body {
+    padding: 8px 11px;
+    overflow: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .processes-grid { display: grid; gap: 12px; align-items: start; }
+
+  .process-col { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+  .process-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; flex: 0 0 auto; margin-bottom: 5px; }
+  .process-head .name { font-size: 13px; font-weight: 750; }
+  .process-head .gloss { font-size: 11px; color: var(--muted); }
+
+  .state-pill {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    border: 1.5px solid;
+    white-space: nowrap;
+  }
+
+  .spin-chip {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--running);
+    color: var(--running);
+    background: var(--spin-fill);
+    white-space: nowrap;
+  }
+
+  .pick-row { display: flex; gap: 6px; flex: 0 0 auto; margin-bottom: 6px; }
+
+  .pick-row button {
+    flex: 1 1 auto;
+    padding: 5px 10px;
+    font-size: 12.5px;
+    font-weight: 640;
+    background: var(--running);
+    border-color: var(--running);
+    color: #fff;
+  }
+
+  .pick-row button:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
+  .pick-row button[disabled] { background: var(--card); border-color: var(--line-strong); color: var(--muted); }
+
+  .source { display: flex; flex-direction: column; min-width: 0; overflow-x: auto; }
+
+  .code-line {
+    display: flex;
+    gap: 9px;
+    align-items: baseline;
+    line-height: 1.34;
+    padding: 1px 6px 1px 4px;
+    border-left: 3px solid transparent;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    white-space: pre;
+  }
+
+  .code-line .num { color: var(--muted); min-width: 2ch; text-align: right; font-size: 11px; font-family: inherit; }
+  .code-line.current .num { color: var(--ink-soft); }
+  .code-line .text { flex: 1 0 auto; }
+  .code-line.frame { color: var(--muted); }
+  .code-line.gloss { color: var(--ink); font-weight: 700; }
+
+  .code-line.current {
+    background: var(--running-soft);
+    border-left-color: var(--running);
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .code-line.current.spinning { background: var(--spin-fill); }
+  .code-line.paused { border-left-color: var(--muted); color: var(--ink); }
+
+  .region {
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 7px;
+    background: var(--region-fill-alt);
+    padding: 3px 3px 4px;
+    margin: 3px 0;
+  }
+
+  .region.changed { border-color: var(--marked); }
+
+  .region-tag {
+    display: block;
+    font-size: 9.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--ink-soft);
+    padding: 0 0 2px 7px;
+  }
+
+  .definition {
+    flex: 0 0 auto;
+    margin-top: 10px;
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 8px;
+    background: var(--region-fill-alt);
+    padding: 5px 7px 6px;
+  }
+
+  .definition-tag {
+    display: block;
+    font-size: 9.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+
+  .definition .code-line { border-left: 0; padding-left: 4px; }
+
+  .value-rows { display: flex; flex-direction: column; gap: 7px; }
+
+  .value-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1px 9px;
+    padding: 3px 7px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--region-fill);
+  }
+
+  .value-row .vname {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .value-row .vval { font-size: 17px; font-weight: 800; line-height: 1.25; margin-left: auto; font-variant-numeric: tabular-nums; }
+  .value-row .vgloss { flex: 1 0 100%; font-size: 10.5px; color: var(--muted); line-height: 1.3; }
+  .value-row .vowner { font-size: 10.5px; color: var(--muted); }
+
+  .value-row.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); background: var(--marked-soft); }
+  .value-row.changed .vname, .value-row.changed .vval { color: var(--marked); }
+
+  .sem-list { display: flex; flex-direction: column; gap: 9px; }
+
+  .sem-box {
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--region-fill);
+    padding: 5px 8px 7px;
+  }
+
+  .sem-box.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
+
+  .sem-head { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+
+  .sem-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .sem-value { margin-left: auto; font-size: 19px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .sem-box.changed .sem-value, .sem-box.changed .sem-name { color: var(--marked); }
+  .sem-gloss { flex: 1 0 100%; font-size: 10.5px; color: var(--muted); line-height: 1.3; }
+  .sem-queue { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+  .sem-queue-label { font-size: 10.5px; color: var(--muted); font-weight: 650; }
+
+  .queue-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--card);
+    padding: 2px 7px;
+    font-size: 11.5px;
+    font-weight: 750;
+  }
+
+  .queue-chip .ord { font-size: 10px; font-weight: 700; color: var(--muted); }
+  .queue-chip.fresh { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
+  .queue-empty { font-size: 11.5px; color: var(--muted); }
+
+  .badge {
+    display: inline-block;
+    border: 1.5px solid var(--marked);
+    border-radius: 6px;
+    background: var(--marked-soft);
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--marked);
+    line-height: 1.3;
+  }
+
+  .badge-slot { margin-top: 7px; }
+
+  .lane-grid { --gap: 5px; display: grid; gap: 7px var(--gap); align-content: start; }
+
+  .board-head { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .board-head.later { border-top: 1px solid var(--line-strong); padding-top: 8px; margin-top: 4px; }
+  .board-name { font-size: 13px; font-weight: 780; color: var(--ink); }
+  .board-gloss { font-size: 11px; color: var(--muted); }
+  .board-counter { margin-left: auto; font-size: 11.5px; color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
+  .board-counter.changed { color: var(--marked); }
+
+  .lane-name {
+    grid-column: 1;
+    text-align: right;
+    padding-right: 4px;
+    font-size: 10.5px;
+    color: var(--muted);
+    font-weight: 700;
+    align-self: center;
+    white-space: nowrap;
+  }
+
+  .lane-seg {
+    min-width: 0;
+    height: 19px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 0 3px;
+  }
+
+  .lane-seg.pending { border-style: dashed; border-color: var(--line); background: transparent; }
+  .lane-seg.busy { border-color: var(--running); background: var(--running-soft); color: var(--running); }
+  .lane-seg.spin { border-color: var(--running); background: var(--spin-fill); color: var(--running); }
+  .lane-seg.overhead { border-color: var(--blocked); background: var(--blocked-soft); color: var(--blocked); }
+  .lane-seg.RUNNING { border-color: var(--running); background: var(--running-soft); color: var(--running); }
+  .lane-seg.RUNNING.spinning { background: var(--spin-fill); }
+  .lane-seg.READY { border-color: var(--ready); background: var(--ready-soft); color: var(--ready); }
+  .lane-seg.BLOCKED { border-color: var(--blocked); background: var(--blocked-soft); color: var(--blocked); }
+  .lane-seg.fresh { box-shadow: 0 0 0 2px var(--marked); }
+
+  .axis-mark {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    font-size: 10.5px;
+    font-weight: 650;
+    color: var(--ink-soft);
+    padding-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .axis-mark span { transform: translateX(calc(50% + var(--gap) / 2)); }
+
+  .axis-mark::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: calc(var(--gap) / -2 - 0.5px);
+    width: 1px;
+    height: 5px;
+    background: var(--faint);
+  }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 3px 14px; margin-top: 9px; }
+  .legend .item { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); }
+  .legend .swatch { width: 14px; height: 10px; border-radius: 2px; border: 1px solid; flex: 0 0 auto; }
+  .legend .swatch.busy { border-color: var(--running); background: var(--running-soft); }
+  .legend .swatch.spin { border-color: var(--running); background: var(--spin-fill); }
+  .legend .swatch.overhead { border-color: var(--blocked); background: var(--blocked-soft); }
+  .legend .swatch.READY { border-color: var(--ready); background: var(--ready-soft); }
+  .legend .swatch.BLOCKED { border-color: var(--blocked); background: var(--blocked-soft); }
+
+  footer { flex: 0 0 auto; display: block; min-height: 0; }
+
+  .narration-panel { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+
+  .narration-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 12px 7px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .narration-head .title { font-weight: 660; font-size: 14.5px; }
+  .narration-head .subtitle { font-size: 13px; color: var(--muted); flex: 1; min-width: 160px; }
+
+  .step-unit {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--page);
+    border-radius: 5px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  .narration-body {
+    padding: 9px 12px 4px;
+    flex: 1 1 auto;
+    min-height: 113px;
+    max-height: 170px;
+    overflow-y: auto;
+  }
+
+  .narration-body.with-extras {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.1fr) minmax(300px, 0.85fr);
+    gap: 6px 18px;
+    align-content: start;
+  }
+
+  .narration-body.with-extras.no-compare { grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr); }
+
+  .narration-extras { min-width: 0; min-height: 0; overflow-y: auto; }
+  .narration-main { min-width: 0; }
+
+  .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
+  .narration-note { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
+
+  .takeaway {
+    padding: 7px 11px;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    animation: flash var(--fast) ease-out;
+  }
+
+  .takeaway .tag {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .takeaway .line { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+  .compare { margin: 7px 0 0; overflow-x: auto; }
+  .compare.full { grid-column: 2; grid-row: 1; margin: 0; }
+  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.3; }
+  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 16px 4px 0; }
+  .compare td { padding: 2px 16px 2px 0; vertical-align: top; }
+  .compare tr + tr td { border-top: 1px solid var(--line); }
+  .compare td.label { color: var(--muted); }
+  .compare th .tip { text-transform: inherit; letter-spacing: inherit; }
+
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 4px 12px 0; }
+
+  .progress-track { flex: 1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--running);
+    border-radius: 2px;
+    transition: transform var(--fast) ease-out;
+    transform-origin: left center;
+  }
+
+  .progress { font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 12px 8px; }
+
+  .controls .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
+
+  .controls .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
+  .controls .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
+  .controls .big.primary[disabled] { background: var(--running); border-color: var(--running); }
+  .controls .small { padding: 6px 11px; font-size: 13px; }
+
+  .tip {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    border-bottom: 1px dotted var(--running);
+    cursor: help;
+    border-radius: 0;
+  }
+
+  .tip:hover { border-bottom-style: solid; }
+
+  #tooltip {
+    position: fixed;
+    z-index: 20;
+    max-width: 330px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.42;
+    box-shadow: 0 6px 20px rgba(16, 21, 29, 0.3);
+    display: none;
+  }
+
+  #tooltip.open { display: block; animation: flash var(--fast) ease-out; }
+  #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  @keyframes flash {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 1000px) {
+    body { height: auto; overflow: auto; padding-bottom: calc(122px + env(safe-area-inset-bottom)); }
+    main { grid-template-columns: 1fr !important; grid-template-rows: none !important; }
+    .panel-body { overflow: visible; }
+    .narration-body { overflow: visible; max-height: none; }
+    .narration-body.with-extras, .narration-body.with-extras.no-compare { grid-template-columns: 1fr; }
+    .compare.full { grid-column: auto; grid-row: auto; margin: 7px 0 0; }
+    .narration-extras { overflow: visible; }
+    .narration-head { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .processes-grid { grid-template-columns: 1fr !important; }
+
+    .controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      background: var(--card);
+      border-top: 1px solid var(--line-strong);
+      box-shadow: 0 -2px 12px rgba(16, 21, 29, 0.08);
+      z-index: 10;
+    }
+
+    .controls .big, .controls .small { width: 100%; }
+    #playPause { display: none; }
+    #prevStep { order: 1; }
+    #nextStep { order: 2; }
+    #firstStep { order: 3; }
+    #lastStep { order: 4; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+
+<body>
+
+<header>
+  <h1>Sincronización</h1>
+  <div class="head-row">
+    <nav class="examples" id="exampleList" aria-label="Ejemplos"></nav>
+  </div>
+  <div class="head-row" id="choiceRow" hidden>
+    <span class="toggle-label" id="choiceLabel"></span>
+    <div class="choices" id="choiceBar" role="group" aria-labelledby="choiceLabel"></div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  <section class="panel narration-panel">
+    <div class="narration-head">
+      <span class="title" id="exampleTitle"></span>
+      <span class="subtitle" id="exampleSubtitle"></span>
+      <span class="step-unit" id="stepUnit"></span>
+    </div>
+    <div class="narration-body" id="narrationPanel" aria-live="polite"></div>
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="controls">
+      <button type="button" class="small" id="firstStep"></button>
+      <button type="button" class="big" id="prevStep"></button>
+      <button type="button" class="big primary" id="nextStep"></button>
+      <button type="button" class="small" id="lastStep"></button>
+      <button type="button" class="small" id="playPause"></button>
+    </div>
+  </section>
+</footer>
+
+<div id="tooltip" role="tooltip"></div>
+
+<script id="data">
+const UI_TEXT = {
+  progress: "paso {current} de {total}",
+  panels: {
+    processes: "Procesos",
+    registers: "Registros",
+    shared: "Memoria compartida",
+    mode: "Modo y IF",
+    semaphores: "Semáforos",
+    lanes: "Carriles de tiempo"
+  },
+  firstStep: "Primero",
+  prevStep: "Anterior",
+  nextStep: "Siguiente",
+  lastStep: "Último",
+  play: "Reproducir",
+  pause: "Pausar",
+  none: "—",
+  takeawayTag: "Para llevarse",
+  spinChip: "girando",
+  criticalTag: "sección crítica",
+  definitionTag: "definición",
+  queueLabel: "cola de bloqueados:",
+  queueEmpty: "vacía",
+  queueOrder: "{n}.º",
+  modeLabels: { mode: "MODE", flag: "IF", switches: "cambios de modo" },
+  modeGloss: {
+    kernel: "modo kernel: puede ejecutar instrucciones privilegiadas",
+    usuario: "modo usuario: no puede",
+    flagOn: "interrupciones habilitadas",
+    flagOff: "interrupciones deshabilitadas"
+  },
+  pendingBadge: "interrupción de reloj pendiente · IF = {flag}",
+  lanes: {
+    cpuLane: "CPU",
+    kinds: { busy: "{who} ejecuta", spin: "{who} gira en el while", overhead: "cambio de contexto" },
+    shortKinds: { busy: "{who}", spin: "{who} gira", overhead: "cambio" },
+    stateKinds: { RUNNING: "ejecuta", READY: "espera su turno", BLOCKED: "bloqueado", spinning: "gira sin avanzar" },
+    shortStateKinds: { spinning: "gira" },
+    legend: [
+      { kind: "busy", text: "un proceso ejecutando" },
+      { kind: "spin", text: "girando en el while: gasta CPU sin avanzar" },
+      { kind: "overhead", text: "cambio de contexto: no ejecuta nadie" },
+      { kind: "READY", text: "listo, esperando la CPU" },
+      { kind: "BLOCKED", text: "bloqueado, esperando el semáforo" }
+    ]
+  }
+};
+
+const STATES = {
+  RUNNING: { label: "RUNNING", gloss: "en ejecución", color: "#1d4ed8", soft: "#e8eefc" },
+  READY: { label: "READY", gloss: "listo, esperando la CPU", color: "#1a7a3f", soft: "#e6f4ec" },
+  BLOCKED: { label: "BLOCKED", gloss: "en espera", color: "#c0392f", soft: "#fbeae8" }
+};
+
+const PANEL_TIPS = {
+  processes: {
+    title: "Procesos",
+    body: "Una columna por proceso, con su programa tal como está escrito y la línea que ejecuta en este paso resaltada. Al lado de cada nombre, en qué estado está ese proceso."
+  },
+  registers: {
+    title: "Registros",
+    body: "El registro propio de cada proceso. Cuando un proceso lee una variable compartida, se lleva una copia acá: si la variable cambia después, la copia no se entera."
+  },
+  shared: {
+    title: "Memoria compartida",
+    body: "Las variables que los procesos comparten. Son una sola, la misma para todos, y cualquiera de ellos puede escribirlas."
+  },
+  mode: {
+    title: "Modo y IF",
+    body: "En qué modo está ejecutando el procesador y si las interrupciones están habilitadas. Con IF en 0 no se atiende ninguna interrupción: la que llegue queda pendiente."
+  },
+  semaphores: {
+    title: "Semáforos",
+    body: "El valor de cada semáforo y la cola de procesos bloqueados en él, en el orden en que se bloquearon. Arriba de cero el valor cuenta instancias libres; abajo de cero, procesos esperando."
+  },
+  lanes: {
+    title: "Carriles de tiempo",
+    body: "El tiempo, de izquierda a derecha, en unidades. El carril de arriba es la CPU; abajo, uno por proceso. Acá el eje no es el intercalado de instrucciones: es cuánto tiempo se gastó."
+  }
+};
+
+const TOOLTIPS = {
+  registro: {
+    title: "Registro",
+    body: "Un lugar propio de cada proceso donde guarda el valor con el que está trabajando. Nadie más lo ve. Para operar sobre una variable compartida, un proceso primero la copia acá."
+  },
+  carrera: {
+    title: "Condición de carrera",
+    body: "Cuando el resultado de un programa depende del orden en que se intercalaron los procesos, y nada en el código fija ese orden."
+  },
+  atomico: {
+    title: "Atómico",
+    body: "Que se ejecuta entero o no se ejecuta: no hay ningún momento intermedio en el que otro proceso pueda meterse."
+  },
+  seccionCritica: {
+    title: "Sección crítica",
+    body: "El tramo de código que toca un recurso compartido y que no puede estar ejecutándose en más de un proceso a la vez."
+  },
+  exclusionMutua: {
+    title: "Exclusión mutua",
+    body: "Que mientras un proceso está adentro de su sección crítica, ningún otro pueda entrar a la suya."
+  },
+  progreso: {
+    title: "Progreso",
+    body: "Que si nadie está adentro de la sección crítica y hay alguien que quiere entrar, ese alguien pueda entrar. Un proceso que no está intentando entrar no puede impedírselo a otro."
+  },
+  bernstein: {
+    title: "Condiciones de Bernstein",
+    body: "Las tres cosas que tienen que pasar juntas para que haya una condición de carrera: más de un proceso sobre el mismo recurso, al menos uno de ellos modificándolo, y los accesos concurrentes."
+  },
+  semaforo: {
+    title: "Semáforo",
+    body: "Una variable entera del sistema operativo con dos operaciones atómicas, wait y signal. Los procesos no la leen ni la escriben directamente: sólo la usan a través de esas dos."
+  },
+  wait: {
+    title: "wait",
+    body: "Le resta 1 al semáforo. Si el valor queda abajo de cero, el proceso que la llamó se bloquea y va a la cola de ese semáforo."
+  },
+  signal: {
+    title: "signal",
+    body: "Le suma 1 al semáforo. Si el valor sigue siendo cero o menos, quiere decir que había alguien esperando: desbloquea al primero de la cola."
+  },
+  mutex: {
+    title: "Mutex",
+    body: "Un semáforo que arranca en 1 y se usa para dar exclusión mutua: sólo uno adentro por vez."
+  },
+  spinlock: {
+    title: "Spinlock",
+    body: "Una espera que no bloquea al proceso: se queda con la CPU dando vueltas en un while hasta que puede entrar."
+  },
+  busyWait: {
+    title: "Busy-wait",
+    body: "Esperar ejecutando. El proceso tiene la CPU y la gasta preguntando si ya puede entrar."
+  },
+  testAndSet: {
+    title: "Test & Set",
+    body: "Una instrucción del procesador que lee una posición de memoria y le escribe true, las dos cosas juntas y sin que nadie pueda meterse en el medio. Devuelve lo que había antes."
+  },
+  flagIf: {
+    title: "IF",
+    body: "La bandera que dice si las interrupciones están habilitadas. Con IF en 1 se atienden; con IF en 0, la interrupción que llegue queda pendiente hasta que vuelva a 1."
+  },
+  modeReg: {
+    title: "MODE",
+    body: "En qué modo está ejecutando el procesador. Habilitar y deshabilitar interrupciones son instrucciones privilegiadas: sólo corren en modo kernel."
+  },
+  interrupcionReloj: {
+    title: "Interrupción de reloj",
+    body: "La que le avisa al sistema operativo que pasó un rato, y es la que le da la oportunidad de sacarle la CPU al proceso que la tiene y dársela a otro."
+  },
+  cambioDeContexto: {
+    title: "Cambio de contexto",
+    body: "Guardar todo lo que un proceso tenía en la CPU y cargar lo del que entra. Mientras pasa, no ejecuta ningún proceso."
+  },
+  quantum: {
+    title: "Quantum",
+    body: "El tiempo que le toca a un proceso en la CPU antes de que el sistema operativo pueda dársela a otro."
+  },
+  privilegiada: {
+    title: "Instrucción privilegiada",
+    body: "Una instrucción que sólo se puede ejecutar en modo kernel. Un proceso de usuario que la necesita entra al kernel por un syscall."
+  }
+};
+
+const PROGRAMS = {
+  "carrera-p1": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  agregarTarea();",
+      { t: "  tareasPendientes++;", role: "gloss" },
+      "    reg₁ ← tareasPendientes",
+      "    reg₁ ← reg₁ + 1",
+      "    tareasPendientes ← reg₁",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "carrera-p2": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  realizarTarea();",
+      { t: "  tareasPendientes--;", role: "gloss" },
+      "    reg₂ ← tareasPendientes",
+      "    reg₂ ← reg₂ - 1",
+      "    tareasPendientes ← reg₂",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "carrera-p3": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      { t: "  if (tareasPendientes == 0) {", role: "gloss" },
+      "    reg₃ ← tareasPendientes",
+      "    si reg₃ == 0, entrar al if",
+      '    printf("No hay tareas pendientes");',
+      { t: "  }", role: "frame" },
+      { t: "}", role: "frame" }
+    ]
+  },
+  "turno-p0": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  while (turno != 0);",
+      "  SECCIÓN CRÍTICA",
+      "  turno = 1;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "turno-p1": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  while (turno != 1);",
+      "  SECCIÓN CRÍTICA",
+      "  turno = 0;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "interesado-p0": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  interesado[0] = true;",
+      "  while (interesado[1]);",
+      "  SECCIÓN CRÍTICA",
+      "  interesado[0] = false;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "interesado-p1": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  interesado[1] = true;",
+      "  while (interesado[0]);",
+      "  SECCIÓN CRÍTICA",
+      "  interesado[1] = false;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "peterson-p0": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  interesado[0] = true;",
+      "  turno = 1;",
+      "  while (interesado[1] && turno == 1);",
+      "  SECCIÓN CRÍTICA",
+      "  interesado[0] = false;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "peterson-p1": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  interesado[1] = true;",
+      "  turno = 0;",
+      "  while (interesado[0] && turno == 0);",
+      "  SECCIÓN CRÍTICA",
+      "  interesado[1] = false;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "interrupciones-p1": {
+    lines: [
+      { t: "deshabilitarInterrupciones();", role: "gloss" },
+      "  pasar a modo kernel",
+      "  IF ← 0",
+      "  volver a modo usuario",
+      { t: "SECCIÓN CRÍTICA", role: "gloss" },
+      "  reg₁ ← tareasPendientes",
+      "  reg₁ ← reg₁ + 1",
+      "  tareasPendientes ← reg₁",
+      { t: "habilitarInterrupciones();", role: "gloss" },
+      "  pasar a modo kernel",
+      "  IF ← 1",
+      "  volver a modo usuario",
+      "SECCIÓN RESTANTE"
+    ]
+  },
+  "interrupciones-p2": {
+    lines: [
+      { t: "deshabilitarInterrupciones();", role: "gloss" },
+      "  pasar a modo kernel",
+      "  IF ← 0",
+      "  volver a modo usuario",
+      { t: "SECCIÓN CRÍTICA", role: "gloss" },
+      "  reg₂ ← tareasPendientes",
+      "  reg₂ ← reg₂ - 1",
+      "  tareasPendientes ← reg₂",
+      { t: "habilitarInterrupciones();", role: "gloss" },
+      "  pasar a modo kernel",
+      "  IF ← 1",
+      "  volver a modo usuario",
+      "SECCIÓN RESTANTE"
+    ]
+  },
+  "testandset": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  while (TestAndSet(&lock));",
+      "  SECCIÓN CRÍTICA",
+      "  lock = false;",
+      "  SECCIÓN RESTANTE",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "semaforo-p1": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(semVar);",
+      "  tareasPendientes++;",
+      "  signal(semVar);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "semaforo-p2": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(semVar);",
+      "  tareasPendientes--;",
+      "  signal(semVar);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "mutex-comun": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(mutex);",
+      "  tareasPendientes++;",
+      "  signal(mutex);",
+      { t: "}", role: "frame" }
+    ]
+  }
+};
+
+const DEFINITIONS = {
+  testandset: {
+    title: "TestAndSet",
+    lines: [
+      "boolean TestAndSet(boolean *target) {",
+      "  boolean rv = *target;",
+      "  *target = true;",
+      "  return rv;",
+      "}"
+    ]
+  }
+};
+
+const EXAMPLES = [
+  {
+    number: 1,
+    title: "La carrera",
+    short: "Carrera",
+    adds: "Agrega: que una línea de código no es una instrucción, y que eso alcanza para perder una cuenta.",
+    subtitle: "Dos procesos suman y restan sobre la misma variable, y la cuenta no cierra.",
+    stepUnit: "Un paso = una instrucción",
+    canvas: { columns: "minmax(116px, 1.85fr) minmax(118px, 0.62fr) minmax(196px, 0.72fr)", panels: ["processes", "registers", "shared"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "agrega tareas", program: "carrera-p1", register: { key: "reg1", name: "reg₁" } },
+      { id: "P2", label: "P2", gloss: "realiza tareas", program: "carrera-p2", register: { key: "reg2", name: "reg₂" } }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    steps: [
+      {
+        actor: "P1",
+        line: 4,
+        narration: "P1 ya llamó a agregarTarea() y ahora le toca sumarla a la cuenta. Esa línea, *tareasPendientes++*, no es una instrucción sola: son tres. La primera copia el valor de la variable compartida al [[registro:registro]] propio de P1, que queda en {reg1}.",
+        note: "Los dos procesos comparten *tareasPendientes*, pero cada uno tiene su registro. Lo que P1 se llevó es una copia.",
+        ops: [{ op: "reg.read", reg: "reg1", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "Antes de que P1 siga, el sistema operativo le da la CPU a P2, que arranca su *tareasPendientes--* por la misma primera instrucción: copia el valor compartido a reg₂, que queda en {reg2}.",
+        note: "Los dos registros tienen ahora el mismo valor, {tp}. Los dos leyeron la misma variable y ninguno escribió todavía.",
+        ops: [{ op: "reg.read", reg: "reg2", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 5,
+        narration: "P2 le resta 1 a su copia: reg₂ queda en {reg2}. La variable compartida no se tocó: sigue en {tp}.",
+        ops: [{ op: "reg.add", reg: "reg2", by: -1 }]
+      },
+      {
+        actor: "P2",
+        line: 6,
+        narration: "P2 escribe su registro en la variable compartida. *tareasPendientes* pasa a {tp}: se realizó una tarea.",
+        note: "Hasta acá la cuenta va bien. El problema es que P1 quedó a mitad de camino, con un {reg1} guardado que ya no dice la verdad.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg2" }]
+      },
+      {
+        actor: "P1",
+        line: 5,
+        narration: "Recién ahora sigue P1, desde donde había quedado. Le suma 1 a su copia y reg₁ queda en {reg1}. Pero esa copia se leyó cuando *tareasPendientes* valía 0, y ahora vale {tp}.",
+        ops: [{ op: "reg.add", reg: "reg1", by: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "P1 escribe su registro. *tareasPendientes* queda en {tp}.",
+        note: "Se agregó una tarea y se realizó una: tendría que quedar 0. Quedó {tp}, y ninguna de las seis instrucciones está mal escrita. Eso es una [[carrera:condición de carrera]].",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg1" }]
+      }
+    ],
+    closing: "El incremento que calculó P1 partía de un valor que dejó de ser cierto.",
+    expectedFinalState: {
+      shared: { tp: 1 },
+      registers: { reg1: 1, reg2: -1 },
+      states: { P1: "RUNNING", P2: "READY" }
+    }
+  },
+
+  {
+    number: 2,
+    title: "El intercalado en tus manos",
+    short: "Elegir el orden",
+    adds: "Agrega: que el orden no lo decide el código, y que sólo algunos órdenes dan bien.",
+    subtitle: "El mismo programa, con el orden de las seis instrucciones a elección.",
+    stepUnit: "Un paso = una instrucción",
+    mode: "tree",
+    canvas: { columns: "minmax(116px, 1.85fr) minmax(118px, 0.62fr) minmax(196px, 0.72fr)", panels: ["processes", "registers", "shared"] },
+    panelNotes: { processes: "El botón de cada columna ejecuta la próxima instrucción de ese proceso." },
+    processes: [
+      { id: "P1", label: "P1", gloss: "agrega tareas", program: "carrera-p1", register: { key: "reg1", name: "reg₁" } },
+      { id: "P2", label: "P2", gloss: "realiza tareas", program: "carrera-p2", register: { key: "reg2", name: "reg₂" } }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    tree: {
+      pickLabel: "Ejecutar {label}",
+      pickDone: "{label} ya ejecutó sus tres",
+      root: {
+        narration: "El mismo programa del ejemplo 1, con *tareasPendientes* otra vez en {tp} y los dos registros vacíos. Acá el orden no lo fija la traza: en cada paso se elige, con el botón de arriba de cada columna, cuál de los dos procesos ejecuta su próxima instrucción.",
+        note: "Hay veinte órdenes posibles. Ninguno de los dos procesos puede saber en cuál está, y ninguno puede hacer nada al respecto."
+      },
+      moves: {
+        P1: [
+          { line: 4, narration: "P1 copia *tareasPendientes* a su registro: reg₁ queda en {reg1}.", ops: [{ op: "reg.read", reg: "reg1", from: "tp" }] },
+          { line: 5, narration: "P1 le suma 1 a su registro: reg₁ queda en {reg1}. La variable compartida sigue en {tp}.", ops: [{ op: "reg.add", reg: "reg1", by: 1 }] },
+          { line: 6, narration: "P1 escribe su registro en *tareasPendientes*, que pasa a {tp}.", ops: [{ op: "shared.write", name: "tp", reg: "reg1" }] }
+        ],
+        P2: [
+          { line: 4, narration: "P2 copia *tareasPendientes* a su registro: reg₂ queda en {reg2}.", ops: [{ op: "reg.read", reg: "reg2", from: "tp" }] },
+          { line: 5, narration: "P2 le resta 1 a su registro: reg₂ queda en {reg2}. La variable compartida sigue en {tp}.", ops: [{ op: "reg.add", reg: "reg2", by: -1 }] },
+          { line: 6, narration: "P2 escribe su registro en *tareasPendientes*, que pasa a {tp}.", ops: [{ op: "shared.write", name: "tp", reg: "reg2" }] }
+        ]
+      },
+      leafNotes: {
+        "0": "Las seis instrucciones se ejecutaron y *tareasPendientes* quedó en 0, que es el resultado correcto. Sólo {orders} de los veinte órdenes terminan así.",
+        "1": "Las seis instrucciones se ejecutaron y *tareasPendientes* quedó en 1: se perdió el decremento de P2. {orders} de los veinte órdenes terminan así.",
+        "-1": "Las seis instrucciones se ejecutaron y *tareasPendientes* quedó en −1: se perdió el incremento de P1. {orders} de los veinte órdenes terminan así."
+      }
+    },
+    closing: "De los veinte órdenes posibles, sólo dos terminan en 0, y nada en el código elige cuál pasa.",
+    expectedTree: { nodes: 69, leaves: 20, finals: { "-1": 9, "0": 2, "1": 9 } }
+  },
+
+  {
+    number: 3,
+    title: "El que sólo lee",
+    short: "Sólo lee",
+    adds: "Agrega: que un lector solo no alcanza, y las tres condiciones de Bernstein.",
+    subtitle: "Un proceso que no escribe nada, y que igual termina diciendo algo falso.",
+    stepUnit: "Un paso = una instrucción",
+    canvas: { columns: "minmax(116px, 1.85fr) minmax(118px, 0.62fr) minmax(196px, 0.72fr)", panels: ["processes", "registers", "shared"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "agrega tareas", program: "carrera-p1", register: { key: "reg1", name: "reg₁" } },
+      { id: "P3", label: "P3", gloss: "sólo lee la cuenta", program: "carrera-p3", register: { key: "reg3", name: "reg₃" } }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    steps: [
+      {
+        actor: "P3",
+        line: 3,
+        narration: "P3 no escribe nada: sólo mira la cuenta para avisar cuando no quedan tareas. Su primera instrucción copia *tareasPendientes* a reg₃, que queda en {reg3}. En este momento es verdad: no hay tareas pendientes.",
+        note: "Acá miramos a P1 y a P3. P2, el que realizaba tareas, no interviene en este ejemplo.",
+        ops: [{ op: "reg.read", reg: "reg3", from: "tp" }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "El sistema operativo le da la CPU a P1, que arranca su *tareasPendientes++*: copia el valor a reg₁, que queda en {reg1}.",
+        ops: [{ op: "reg.read", reg: "reg1", from: "tp" }]
+      },
+      {
+        actor: "P1",
+        line: 5,
+        narration: "P1 le suma 1 a su copia: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.add", reg: "reg1", by: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "P1 escribe. *tareasPendientes* pasa a {tp}: ahora hay una tarea pendiente de verdad.",
+        note: "P1 hizo sus tres instrucciones seguidas, sin que nadie se le meta en el medio. Su parte está bien.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg1" }]
+      },
+      {
+        actor: "P3",
+        line: 4,
+        narration: "Vuelve P3, desde donde había quedado. Compara su registro con 0: reg₃ vale {reg3}, así que entra al if.",
+        note: "P3 no vuelve a leer la variable compartida. Decide con la copia que se llevó en el paso 1."
+      },
+      {
+        actor: "P3",
+        line: 5,
+        narration: "P3 imprime que no hay tareas pendientes. En la memoria compartida, *tareasPendientes* vale {tp}.",
+        note: "Nadie escribió mal. P3 sólo leyó, y la única escritura fue correcta. Lo que salió mal es *cuándo*."
+      }
+    ],
+    compare: {
+      headers: ["Las tres [[bernstein:condiciones de Bernstein]]", "Acá"],
+      rows: [
+        ["Más de un proceso sobre el mismo recurso", "P1 y P3 sobre *tareasPendientes*"],
+        ["Al menos uno lo modifica", "P1 escribe; P3 sólo lee"],
+        ["Los accesos son concurrentes", "P1 escribió entre la lectura de P3 y su decisión"]
+      ]
+    },
+    closing: "Un lector solo no alcanza: hace falta que alguien escriba.",
+    expectedFinalState: {
+      shared: { tp: 1 },
+      registers: { reg1: 1, reg3: 0 },
+      states: { P1: "READY", P3: "RUNNING" }
+    }
+  },
+
+  {
+    number: 4,
+    title: "Dónde empieza la sección crítica",
+    short: "Dónde empieza",
+    adds: "Agrega: qué instrucciones tienen que estar adentro de la sección crítica, y qué pasa si falta una.",
+    subtitle: "La misma carrera, con la región dibujada, corrida y vuelta a dibujar.",
+    stepUnit: "Un paso = una instrucción",
+    canvas: { columns: "minmax(116px, 1.85fr) minmax(118px, 0.62fr) minmax(196px, 0.72fr)", panels: ["processes", "registers", "shared"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "agrega tareas", program: "carrera-p1", register: { key: "reg1", name: "reg₁" } },
+      { id: "P2", label: "P2", gloss: "realiza tareas", program: "carrera-p2", register: { key: "reg2", name: "reg₂" } }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    regions: { P1: [4, 6], P2: [4, 6] },
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "El mismo programa, con la [[seccionCritica:sección crítica]] dibujada: son exactamente las tres instrucciones que tocan *tareasPendientes*, en cada proceso. P1 ejecuta agregarTarea(), que queda afuera.",
+        note: "La región no encierra a agregarTarea() ni a realizarTarea(): esas dos no tocan la variable compartida."
+      },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "Ahora ejecuta P2 su realizarTarea(), también afuera de la región. El intercalado cayó justo entre las dos llamadas y no pasó nada: *tareasPendientes* sigue en {tp}."
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "P1 entra a su sección crítica y lee: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.read", reg: "reg1", from: "tp" }]
+      },
+      {
+        actor: "P1",
+        line: 5,
+        narration: "P1 le suma 1: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.add", reg: "reg1", by: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "P1 escribe y sale de la región. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg1" }]
+      },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "Recién ahora entra P2, con la región de P1 ya vacía. Lee, y reg₂ queda en {reg2}.",
+        ops: [{ op: "reg.read", reg: "reg2", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 5,
+        narration: "P2 le resta 1: reg₂ queda en {reg2}.",
+        ops: [{ op: "reg.add", reg: "reg2", by: -1 }]
+      },
+      {
+        actor: "P2",
+        line: 6,
+        narration: "P2 escribe. *tareasPendientes* queda en {tp}, que es el resultado correcto.",
+        note: "Una tarea agregada y una realizada. Con las dos regiones respetadas, la cuenta cierra.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg2" }]
+      },
+      {
+        narration: "Volvemos al principio, con *tareasPendientes* en {tp} y los registros vacíos, para probar el caso contrario: que el intercalado caiga adentro de la región.",
+        ops: [{ op: "reset" }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "P1 entra a su sección crítica y lee: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.read", reg: "reg1", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "Y acá está el problema: P2 entra a la suya con P1 todavía adentro. Lee, y reg₂ queda en {reg2}.",
+        note: "Las dos regiones están ocupadas al mismo tiempo. Eso es exactamente lo que una sección crítica no puede permitir.",
+        ops: [{ op: "reg.read", reg: "reg2", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 5,
+        narration: "P2 le resta 1: reg₂ queda en {reg2}.",
+        ops: [{ op: "reg.add", reg: "reg2", by: -1 }]
+      },
+      {
+        actor: "P2",
+        line: 6,
+        narration: "P2 escribe y sale. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg2" }]
+      },
+      {
+        actor: "P1",
+        line: 5,
+        narration: "P1 sigue con su copia vieja y le suma 1: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.add", reg: "reg1", by: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "P1 escribe. *tareasPendientes* queda en {tp}: es exactamente el ejemplo 1, con la región dibujada arriba para ver dónde se rompió.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg1" }]
+      },
+      {
+        narration: "Tercer caso. Dejamos la región una instrucción más adentro: ahora arranca en el *reg ← reg ± 1* y la lectura queda afuera.",
+        note: "De acá en adelante suponemos que la región se respeta: nunca hay dos procesos adentro a la vez. Lo único que cambió es dónde empieza.",
+        ops: [{ op: "reset" }, { op: "region.set", regions: { P1: [5, 6], P2: [5, 6] } }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "P1 lee. La lectura ya no está protegida, así que esto pasa afuera de la región: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.read", reg: "reg1", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "Y P2 también puede leer, porque afuera de la región el intercalado es libre. reg₂ queda en {reg2}.",
+        ops: [{ op: "reg.read", reg: "reg2", from: "tp" }]
+      },
+      {
+        actor: "P2",
+        line: 5,
+        narration: "P2 entra a la región y le resta 1: reg₂ queda en {reg2}.",
+        ops: [{ op: "reg.add", reg: "reg2", by: -1 }]
+      },
+      {
+        actor: "P2",
+        line: 6,
+        narration: "P2 escribe y sale. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg2" }]
+      },
+      {
+        actor: "P1",
+        line: 5,
+        narration: "Ahora entra P1, con la región libre, y le suma 1 a la copia que se había llevado antes: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.add", reg: "reg1", by: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "P1 escribe. *tareasPendientes* queda en {tp}, otra vez mal.",
+        note: "La [[exclusionMutua:exclusión mutua]] se respetó: nunca hubo dos adentro a la vez. Lo que quedó afuera fue la lectura, y con eso alcanzó.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg1" }]
+      }
+    ],
+    compare: {
+      headers: ["Dónde cayó el intercalado", "tareasPendientes"],
+      rows: [
+        ["Las dos regiones se respetan", "0"],
+        ["Dos procesos adentro a la vez", "1"],
+        ["Se respetan, pero la lectura quedó afuera", "1"]
+      ]
+    },
+    closing: "La sección crítica se hace lo más chica posible, y no más chica.",
+    expectedFinalState: {
+      shared: { tp: 1 },
+      registers: { reg1: 1, reg2: -1 },
+      regions: { P1: [5, 6], P2: [5, 6] },
+      states: { P1: "RUNNING", P2: "READY" }
+    }
+  },
+
+  {
+    number: 5,
+    title: "Turno",
+    short: "Turno",
+    adds: "Agrega: la primera solución por software, y el requisito de progreso.",
+    subtitle: "Una variable compartida decide de quién es el turno. Da exclusión mutua, y nada más.",
+    stepUnit: "Un paso = una línea",
+    stepUnitNote: "De acá en adelante un paso es una línea del programa, no una instrucción. Estas líneas no se abren en instrucciones: lo que se mira ya no es el adentro de un incremento, sino el orden en que dos procesos entran y salen.",
+    canvas: { columns: "minmax(116px, 2.05fr) minmax(196px, 0.72fr)", panels: ["processes", "shared"] },
+    processes: [
+      { id: "P0", label: "Proceso 0", program: "turno-p0" },
+      { id: "P1", label: "Proceso 1", program: "turno-p1" }
+    ],
+    shared: [{ key: "turno", name: "turno", value: 1, gloss: "de quién es el turno de entrar" }],
+    guards: {
+      P0: { 2: [{ key: "turno", cmp: "ne", value: 0 }] },
+      P1: { 2: [{ key: "turno", cmp: "ne", value: 1 }] }
+    },
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "*turno* arranca en {turno}, así que el proceso 1 pasa de largo por su while y entra. El proceso 0, si intentara, se quedaría girando.",
+        note: "Ninguno de los dos escribe *turno* para pedir permiso: lo lee y espera. El que decide es el que sale."
+      },
+      { actor: "P1", line: 3, narration: "El proceso 1 está adentro de su sección crítica. El proceso 0 no puede entrar a la suya: *turno* vale {turno}." },
+      { actor: "P1", line: 4, narration: "El proceso 1 sale y le pasa el turno: *turno* pasa a {turno}.", ops: [{ op: "shared.set", name: "turno", value: 0 }] },
+      { actor: "P1", line: 5, narration: "El proceso 1 sigue con su sección restante, que es todo lo que hace y no necesita protección." },
+      { actor: "P0", line: 2, narration: "Le toca al proceso 0. *turno* vale {turno}, así que pasa de largo por su while." },
+      { actor: "P0", line: 3, narration: "El proceso 0 está adentro. Hasta acá la [[exclusionMutua:exclusión mutua]] funcionó: nunca hubo dos adentro a la vez." },
+      { actor: "P0", line: 4, narration: "El proceso 0 sale y le devuelve el turno: *turno* pasa a {turno}.", ops: [{ op: "shared.set", name: "turno", value: 1 }] },
+      { actor: "P0", line: 5, narration: "El proceso 0 sigue con su sección restante." },
+      {
+        actor: "P0",
+        line: 2,
+        narration: "El proceso 0 vuelve a necesitar entrar. Pero *turno* vale {turno}, así que se queda girando en el while.",
+        note: "Y el proceso 1 no está adentro de su sección crítica: está en su sección restante, haciendo algo que no necesitaba proteger."
+      },
+      { actor: "P1", line: 5, narration: "El proceso 1 sigue en su sección restante. No está intentando entrar, y tampoco va a tocar *turno*: eso pasa recién cuando sale de su sección crítica, y ni siquiera entró." },
+      {
+        actor: "P0",
+        line: 2,
+        narration: "El proceso 0 gira otra vez. La sección crítica está vacía, él quiere entrar, y no puede.",
+        note: "No hay nada en el código que lo saque de ahí. Depende de que el proceso 1 quiera entrar, entre y salga."
+      }
+    ],
+    compare: {
+      headers: ["Requisito", "Turno"],
+      rows: [
+        ["Exclusión mutua", "sí: nunca hubo dos adentro"],
+        ["[[progreso:Progreso]]", "no: el que tiene el turno bloquea al otro sin usarlo"]
+      ]
+    },
+    closing: "El que tiene el turno bloquea al otro sin estar usándolo.",
+    expectedFinalState: {
+      shared: { turno: 1 },
+      spins: 2,
+      states: { P0: "RUNNING", P1: "READY" }
+    }
+  },
+
+  {
+    number: 6,
+    title: "Interesado",
+    short: "Interesado",
+    adds: "Agrega: la segunda solución por software, y que también le falta progreso.",
+    subtitle: "Cada uno avisa que quiere entrar. Los dos avisan, y ninguno entra.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 2.05fr) minmax(196px, 0.72fr)", panels: ["processes", "shared"] },
+    processes: [
+      { id: "P0", label: "Proceso 0", program: "interesado-p0" },
+      { id: "P1", label: "Proceso 1", program: "interesado-p1" }
+    ],
+    shared: [
+      { key: "i0", name: "interesado[0]", value: false, gloss: "el proceso 0 quiere entrar" },
+      { key: "i1", name: "interesado[1]", value: false, gloss: "el proceso 1 quiere entrar" }
+    ],
+    guards: {
+      P0: { 3: [{ key: "i1", cmp: "eq", value: true }] },
+      P1: { 3: [{ key: "i0", cmp: "eq", value: true }] }
+    },
+    steps: [
+      {
+        actor: "P0",
+        line: 2,
+        narration: "Otra idea: en vez de un turno, cada proceso avisa que quiere entrar. El proceso 0 pone *interesado[0]* en {i0}.",
+        note: "La ventaja sobre el turno se ve enseguida: un proceso que no quiere entrar tiene su bandera en false y no molesta a nadie.",
+        ops: [{ op: "shared.set", name: "i0", value: true }]
+      },
+      {
+        actor: "P1",
+        line: 2,
+        narration: "Y acá cae el intercalado: antes de que el proceso 0 llegue a mirar la bandera del otro, ejecuta el proceso 1 y pone *interesado[1]* en {i1}.",
+        note: "Las dos banderas están en true y ninguno de los dos leyó todavía la del otro.",
+        ops: [{ op: "shared.set", name: "i1", value: true }]
+      },
+      { actor: "P0", line: 3, narration: "El proceso 0 mira la bandera del proceso 1. Vale {i1}, así que se queda girando." },
+      { actor: "P1", line: 3, narration: "El proceso 1 mira la del proceso 0. Vale {i0}, así que también se queda girando." },
+      { actor: "P0", line: 3, narration: "El proceso 0 gira otra vez. Su propia bandera sigue en {i0}, y él nunca la baja mientras espera." },
+      {
+        actor: "P1",
+        line: 3,
+        narration: "El proceso 1 gira otra vez. Ninguno de los dos va a entrar nunca.",
+        note: "La sección crítica está vacía, los dos quieren entrar, y no hay nada en el código que desempate."
+      }
+    ],
+    compare: {
+      headers: ["Requisito", "Interesado"],
+      rows: [
+        ["Exclusión mutua", "sí: nunca hubo dos adentro"],
+        ["[[progreso:Progreso]]", "no: nada decide quién sigue"]
+      ]
+    },
+    closing: "Exclusión mutua sí, progreso no: no hay nada que desempate.",
+    expectedFinalState: {
+      shared: { i0: true, i1: true },
+      spins: 4,
+      states: { P0: "READY", P1: "RUNNING" }
+    }
+  },
+
+  {
+    number: 7,
+    title: "Peterson",
+    short: "Peterson",
+    adds: "Agrega: la solución que sí funciona, y las dos cosas que cuesta.",
+    subtitle: "Las dos ideas juntas: cada uno avisa que quiere entrar y le cede el turno al otro.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 2.15fr) minmax(196px, 0.78fr)", panels: ["processes", "shared"] },
+    processes: [
+      { id: "P0", label: "Proceso 0", program: "peterson-p0" },
+      { id: "P1", label: "Proceso 1", program: "peterson-p1" }
+    ],
+    shared: [
+      { key: "i0", name: "interesado[0]", value: false, gloss: "el proceso 0 quiere entrar" },
+      { key: "i1", name: "interesado[1]", value: false, gloss: "el proceso 1 quiere entrar" },
+      { key: "turno", name: "turno", value: 0, gloss: "a quién le cedieron el paso" }
+    ],
+    guards: {
+      P0: { 4: [{ key: "i1", cmp: "eq", value: true }, { key: "turno", cmp: "eq", value: 1 }] },
+      P1: { 4: [{ key: "i0", cmp: "eq", value: true }, { key: "turno", cmp: "eq", value: 0 }] }
+    },
+    steps: [
+      {
+        actor: "P0",
+        line: 2,
+        narration: "Peterson junta las dos ideas: la bandera del ejemplo 6 y el *turno* del ejemplo 5. El proceso 0 pone *interesado[0]* en {i0}.",
+        note: "El valor con el que arranca *turno* no decide nada: lo primero que hace cada proceso después de levantar su bandera es escribirlo.",
+        ops: [{ op: "shared.set", name: "i0", value: true }]
+      },
+      {
+        actor: "P1",
+        line: 2,
+        narration: "Repetimos el intercalado que rompió el ejemplo 6: antes de que el proceso 0 siga, el proceso 1 pone *interesado[1]* en {i1}. Las dos banderas en true.",
+        ops: [{ op: "shared.set", name: "i1", value: true }]
+      },
+      {
+        actor: "P0",
+        line: 3,
+        narration: "Acá está lo nuevo. El proceso 0 no se reserva el turno: se lo *cede al otro*. Escribe *turno* = {turno}.",
+        ops: [{ op: "shared.set", name: "turno", value: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 3,
+        narration: "El proceso 1 hace lo mismo y le cede el turno al 0: *turno* pasa a {turno}. El último en escribirlo se lo regaló al otro, y eso es lo que desempata.",
+        ops: [{ op: "shared.set", name: "turno", value: 0 }]
+      },
+      {
+        actor: "P0",
+        line: 4,
+        narration: "El proceso 0 mira las dos condiciones: *interesado[1]* vale {i1}, pero *turno* vale {turno} y no 1. La condición no se cumple, así que pasa de largo y entra."
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "El proceso 1 mira las suyas: *interesado[0]* vale {i0} y *turno* vale {turno}. Las dos se cumplen, así que gira.",
+        note: "El mismo intercalado que en el ejemplo 6 dejaba a los dos girando. Acá deja a uno adentro y a uno esperando."
+      },
+      { actor: "P0", line: 5, narration: "El proceso 0 está adentro de su sección crítica." },
+      { actor: "P1", line: 4, narration: "El proceso 1 gira. Va a seguir girando mientras el proceso 0 tenga su bandera levantada." },
+      { actor: "P0", line: 6, narration: "El proceso 0 sale y baja su bandera: *interesado[0]* pasa a {i0}.", ops: [{ op: "shared.set", name: "i0", value: false }] },
+      { actor: "P0", line: 7, narration: "El proceso 0 sigue con su sección restante." },
+      { actor: "P1", line: 4, narration: "El proceso 1 vuelve a mirar. *interesado[0]* vale {i0}, así que ya no se cumple la condición: pasa de largo." },
+      { actor: "P1", line: 5, narration: "El proceso 1 está adentro. Los dos entraron, uno después del otro." },
+      { actor: "P1", line: 6, narration: "El proceso 1 sale y baja su bandera: *interesado[1]* pasa a {i1}.", ops: [{ op: "shared.set", name: "i1", value: false }] },
+      {
+        actor: "P1",
+        line: 7,
+        narration: "El proceso 1 se queda en su sección restante, igual que en el ejemplo 5. Y *turno* vale {turno}: no lo cambió.",
+        note: "En el ejemplo 5, esta situación exacta dejaba al otro proceso girando para siempre."
+      },
+      { actor: "P0", line: 2, narration: "El proceso 0 vuelve a necesitar entrar y levanta su bandera: *interesado[0]* pasa a {i0}.", ops: [{ op: "shared.set", name: "i0", value: true }] },
+      { actor: "P0", line: 3, narration: "Le cede el turno al otro: *turno* pasa a {turno}. Es el valor que en el ejemplo 5 lo dejaba afuera.", ops: [{ op: "shared.set", name: "turno", value: 1 }] },
+      {
+        actor: "P0",
+        line: 4,
+        narration: "Mira las dos condiciones: *turno* vale {turno}, pero *interesado[1]* vale {i1}. Con una sola que no se cumpla alcanza: pasa de largo.",
+        note: "El turno solo no lo detiene. Hace falta además que el otro esté interesado, y no lo está."
+      },
+      {
+        actor: "P0",
+        line: 5,
+        narration: "El proceso 0 entra, con el proceso 1 sentado en su sección restante. Eso es progreso: el que no está intentando entrar no bloquea a nadie."
+      }
+    ],
+    compare: {
+      headers: ["Requisito", "Peterson"],
+      rows: [
+        ["Exclusión mutua", "sí"],
+        ["[[progreso:Progreso]]", "sí"],
+        ["Cuántos procesos", "dos, y sólo dos"],
+        ["Qué supone", "que cada una de estas líneas es [[atomico:atómica]]"]
+      ]
+    },
+    closing: "Funciona, y cuesta dos cosas: sólo dos procesos, y cada línea tiene que ser atómica.",
+    expectedFinalState: {
+      shared: { i0: true, i1: false, turno: 1 },
+      spins: 2,
+      states: { P0: "RUNNING", P1: "READY" }
+    }
+  },
+
+  {
+    number: 8,
+    title: "Que no lo interrumpan",
+    short: "Sin interrupciones",
+    adds: "Agrega: la primera solución por hardware, y lo que cuesta.",
+    subtitle: "Si nadie puede interrumpir, nadie puede intercalarse. Y hay que pagarlo.",
+    stepUnit: "Un paso = una instrucción",
+    stepUnitNote: "Volvemos a un paso por instrucción, porque acá lo que hay que contar son instrucciones: las tres del incremento, y las que hacen falta para deshabilitar y volver a habilitar las interrupciones.",
+    canvas: { columns: "minmax(116px, 1.75fr) minmax(118px, 0.5fr) minmax(196px, 0.72fr) minmax(118px, 0.8fr)", panels: ["processes", "registers", "shared", "mode"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "agrega tareas", program: "interrupciones-p1", register: { key: "reg1", name: "reg₁" } },
+      { id: "P2", label: "P2", gloss: "realiza tareas", program: "interrupciones-p2", register: { key: "reg2", name: "reg₂" } }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    mode: { mode: "usuario", flag: 1 },
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "P1 quiere entrar a su sección crítica y llama a deshabilitarInterrupciones(). Es una [[privilegiada:instrucción privilegiada]], así que hay que entrar al kernel: primer cambio de modo, y [[modeReg:MODE]] pasa a {mode}.",
+        note: "El cambio de modo es un paso, no cuatro: lo que este ejemplo mira es el IF, no el mecanismo de la interrupción.",
+        ops: [{ op: "mode.set", value: "kernel" }]
+      },
+      {
+        actor: "P1",
+        line: 3,
+        narration: "Ya en modo kernel, [[flagIf:IF]] pasa a {flag}: las interrupciones quedan deshabilitadas.",
+        ops: [{ op: "flag.set", value: 0 }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "Vuelta a modo usuario: segundo cambio de modo, y van {switches}.",
+        ops: [{ op: "mode.set", value: "usuario" }]
+      },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "P1 entra a su sección crítica y lee: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.read", reg: "reg1", from: "tp" }]
+      },
+      {
+        actor: "P1",
+        line: 7,
+        narration: "P1 le suma 1: reg₁ queda en {reg1}.",
+        ops: [{ op: "reg.add", reg: "reg1", by: 1 }]
+      },
+      {
+        narration: "Y justo acá llega una [[interrupcionReloj:interrupción de reloj]]. Se revisa si hay algo que atender: IF vale {flag}, así que no se atiende nada y la interrupción queda pendiente.",
+        note: "P2 está en READY, listo para ejecutar, y no va a poder: sin interrupción no hay oportunidad de reprogramar la CPU.",
+        ops: [{ op: "interrupt.raise" }]
+      },
+      {
+        actor: "P1",
+        line: 8,
+        narration: "P1 escribe y termina su sección crítica entera, sin que nadie se le meta en el medio. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.write", name: "tp", reg: "reg1" }]
+      },
+      {
+        actor: "P1",
+        line: 10,
+        narration: "P1 llama a habilitarInterrupciones(), que también es privilegiada: tercer cambio de modo, y MODE pasa a {mode}.",
+        ops: [{ op: "mode.set", value: "kernel" }]
+      },
+      {
+        actor: "P1",
+        line: 11,
+        narration: "IF vuelve a {flag}.",
+        ops: [{ op: "flag.set", value: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 12,
+        narration: "Cuarto cambio de modo, de vuelta a usuario. Van {switches} para una sección crítica de tres instrucciones.",
+        ops: [{ op: "mode.set", value: "usuario" }]
+      },
+      {
+        narration: "Ahora IF vale {flag}, la interrupción pendiente se atiende, y el planificador de corto plazo le puede dar la CPU a P2.",
+        note: "P2 nunca pudo entrar: no porque el código se lo impidiera, sino porque no llegó a ejecutar.",
+        ops: [
+          { op: "interrupt.service" },
+          { op: "state.set", process: "P1", value: "READY" },
+          { op: "state.set", process: "P2", value: "RUNNING" }
+        ]
+      }
+    ],
+    compare: {
+      headers: ["Deshabilitar interrupciones", "Cuánto"],
+      rows: [
+        ["Instrucciones de la sección crítica", "3"],
+        ["Cambios de modo que costó", "4"],
+        ["Procesos que pudieron intercalarse", "ninguno"]
+      ]
+    },
+    closing: "Funciona porque le saca al planificador la oportunidad de reprogramar, y hay que pagarlo cada vez.",
+    expectedFinalState: {
+      shared: { tp: 1 },
+      registers: { reg1: 1 },
+      mode: { mode: "usuario", flag: 1, switches: 4, pending: false },
+      states: { P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 9,
+    title: "Test & Set",
+    short: "Test & Set",
+    adds: "Agrega: una instrucción que lee y escribe en un solo paso indivisible.",
+    subtitle: "El hardware ofrece un paso que no se puede partir. Con eso alcanza.",
+    stepUnit: "Un paso = una línea",
+    stepUnitNote: "Volvemos a un paso por línea. Y esta vez hay un motivo más fuerte que la comodidad: la línea del while es una sola instrucción del procesador, así que no hay nada adentro que se pueda mostrar por separado.",
+    canvas: { columns: "minmax(116px, 1.75fr) minmax(196px, 0.72fr)", panels: ["processes", "shared"] },
+    processes: [
+      { id: "P1", label: "P1", program: "testandset" },
+      { id: "P2", label: "P2", program: "testandset" }
+    ],
+    definition: "testandset",
+    shared: [{ key: "lock", name: "lock", value: false, gloss: "si hay alguien adentro de la sección crítica" }],
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "[[testAndSet:TestAndSet]] lee *lock* y le escribe true, las dos cosas en un solo paso. Leyó false, así que devuelve false y P1 pasa de largo por el while. *lock* queda en {lock}.",
+        note: "Las tres líneas de la definición de abajo son un solo paso del procesador: no hay ningún momento entre la lectura y la escritura.",
+        ops: [{ op: "lock.testAndSet", name: "lock" }]
+      },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "Le toca a P2, que hace lo mismo. Pero *lock* ya vale {lock}: TestAndSet devuelve true y P2 se queda girando.",
+        note: "El intercalado que rompía el ejemplo 4 —dos lecturas antes de la primera escritura— acá no tiene dónde caer.",
+        ops: [{ op: "lock.testAndSet", name: "lock" }]
+      },
+      { actor: "P1", line: 3, narration: "P1 está adentro de su sección crítica, con *lock* en {lock}." },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "P2 gira otra vez. Cada vuelta le vuelve a escribir true a un *lock* que ya valía true, y eso no cambia nada.",
+        note: "Es un [[spinlock:spinlock]]: P2 no se bloquea, se queda con la CPU preguntando.",
+        ops: [{ op: "lock.testAndSet", name: "lock" }]
+      },
+      { actor: "P1", line: 4, narration: "P1 sale y libera: *lock* pasa a {lock}.", ops: [{ op: "shared.set", name: "lock", value: false }] },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "En su próxima vuelta, P2 lee false, escribe true y entra. *lock* queda en {lock}.",
+        ops: [{ op: "lock.testAndSet", name: "lock" }]
+      },
+      { actor: "P1", line: 5, narration: "P1 sigue con su sección restante." },
+      {
+        actor: "P2",
+        line: 3,
+        narration: "P2 está adentro. Exclusión mutua, progreso, y para cualquier cantidad de procesos: alcanzó con que un paso no se pueda partir.",
+        note: "Lo que sigue estando es el giro: P2 ejecutó la línea del while tres veces y sólo la tercera lo dejó entrar. El ejemplo 12 mide cuánto cuesta eso."
+      }
+    ],
+    closing: "Un solo paso indivisible es lo que les faltaba a las soluciones por software.",
+    expectedFinalState: {
+      shared: { lock: true },
+      spins: 2,
+      states: { P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 10,
+    title: "El semáforo, por dentro",
+    short: "El semáforo",
+    adds: "Agrega: wait y signal, y qué le pasa al proceso que no puede entrar.",
+    subtitle: "La carrera del ejemplo 1, resuelta con un semáforo que bloquea.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 1.42fr) minmax(196px, 0.72fr) minmax(126px, 0.9fr)", panels: ["processes", "shared", "semaphores"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "agrega tareas", program: "semaforo-p1" },
+      { id: "P2", label: "P2", gloss: "realiza tareas", program: "semaforo-p2" }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    semaphores: [{ key: "semVar", name: "semVar", value: 1, gloss: "una sola instancia: uno adentro por vez" }],
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "El mismo programa del ejemplo 1, con la sección crítica protegida por un [[semaforo:semáforo]]. *semVar* arranca en 1. P1 llama a [[wait:wait]], que le resta 1: el valor queda en {semVar}, y como no quedó abajo de cero, P1 sigue.",
+        note: "*wait* y *signal* son [[atomico:atómicas]]: el sistema operativo las hace enteras. Es justo lo que las soluciones por software no podían suponer de sus propias líneas.",
+        ops: [{ op: "sem.wait", name: "semVar" }]
+      },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "Acá cae el intercalado del ejemplo 1. P2 llama a wait: el valor queda en {semVar}, abajo de cero, así que P2 se bloquea y va a la cola de *semVar*.",
+        note: "P2 pasa a BLOCKED y deja de ejecutar. No gira, no consume CPU, y la CPU queda libre para cualquier otro proceso.",
+        ops: [{ op: "sem.wait", name: "semVar" }]
+      },
+      {
+        actor: "P1",
+        line: 3,
+        narration: "P1 hace su incremento. *tareasPendientes* pasa a {tp}.",
+        note: "Esa línea sigue siendo tres instrucciones. Lo que cambió es que ya no importa: el único que querría meterse en el medio está bloqueado.",
+        ops: [{ op: "shared.set", name: "tp", value: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "P1 llama a [[signal:signal]], que le suma 1: el valor queda en {semVar}. Como sigue siendo cero o menos, había alguien esperando, y P2 sale de la cola y pasa a READY.",
+        ops: [{ op: "sem.signal", name: "semVar" }]
+      },
+      {
+        actor: "P2",
+        line: 3,
+        narration: "P2 retoma donde había quedado, ya adentro de la sección crítica, y hace su decremento. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.set", name: "tp", value: 0 }]
+      },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "P2 llama a signal y el valor queda en {semVar}. Esta vez quedó arriba de cero, así que no había nadie esperando y no se desbloquea a nadie.",
+        note: "Una tarea agregada y una realizada: *tareasPendientes* quedó en {tp}. La cuenta cierra, y ninguno de los dos giró.",
+        ops: [{ op: "sem.signal", name: "semVar" }]
+      }
+    ],
+    closing: "El proceso que no puede entrar deja de ejecutar, en vez de girar.",
+    expectedFinalState: {
+      shared: { tp: 0 },
+      semaphores: { semVar: { value: 1, queue: [] } },
+      states: { P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 11,
+    title: "El valor negativo",
+    short: "Valor negativo",
+    adds: "Agrega: qué cuenta el valor de un semáforo arriba y abajo de cero.",
+    subtitle: "Tres procesos sobre el mismo mutex, y una cola que se vacía en orden.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 1.75fr) minmax(196px, 0.6fr) minmax(126px, 0.85fr)", panels: ["processes", "shared", "semaphores"] },
+    processes: [
+      { id: "P1", label: "P1", program: "mutex-comun" },
+      { id: "P2", label: "P2", program: "mutex-comun" },
+      { id: "P3", label: "P3", program: "mutex-comun" }
+    ],
+    shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
+    semaphores: [{ key: "mutex", name: "mutex", value: 1, gloss: "una sola instancia: uno adentro por vez" }],
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "Tres procesos, el mismo [[mutex:mutex]], y los tres queriendo hacer lo mismo. *mutex* arranca en 1: P1 hace wait, el valor queda en {mutex} y entra.",
+        ops: [{ op: "sem.wait", name: "mutex" }]
+      },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "P2 hace wait. El valor queda en {mutex}, abajo de cero, así que se bloquea: es el primero de la cola.",
+        ops: [{ op: "sem.wait", name: "mutex" }]
+      },
+      {
+        actor: "P3",
+        line: 2,
+        narration: "P3 hace wait. El valor queda en {mutex} y P3 se bloquea detrás de P2.",
+        note: "El valor dice {mutex} y en la cola hay {mutex_count}. No es casualidad: abajo de cero, el valor es cuántos están esperando.",
+        ops: [{ op: "sem.wait", name: "mutex" }]
+      },
+      {
+        actor: "P1",
+        line: 3,
+        narration: "P1, el único adentro, hace su incremento. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.set", name: "tp", value: 1 }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "P1 hace signal y el valor queda en {mutex}. Se desbloquea *el primero que se bloqueó*, que es P2, no uno cualquiera.",
+        note: "Queda {mutex_count} en la cola, y el valor lo dice: {mutex}.",
+        ops: [{ op: "sem.signal", name: "mutex" }]
+      },
+      {
+        actor: "P2",
+        line: 3,
+        narration: "P2 entra y hace su incremento. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.set", name: "tp", value: 2 }]
+      },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "P2 hace signal, el valor queda en {mutex} y se desbloquea P3, que era el que quedaba.",
+        ops: [{ op: "sem.signal", name: "mutex" }]
+      },
+      {
+        actor: "P3",
+        line: 3,
+        narration: "P3 entra y hace su incremento. *tareasPendientes* pasa a {tp}.",
+        ops: [{ op: "shared.set", name: "tp", value: 3 }]
+      },
+      {
+        actor: "P3",
+        line: 4,
+        narration: "P3 hace signal y el valor vuelve a {mutex}, arriba de cero: la cola está vacía y no hay a quién desbloquear.",
+        note: "Los tres incrementos llegaron y *tareasPendientes* quedó en {tp}. En el ejemplo 1, con dos procesos sin proteger, se había perdido uno.",
+        ops: [{ op: "sem.signal", name: "mutex" }]
+      }
+    ],
+    compare: {
+      headers: ["El valor de un semáforo", "Qué quiere decir"],
+      rows: [
+        ["Arriba de cero", "cuántas instancias quedan libres"],
+        ["Cero", "no queda ninguna libre, y nadie esperando"],
+        ["Abajo de cero", "cuántos procesos están esperando"],
+        ["Nunca arranca negativo", "el valor inicial es cuántas instancias hay"]
+      ]
+    },
+    closing: "Arriba de cero el valor cuenta instancias libres; abajo de cero, procesos esperando.",
+    expectedFinalState: {
+      shared: { tp: 3 },
+      semaphores: { mutex: { value: 1, queue: [] } },
+      states: { P1: "READY", P2: "READY", P3: "RUNNING" }
+    }
+  },
+
+  {
+    number: 12,
+    title: "Girar o bloquearse",
+    short: "Girar o bloquear",
+    adds: "Agrega: cuánta CPU cuesta cada una de las dos esperas.",
+    subtitle: "La misma situación esperada de las dos maneras, medida en unidades de tiempo.",
+    stepUnit: "Un paso = una unidad de tiempo",
+    stepUnitNote: "Acá cambia el eje. En los ejemplos anteriores el eje era el intercalado: qué instrucción ejecutó quién. En este el eje es el tiempo, y lo que se mide es cuánta CPU se gastó.",
+    canvas: { columns: "minmax(576px, 1fr)", panels: ["lanes"] },
+    panelNotes: { lanes: "P1 está adentro de su sección crítica y necesita 4 unidades. P2 quiere entrar." },
+    laneProcesses: [{ id: "P1", label: "P1" }, { id: "P2", label: "P2" }],
+    boards: [
+      { id: "spin", label: "Busy-wait", gloss: "el que espera se queda con la CPU", counter: "CPU gastada girando: {spin} de {units}" },
+      { id: "block", label: "Con bloqueo", gloss: "el que espera deja la CPU", counter: "CPU sin ejecutar a nadie: {overhead} de {units}" }
+    ],
+    steps: [
+      {
+        narration: "Primer caso: [[busyWait:busy-wait]], la espera del ejemplo 9. P2 pide entrar, no puede, y se queda girando en el while. Tiene la CPU y la gasta sin avanzar.",
+        note: "El bloque rayado es eso: un proceso ejecutando, pero sin progresar. No es rojo, porque está ejecutando.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "spin", who: "P2" }, spin: ["P2"], states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "Se le termina el [[quantum:quantum]] a P2 y la CPU vuelve a P1, que avanza la primera unidad de su sección crítica.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY" } }]
+      },
+      {
+        narration: "Le toca a P2 otra vez, y otra vez gira. Van {spin_spin} unidades de CPU gastadas en girar.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "spin", who: "P2" }, spin: ["P2"], states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "P1 avanza otra unidad. Le faltan dos.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY" } }]
+      },
+      {
+        narration: "P2 gira de nuevo.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "spin", who: "P2" }, spin: ["P2"], states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "P1 avanza. Le falta una.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY" } }]
+      },
+      {
+        narration: "P2 gira por cuarta vez. Ya van {spin_spin} unidades de CPU gastadas en preguntar si puede entrar.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "spin", who: "P2" }, spin: ["P2"], states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "P1 termina su sección crítica y libera. En su próxima vuelta, P2 va a poder entrar.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY" } }]
+      },
+      {
+        narration: "P2 entra y ejecuta.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "P2 termina. El caso tardó {spin_units} unidades, y {spin_spin} de ellas se fueron en girar.",
+        ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "Segundo caso: la misma situación, esperada con un semáforo que bloquea. P2 pide entrar, no puede, y se bloquea. El sistema operativo le saca la CPU y se la da a P1: ese traspaso es un [[cambioDeContexto:cambio de contexto]], y mientras pasa no ejecuta ningún proceso.",
+        note: "En rojo, el tiempo en el que no ejecuta nadie. P2 está en BLOCKED y no consume CPU.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "overhead" }, states: { P1: "READY", P2: "BLOCKED" } }]
+      },
+      {
+        narration: "P1 avanza la primera unidad de su sección crítica, con toda la CPU para él.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "BLOCKED" } }]
+      },
+      {
+        narration: "P1 avanza. Nadie le saca la CPU al terminar el quantum, porque P2 no está en READY: está bloqueado.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "BLOCKED" } }]
+      },
+      {
+        narration: "P1 avanza la tercera unidad.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "BLOCKED" } }]
+      },
+      {
+        narration: "P1 termina su sección crítica y hace signal. P2 sale de la cola y pasa a READY.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "BLOCKED" } }]
+      },
+      {
+        narration: "Segundo cambio de contexto: la CPU pasa a P2. Van {block_overhead} unidades sin que ejecute ningún proceso.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "overhead" }, states: { P1: "READY", P2: "READY" } }]
+      },
+      {
+        narration: "P2 entra y ejecuta.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
+      },
+      {
+        narration: "P2 termina. Este caso tardó {block_units} unidades, con {block_overhead} de cambio de contexto.",
+        note: "Girar gastó {spin_spin} unidades, y esa cuenta crece con lo que dure la sección crítica. Los cambios de contexto son {block_overhead}, y son {block_overhead} sea la sección larga o corta.",
+        ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
+      }
+    ],
+    compare: {
+      headers: ["Un spinlock gana sólo si se dan las tres", ""],
+      rows: [
+        ["Hay más de una CPU", "acá hay una sola: el que gira le saca el turno al que tiene que salir"],
+        ["La sección crítica es muy corta", "más corta que los dos cambios de contexto"],
+        ["La carrera es poco probable", "casi siempre se entra sin girar"]
+      ]
+    },
+    closing: "El curso prefiere bloquear, porque girar gasta CPU en no avanzar.",
+    expectedFinalState: {
+      boards: {
+        spin: { units: 10, spin: 4, overhead: 0 },
+        block: { units: 8, spin: 0, overhead: 2 }
+      }
+    }
+  }
+];
+</script>
+
+<script id="engine">
+const MINUS = "−";
+
+function fill(template, values) {
+  return template.replace(/\{(\w+)\}/g, function (match, key) {
+    return values[key] === undefined ? match : values[key];
+  });
+}
+
+function showValue(value) {
+  if (value === null || value === undefined) return UI_TEXT.none;
+  if (value === true) return "true";
+  if (value === false) return "false";
+  return String(value).replace("-", MINUS);
+}
+
+function programLines(key) {
+  if (!PROGRAMS[key]) return [];
+  return PROGRAMS[key].lines.map(function (line) {
+    return typeof line === "string" ? { t: line, role: "code" } : { t: line.t, role: line.role };
+  });
+}
+
+function processById(example, id) {
+  return (example.processes || []).filter(function (item) { return item.id === id; })[0] || null;
+}
+
+function copy(source) {
+  const target = {};
+  Object.keys(source).forEach(function (key) { target[key] = source[key]; });
+  return target;
+}
+
+function cloneBoards(boards) {
+  const target = {};
+  Object.keys(boards).forEach(function (id) {
+    const board = boards[id];
+    const lanes = {};
+    Object.keys(board.lanes).forEach(function (pid) {
+      lanes[pid] = board.lanes[pid].map(copy);
+    });
+    target[id] = {
+      units: board.units,
+      spin: board.spin,
+      overhead: board.overhead,
+      cpu: board.cpu.map(copy),
+      lanes: lanes
+    };
+  });
+  return target;
+}
+
+function cloneSemaphores(semaphores) {
+  const target = {};
+  Object.keys(semaphores).forEach(function (key) {
+    target[key] = { value: semaphores[key].value, queue: semaphores[key].queue.slice() };
+  });
+  return target;
+}
+
+function cloneRegions(regions) {
+  const target = {};
+  Object.keys(regions).forEach(function (key) { target[key] = regions[key].slice(); });
+  return target;
+}
+
+function cloneState(state) {
+  return {
+    shared: copy(state.shared),
+    registers: copy(state.registers),
+    semaphores: cloneSemaphores(state.semaphores),
+    states: copy(state.states),
+    lines: copy(state.lines),
+    regions: cloneRegions(state.regions),
+    mode: state.mode ? copy(state.mode) : null,
+    boards: cloneBoards(state.boards),
+    spins: state.spins,
+    spinning: false
+  };
+}
+
+function initialState(example) {
+  const shared = {};
+  (example.shared || []).forEach(function (item) { shared[item.key] = item.value; });
+  const registers = {};
+  const states = {};
+  const lines = {};
+  (example.processes || []).forEach(function (item) {
+    if (item.register) registers[item.register.key] = null;
+    states[item.id] = "READY";
+    lines[item.id] = null;
+  });
+  const semaphores = {};
+  (example.semaphores || []).forEach(function (item) { semaphores[item.key] = { value: item.value, queue: [] }; });
+  const boards = {};
+  (example.boards || []).forEach(function (board) {
+    const lanes = {};
+    (example.laneProcesses || []).forEach(function (item) { lanes[item.id] = []; });
+    boards[board.id] = { units: 0, spin: 0, overhead: 0, cpu: [], lanes: lanes };
+  });
+  return {
+    shared: shared,
+    registers: registers,
+    semaphores: semaphores,
+    states: states,
+    lines: lines,
+    regions: example.regions ? cloneRegions(example.regions) : {},
+    mode: example.mode ? { mode: example.mode.mode, flag: example.mode.flag, switches: 0, pending: false } : null,
+    boards: boards,
+    spins: 0,
+    spinning: false
+  };
+}
+
+function guardHolds(state, clauses) {
+  return clauses.every(function (clause) {
+    const actual = state.shared[clause.key];
+    if (clause.cmp === "eq") return actual === clause.value;
+    return actual !== clause.value;
+  });
+}
+
+function stepGuard(example, step) {
+  if (!step.actor || !step.line) return null;
+  const byProcess = (example.guards || {})[step.actor];
+  if (!byProcess) return null;
+  return byProcess[step.line] || null;
+}
+
+function appendSegment(list, segment) {
+  const last = list[list.length - 1];
+  if (last && last.kind === segment.kind && last.who === segment.who && last.spinning === segment.spinning) {
+    last.units += segment.units;
+    return;
+  }
+  list.push(segment);
+}
+
+function advanceTime(state, op) {
+  const board = state.boards[op.board];
+  if (!board) return;
+  board.units += op.units;
+  if (op.cpu.kind === "spin") board.spin += op.units;
+  if (op.cpu.kind === "overhead") board.overhead += op.units;
+  appendSegment(board.cpu, { kind: op.cpu.kind, who: op.cpu.who || null, units: op.units, spinning: false });
+  Object.keys(board.lanes).forEach(function (pid) {
+    const spinning = (op.spin || []).indexOf(pid) !== -1;
+    appendSegment(board.lanes[pid], { kind: op.states[pid], who: pid, units: op.units, spinning: spinning });
+    state.states[pid] = op.states[pid];
+  });
+}
+
+function applyOp(state, op, actor, example) {
+  if (op.op === "reg.read") { state.registers[op.reg] = state.shared[op.from]; return; }
+  if (op.op === "reg.add") { state.registers[op.reg] = state.registers[op.reg] + op.by; return; }
+  if (op.op === "shared.write") { state.shared[op.name] = state.registers[op.reg]; return; }
+  if (op.op === "shared.set") { state.shared[op.name] = op.value; return; }
+  if (op.op === "reset") {
+    (example.shared || []).forEach(function (item) { state.shared[item.key] = item.value; });
+    Object.keys(state.registers).forEach(function (key) { state.registers[key] = null; });
+    Object.keys(state.lines).forEach(function (key) { state.lines[key] = null; });
+    return;
+  }
+  if (op.op === "region.set") { state.regions = cloneRegions(op.regions); return; }
+  if (op.op === "sem.wait") {
+    const semaphore = state.semaphores[op.name];
+    if (!semaphore) return;
+    semaphore.value -= 1;
+    if (semaphore.value < 0) semaphore.queue.push(actor);
+    return;
+  }
+  if (op.op === "sem.signal") {
+    const semaphore = state.semaphores[op.name];
+    if (!semaphore) return;
+    semaphore.value += 1;
+    if (semaphore.value <= 0) semaphore.queue.shift();
+    return;
+  }
+  if (op.op === "lock.testAndSet") {
+    state.spinning = state.shared[op.name] === true;
+    state.shared[op.name] = true;
+    return;
+  }
+  if (op.op === "mode.set") {
+    if (state.mode.mode !== op.value) state.mode.switches += 1;
+    state.mode.mode = op.value;
+    return;
+  }
+  if (op.op === "flag.set") { state.mode.flag = op.value; return; }
+  if (op.op === "interrupt.raise") { state.mode.pending = true; return; }
+  if (op.op === "interrupt.service") { state.mode.pending = false; return; }
+  if (op.op === "time.advance") { advanceTime(state, op); return; }
+}
+
+function blockedProcesses(state) {
+  const blocked = {};
+  Object.keys(state.semaphores).forEach(function (key) {
+    state.semaphores[key].queue.forEach(function (id) { blocked[id] = true; });
+  });
+  return blocked;
+}
+
+function deriveStates(state, step, example) {
+  if (!example.processes) return;
+  const blocked = blockedProcesses(state);
+  example.processes.forEach(function (item) {
+    if (blocked[item.id]) { state.states[item.id] = "BLOCKED"; return; }
+    if (state.states[item.id] === "BLOCKED") state.states[item.id] = "READY";
+    if (!step.actor) return;
+    state.states[item.id] = item.id === step.actor ? "RUNNING" : "READY";
+  });
+}
+
+function applyStep(state, step, example) {
+  const ops = step.ops || [];
+  ops.forEach(function (op) {
+    if (op.op !== "state.set") applyOp(state, op, step.actor, example);
+  });
+  const guard = stepGuard(example, step);
+  if (guard) state.spinning = guardHolds(state, guard);
+  if (state.spinning) state.spins += 1;
+  if (step.actor && step.line) state.lines[step.actor] = step.line;
+  deriveStates(state, step, example);
+  ops.forEach(function (op) {
+    if (op.op === "state.set") state.states[op.process] = op.value;
+  });
+}
+
+function fillContext(state) {
+  const context = {};
+  Object.keys(state.shared).forEach(function (key) { context[key] = showValue(state.shared[key]); });
+  Object.keys(state.registers).forEach(function (key) { context[key] = showValue(state.registers[key]); });
+  Object.keys(state.semaphores).forEach(function (key) {
+    const semaphore = state.semaphores[key];
+    context[key] = showValue(semaphore.value);
+    context[key + "_count"] = String(semaphore.queue.length);
+    context[key + "_queue"] = semaphore.queue.length ? semaphore.queue.join(", ") : UI_TEXT.queueEmpty;
+  });
+  if (state.mode) {
+    context.mode = state.mode.mode;
+    context.flag = String(state.mode.flag);
+    context.switches = String(state.mode.switches);
+  }
+  Object.keys(state.boards).forEach(function (id) {
+    context[id + "_units"] = String(state.boards[id].units);
+    context[id + "_spin"] = String(state.boards[id].spin);
+    context[id + "_overhead"] = String(state.boards[id].overhead);
+  });
+  context.spins = String(state.spins);
+  return context;
+}
+
+function snapshotOf(state, step) {
+  const context = fillContext(state);
+  return {
+    actor: step.actor || null,
+    line: step.line || null,
+    spinning: state.spinning,
+    narration: fill(step.narration, context),
+    note: step.note ? fill(step.note, context) : null,
+    context: context,
+    shared: state.shared,
+    registers: state.registers,
+    semaphores: state.semaphores,
+    states: state.states,
+    lines: state.lines,
+    regions: state.regions,
+    mode: state.mode,
+    boards: state.boards,
+    spins: state.spins
+  };
+}
+
+function changedKeys(before, after) {
+  const changed = {};
+  Object.keys(after).forEach(function (key) {
+    if (before[key] !== after[key]) changed[key] = true;
+  });
+  return changed;
+}
+
+function markOne(snapshot, previous) {
+  snapshot.changedShared = changedKeys(previous.shared, snapshot.shared);
+  snapshot.changedRegisters = changedKeys(previous.registers, snapshot.registers);
+  snapshot.changedSemaphores = {};
+  snapshot.freshInQueue = {};
+  Object.keys(snapshot.semaphores).forEach(function (key) {
+    const after = snapshot.semaphores[key];
+    const before = previous.semaphores[key];
+    if (before.value !== after.value || before.queue.join() !== after.queue.join()) {
+      snapshot.changedSemaphores[key] = true;
+    }
+    after.queue.forEach(function (id) { if (before.queue.indexOf(id) === -1) snapshot.freshInQueue[id] = true; });
+  });
+  snapshot.changedMode = snapshot.mode ? changedKeys(previous.mode, snapshot.mode) : {};
+  snapshot.changedRegions = {};
+  Object.keys(snapshot.regions).forEach(function (key) {
+    const before = previous.regions[key];
+    if (!before || before.join() !== snapshot.regions[key].join()) snapshot.changedRegions[key] = true;
+  });
+  snapshot.freshUnits = {};
+  Object.keys(snapshot.boards).forEach(function (id) {
+    snapshot.freshUnits[id] = snapshot.boards[id].units - previous.boards[id].units;
+  });
+}
+
+function markChanges(snapshots, baseline) {
+  snapshots.forEach(function (snapshot, index) {
+    markOne(snapshot, index === 0 ? baseline : snapshots[index - 1]);
+  });
+  return snapshots;
+}
+
+function buildSnapshots(example) {
+  const baseline = initialState(example);
+  let state = baseline;
+  const snapshots = example.steps.map(function (step, index) {
+    state = cloneState(state);
+    applyStep(state, step, example);
+    const snapshot = snapshotOf(state, step);
+    snapshot.last = index === example.steps.length - 1;
+    return snapshot;
+  });
+  return markChanges(snapshots, baseline);
+}
+
+function buildTree(example) {
+  const tree = example.tree;
+  const ids = example.processes.map(function (item) { return item.id; });
+  const totalMoves = ids.reduce(function (sum, id) { return sum + tree.moves[id].length; }, 0);
+  const nodes = [];
+  const leaves = [];
+
+  function build(state, depth, counts, step) {
+    const snapshot = snapshotOf(state, step);
+    snapshot.last = depth === totalMoves;
+    const node = { snapshot: snapshot, depth: depth, children: {}, available: {} };
+    nodes.push(node);
+    if (snapshot.last) { leaves.push(node); return node; }
+    ids.forEach(function (id) {
+      const done = counts[id];
+      node.available[id] = done < tree.moves[id].length;
+      if (!node.available[id]) return;
+      const move = tree.moves[id][done];
+      const next = cloneState(state);
+      const nextStep = { actor: id, line: move.line, narration: move.narration, ops: move.ops };
+      applyStep(next, nextStep, example);
+      const nextCounts = copy(counts);
+      nextCounts[id] = done + 1;
+      node.children[id] = build(next, depth + 1, nextCounts, nextStep);
+    });
+    return node;
+  }
+
+  const start = initialState(example);
+  const counts = {};
+  ids.forEach(function (id) { counts[id] = 0; });
+  const root = build(start, 0, counts, { narration: tree.root.narration, note: tree.root.note });
+
+  const primary = example.shared[0].key;
+  const finals = {};
+  leaves.forEach(function (leaf) {
+    const key = String(leaf.snapshot.shared[primary]);
+    finals[key] = (finals[key] || 0) + 1;
+  });
+  leaves.forEach(function (leaf) {
+    const key = String(leaf.snapshot.shared[primary]);
+    const context = copy(leaf.snapshot.context);
+    context.orders = String(finals[key]);
+    leaf.snapshot.note = tree.leafNotes[key] ? fill(tree.leafNotes[key], context) : null;
+    leaf.snapshot.context = context;
+  });
+  markOne(root.snapshot, cloneState(start));
+  (function markBranch(node) {
+    Object.keys(node.children).forEach(function (id) {
+      const child = node.children[id];
+      markOne(child.snapshot, node.snapshot);
+      markBranch(child);
+    });
+  })(root);
+  return { root: root, nodes: nodes, leaves: leaves, finals: finals, depth: totalMoves };
+}
+
+const OP_TARGETS = {
+  "reg.read": { reg: "registers", from: "shared" },
+  "reg.add": { reg: "registers" },
+  "shared.write": { name: "shared", reg: "registers" },
+  "shared.set": { name: "shared" },
+  "reset": {},
+  "region.set": {},
+  "sem.wait": { name: "semaphores" },
+  "sem.signal": { name: "semaphores" },
+  "lock.testAndSet": { name: "shared" },
+  "mode.set": {},
+  "flag.set": {},
+  "interrupt.raise": {},
+  "interrupt.service": {},
+  "time.advance": { board: "boards" },
+  "state.set": { process: "processes" }
+};
+
+function unresolved(text) {
+  return /\{\w+\}/.test(text);
+}
+
+function unbalanced(text) {
+  const stars = (text.match(/\*/g) || []).length;
+  const opens = (text.match(/\[\[/g) || []).length;
+  const closes = (text.match(/\]\]/g) || []).length;
+  return stars % 2 !== 0 || opens !== closes;
+}
+
+function declaredNames(example) {
+  const names = { registers: {}, shared: {}, semaphores: {}, boards: {}, processes: {} };
+  (example.processes || []).forEach(function (item) {
+    names.processes[item.id] = true;
+    if (item.register) names.registers[item.register.key] = true;
+  });
+  (example.shared || []).forEach(function (item) { names.shared[item.key] = true; });
+  (example.semaphores || []).forEach(function (item) { names.semaphores[item.key] = true; });
+  (example.boards || []).forEach(function (board) { names.boards[board.id] = true; });
+  return names;
+}
+
+function verifyOp(op, label, example, names, problems) {
+  const targets = OP_TARGETS[op.op];
+  if (!targets) { problems.push(label + " usa la operación " + op.op + ", que no existe"); return; }
+  Object.keys(targets).forEach(function (field) {
+    const kind = targets[field];
+    if (!names[kind][op[field]]) problems.push(label + ": la operación " + op.op + " apunta a " + op[field] + ", que el ejemplo no declara");
+  });
+  if (op.op === "reset") {
+    if ((example.semaphores || []).length) problems.push(label + " reinicia, y el ejemplo tiene semáforos que reiniciar no toca");
+    if (example.mode) problems.push(label + " reinicia, y el ejemplo tiene modo que reiniciar no toca");
+    if ((example.boards || []).length) problems.push(label + " reinicia, y el ejemplo tiene carriles que reiniciar no toca");
+  }
+  if (op.op !== "time.advance") return;
+  (example.laneProcesses || []).forEach(function (item) {
+    if (!op.states[item.id]) problems.push(label + ": la operación no dice en qué estado queda " + item.id);
+  });
+  (op.spin || []).forEach(function (id) {
+    if (!op.states[id]) problems.push(label + ": la operación dice que " + id + " gira y no le da estado");
+  });
+}
+
+function verifyRegisterReads(example, snapshots, problems) {
+  const baseline = initialState(example);
+  example.steps.forEach(function (step, index) {
+    const before = index === 0 ? baseline : snapshots[index - 1];
+    const loaded = {};
+    Object.keys(before.registers).forEach(function (key) { loaded[key] = before.registers[key] !== null; });
+    (step.ops || []).forEach(function (op) {
+      const label = "paso " + (index + 1);
+      if (op.op === "reg.read") { loaded[op.reg] = true; return; }
+      if (op.op === "reset") { Object.keys(loaded).forEach(function (key) { loaded[key] = false; }); return; }
+      if (op.op === "reg.add" && !loaded[op.reg]) problems.push(label + " le suma a " + op.reg + ", que está vacío");
+      if (op.op === "shared.write" && !loaded[op.reg]) problems.push(label + " escribe " + op.name + " desde " + op.reg + ", que está vacío");
+    });
+  });
+}
+
+function verifyContextKeys(example, problems) {
+  const seen = {};
+  const claim = function (key, owner) {
+    if (seen[key]) problems.push("la clave {" + key + "} la reclaman " + seen[key] + " y " + owner);
+    seen[key] = owner;
+  };
+  (example.shared || []).forEach(function (item) { claim(item.key, "la variable " + item.name); });
+  (example.processes || []).forEach(function (item) {
+    if (item.register) claim(item.register.key, "el registro " + item.register.name);
+  });
+  (example.semaphores || []).forEach(function (item) {
+    claim(item.key, "el semáforo " + item.name);
+    claim(item.key + "_count", "el semáforo " + item.name);
+    claim(item.key + "_queue", "el semáforo " + item.name);
+  });
+  (example.boards || []).forEach(function (board) {
+    claim(board.id + "_units", "el tablero " + board.id);
+    claim(board.id + "_spin", "el tablero " + board.id);
+    claim(board.id + "_overhead", "el tablero " + board.id);
+  });
+  if (example.mode) { claim("mode", "el panel de modo"); claim("flag", "el panel de modo"); claim("switches", "el panel de modo"); }
+  claim("spins", "el contador de giros");
+}
+
+function collectTexts(example, snapshots) {
+  const texts = [];
+  snapshots.forEach(function (snapshot, index) {
+    texts.push({ where: "paso " + (index + 1) + " narración", text: snapshot.narration });
+    if (snapshot.note) texts.push({ where: "paso " + (index + 1) + " nota", text: snapshot.note });
+  });
+  const last = snapshots[snapshots.length - 1].context;
+  texts.push({ where: "frase de cierre", text: fill(example.closing, last) });
+  if (example.stepUnitNote) texts.push({ where: "nota de unidad", text: fill(example.stepUnitNote, last) });
+  if (example.compare) {
+    example.compare.headers.forEach(function (text, column) {
+      texts.push({ where: "encabezado " + (column + 1) + " de la tabla", text: fill(text, last) });
+    });
+    example.compare.rows.forEach(function (row, index) {
+      row.forEach(function (text, column) {
+        texts.push({ where: "celda " + (index + 1) + "," + (column + 1) + " de la tabla", text: fill(text, last) });
+      });
+    });
+  }
+  (example.boards || []).forEach(function (board) {
+    snapshots.forEach(function (snapshot, index) {
+      const state = snapshot.boards[board.id];
+      const context = { units: String(state.units), spin: String(state.spin), overhead: String(state.overhead) };
+      texts.push({ where: "contador de " + board.id + " en el paso " + (index + 1), text: fill(board.counter, context) });
+    });
+  });
+  return texts;
+}
+
+function verifyStructure(example, problems) {
+  const panels = example.canvas.panels.concat(example.canvas.wide || []);
+  panels.forEach(function (id) {
+    if (!UI_TEXT.panels[id]) problems.push("el canvas declara el panel " + id + ", que no existe");
+    if (!PANEL_TIPS[id]) problems.push("el panel " + id + " no tiene globito");
+  });
+  (example.processes || []).forEach(function (item) {
+    if (!PROGRAMS[item.program]) problems.push(item.id + " apunta al programa " + item.program + ", que no existe");
+  });
+  (example.semaphores || []).forEach(function (item) {
+    if (item.value < 0) problems.push("el semáforo " + item.name + " arranca en " + item.value + ", que es negativo");
+  });
+  if (!example.stepUnit) problems.push("no declara la unidad del paso");
+  if (!example.closing) problems.push("no tiene frase de cierre");
+  if (example.definition && !DEFINITIONS[example.definition]) {
+    problems.push("apunta a la definición " + example.definition + ", que no existe");
+  }
+  Object.keys(example.panelNotes || {}).forEach(function (id) {
+    if (panels.indexOf(id) === -1) problems.push("hay una aclaración para el panel " + id + ", que este ejemplo no muestra");
+  });
+  const names = declaredNames(example);
+  Object.keys(example.guards || {}).forEach(function (id) {
+    const item = processById(example, id);
+    if (!item) { problems.push("hay una condición de espera para " + id + ", que no es un proceso"); return; }
+    const lines = programLines(item.program);
+    Object.keys(example.guards[id]).forEach(function (number) {
+      const line = lines[Number(number) - 1];
+      if (!line || line.role !== "code") problems.push("la condición de espera de " + id + " apunta a la línea " + number + ", que no es ejecutable");
+      example.guards[id][number].forEach(function (clause) {
+        if (!names.shared[clause.key]) problems.push("la condición de espera de " + id + " lee " + clause.key + ", que no es una variable compartida");
+      });
+    });
+  });
+  verifyContextKeys(example, problems);
+  Object.keys(example.regions || {}).forEach(function (id) {
+    const item = processById(example, id);
+    if (!item) { problems.push("hay una región dibujada sobre " + id + ", que no es un proceso"); return; }
+    const lines = programLines(item.program);
+    example.regions[id].forEach(function (number) {
+      if (!lines[number - 1] || lines[number - 1].role !== "code") {
+        problems.push("la región de " + id + " llega a la línea " + number + ", que no es ejecutable");
+      }
+    });
+  });
+}
+
+function verifyLine(example, problems, label, actor, number) {
+  const item = processById(example, actor);
+  if (!item) { problems.push(label + " ejecuta " + actor + ", que no es un proceso"); return; }
+  const line = programLines(item.program)[number - 1];
+  if (!line) problems.push(label + " apunta a la línea " + number + ", que no existe en " + item.program);
+  else if (line.role !== "code") problems.push(label + " apunta a la línea " + number + ", que no es ejecutable");
+}
+
+function verifySteps(example, problems) {
+  const names = declaredNames(example);
+  example.steps.forEach(function (step, index) {
+    const label = "paso " + (index + 1);
+    if (!step.narration) problems.push(label + " no tiene narración");
+    if (step.line && !step.actor) problems.push(label + " tiene línea pero no dice qué proceso ejecuta");
+    (step.ops || []).forEach(function (op) { verifyOp(op, label, example, names, problems); });
+    if (!step.line) return;
+    verifyLine(example, problems, label, step.actor, step.line);
+  });
+}
+
+function verifySnapshots(example, snapshots, problems) {
+  const hasSemaphores = (example.semaphores || []).length > 0;
+  snapshots.forEach(function (snapshot, index) {
+    const label = "paso " + (index + 1);
+    Object.keys(snapshot.states).forEach(function (id) {
+      if (!STATES[snapshot.states[id]]) problems.push(label + " pone a " + id + " en " + snapshot.states[id] + ", que no está en STATES");
+    });
+    Object.keys(snapshot.semaphores).forEach(function (key) {
+      const semaphore = snapshot.semaphores[key];
+      const expected = semaphore.value < 0 ? -semaphore.value : 0;
+      if (semaphore.queue.length !== expected) {
+        problems.push(label + ": " + key + " vale " + semaphore.value + " y tiene " + semaphore.queue.length + " en la cola");
+      }
+    });
+    if (hasSemaphores && example.processes) {
+      const blocked = blockedProcesses(snapshot);
+      example.processes.forEach(function (item) {
+        const inQueue = blocked[item.id] === true;
+        const isBlocked = snapshot.states[item.id] === "BLOCKED";
+        if (inQueue !== isBlocked) problems.push(label + ": " + item.id + " está en BLOCKED sin estar en ninguna cola, o al revés");
+      });
+    }
+    Object.keys(snapshot.boards).forEach(function (id) {
+      const board = snapshot.boards[id];
+      const sum = function (list) { return list.reduce(function (total, segment) { return total + segment.units; }, 0); };
+      if (sum(board.cpu) !== board.units) problems.push(label + ": el carril de CPU de " + id + " no suma " + board.units);
+      Object.keys(board.lanes).forEach(function (pid) {
+        if (sum(board.lanes[pid]) !== board.units) problems.push(label + ": el carril de " + pid + " en " + id + " no suma " + board.units);
+      });
+    });
+  });
+
+  example.steps.forEach(function (step, index) {
+    if (!snapshots[index].spinning || !step.actor) return;
+    const later = example.steps.slice(index + 1).filter(function (other) { return other.actor === step.actor; })[0];
+    if (later && later.line !== step.line) {
+      problems.push("paso " + (index + 1) + ": " + step.actor + " gira y su próximo paso cambia de línea");
+    }
+  });
+
+  collectTexts(example, snapshots).forEach(function (item) {
+    if (unresolved(item.text)) problems.push("quedó un dato sin completar en la " + item.where);
+    if (unbalanced(item.text)) problems.push("quedó una marca sin cerrar en la " + item.where);
+  });
+  verifyRegisterReads(example, snapshots, problems);
+}
+
+function verifyFinalState(example, snapshots, problems) {
+  const expected = example.expectedFinalState;
+  if (!expected) return;
+  const last = snapshots[snapshots.length - 1];
+  Object.keys(expected.shared || {}).forEach(function (key) {
+    if (last.shared[key] !== expected.shared[key]) problems.push("al final " + key + " vale " + last.shared[key] + " y se esperaba " + expected.shared[key]);
+  });
+  Object.keys(expected.registers || {}).forEach(function (key) {
+    if (last.registers[key] !== expected.registers[key]) problems.push("al final " + key + " vale " + last.registers[key] + " y se esperaba " + expected.registers[key]);
+  });
+  Object.keys(expected.states || {}).forEach(function (id) {
+    if (last.states[id] !== expected.states[id]) problems.push("al final " + id + " está en " + last.states[id] + " y se esperaba " + expected.states[id]);
+  });
+  Object.keys(expected.semaphores || {}).forEach(function (key) {
+    const want = expected.semaphores[key];
+    const got = last.semaphores[key];
+    if (!got) { problems.push("se espera un valor final para " + key + ", que no es un semáforo del ejemplo"); return; }
+    if (got.value !== want.value) problems.push("al final " + key + " vale " + got.value + " y se esperaba " + want.value);
+    if (got.queue.join() !== want.queue.join()) problems.push("al final la cola de " + key + " tiene [" + got.queue.join(", ") + "] y se esperaba [" + want.queue.join(", ") + "]");
+  });
+  Object.keys(expected.regions || {}).forEach(function (id) {
+    if (!last.regions[id]) { problems.push("se espera una región final para " + id + ", que no tiene región"); return; }
+    if (last.regions[id].join() !== expected.regions[id].join()) problems.push("al final la región de " + id + " no es la esperada");
+  });
+  if (expected.mode && !last.mode) problems.push("se espera un estado final de modo, y el ejemplo no tiene panel de modo");
+  if (expected.mode && last.mode) {
+    Object.keys(expected.mode).forEach(function (key) {
+      if (last.mode[key] !== expected.mode[key]) problems.push("al final " + key + " vale " + last.mode[key] + " y se esperaba " + expected.mode[key]);
+    });
+  }
+  if (expected.spins !== undefined && last.spins !== expected.spins) {
+    problems.push("al final hubo " + last.spins + " pasos girando y se esperaban " + expected.spins);
+  }
+  Object.keys(expected.boards || {}).forEach(function (id) {
+    if (!last.boards[id]) { problems.push("se espera un total para el tablero " + id + ", que no existe"); return; }
+    Object.keys(expected.boards[id]).forEach(function (key) {
+      if (last.boards[id][key] !== expected.boards[id][key]) {
+        problems.push("al final " + key + " de " + id + " vale " + last.boards[id][key] + " y se esperaba " + expected.boards[id][key]);
+      }
+    });
+  });
+}
+
+function verifyTreeMoves(example, tree, problems) {
+  const names = declaredNames(example);
+  Object.keys(example.tree.moves).forEach(function (id) {
+    example.tree.moves[id].forEach(function (move, position) {
+      const label = "la jugada " + (position + 1) + " de " + id;
+      if (!move.narration) problems.push(label + " no tiene narración");
+      verifyLine(example, problems, label, id, move.line);
+      (move.ops || []).forEach(function (op) { verifyOp(op, label, example, names, problems); });
+    });
+  });
+  const strings = [
+    { where: "etiqueta de los botones", text: fill(example.tree.pickLabel, { label: "P1" }) },
+    { where: "etiqueta de los botones agotados", text: fill(example.tree.pickDone, { label: "P1" }) },
+    { where: "narración de arranque", text: tree.root.snapshot.narration }
+  ];
+  if (tree.root.snapshot.note) strings.push({ where: "nota de arranque", text: tree.root.snapshot.note });
+  Object.keys(tree.finals).forEach(function (key) {
+    if (!example.tree.leafNotes[key]) problems.push("los órdenes que terminan en " + key + " no tienen nota de cierre");
+  });
+  tree.nodes.forEach(function (node) {
+    strings.push({ where: "narración de un nodo", text: node.snapshot.narration });
+    if (node.snapshot.note) strings.push({ where: "nota de un nodo", text: node.snapshot.note });
+    Object.keys(node.snapshot.states).forEach(function (id) {
+      if (!STATES[node.snapshot.states[id]]) problems.push("un nodo pone a " + id + " en " + node.snapshot.states[id] + ", que no está en STATES");
+    });
+  });
+  strings.forEach(function (item) {
+    if (unresolved(item.text)) problems.push("quedó un dato sin completar en la " + item.where);
+    if (unbalanced(item.text)) problems.push("quedó una marca sin cerrar en la " + item.where);
+  });
+}
+
+function verifyTree(example, tree, problems) {
+  verifyTreeMoves(example, tree, problems);
+  const expected = example.expectedTree;
+  if (!expected) return;
+  if (tree.nodes.length !== expected.nodes) problems.push("el árbol tiene " + tree.nodes.length + " nodos y se esperaban " + expected.nodes);
+  if (tree.leaves.length !== expected.leaves) problems.push("el árbol tiene " + tree.leaves.length + " hojas y se esperaban " + expected.leaves);
+  Object.keys(expected.finals).forEach(function (key) {
+    if (tree.finals[key] !== expected.finals[key]) {
+      problems.push("terminan en " + key + " " + (tree.finals[key] || 0) + " órdenes y se esperaban " + expected.finals[key]);
+    }
+  });
+  Object.keys(tree.finals).forEach(function (key) {
+    if (expected.finals[key] === undefined) problems.push("el árbol llega a " + key + ", que no está declarado");
+  });
+}
+
+function boardUnits(example) {
+  const totals = {};
+  (example.boards || []).forEach(function (board) { totals[board.id] = 0; });
+  example.steps.forEach(function (step) {
+    (step.ops || []).forEach(function (op) {
+      if (op.op === "time.advance" && totals[op.board] !== undefined) totals[op.board] += op.units;
+    });
+  });
+  return totals;
+}
+
+function buildExample(example) {
+  const problems = [];
+  verifyStructure(example, problems);
+  if (example.mode === "tree") {
+    const tree = buildTree(example);
+    verifyTree(example, tree, problems);
+    const context = tree.leaves[0].snapshot.context;
+    [
+      { where: "frase de cierre", text: fill(example.closing, context) },
+      { where: "nota de unidad", text: fill(example.stepUnitNote || "", context) }
+    ].forEach(function (item) {
+      if (unresolved(item.text)) problems.push("quedó un dato sin completar en la " + item.where);
+      if (unbalanced(item.text)) problems.push("quedó una marca sin cerrar en la " + item.where);
+    });
+    return { example: example, tree: tree, snapshots: null, maxUnits: 0, problems: problems };
+  }
+  verifySteps(example, problems);
+  const snapshots = buildSnapshots(example);
+  verifySnapshots(example, snapshots, problems);
+  verifyFinalState(example, snapshots, problems);
+  const totals = boardUnits(example);
+  const maxUnits = Object.keys(totals).reduce(function (most, id) { return Math.max(most, totals[id]); }, 0);
+  return { example: example, tree: null, snapshots: snapshots, maxUnits: maxUnits, problems: problems };
+}
+
+const BUILT_EXAMPLES = EXAMPLES.map(buildExample);
+
+BUILT_EXAMPLES.forEach(function (built) {
+  built.problems.forEach(function (problem) {
+    console.error("Ejemplo " + built.example.number + ": " + problem);
+  });
+});
+</script>
+
+<script id="ui">
+const dom = {
+  exampleList: document.getElementById("exampleList"),
+  choiceRow: document.getElementById("choiceRow"),
+  choiceLabel: document.getElementById("choiceLabel"),
+  choiceBar: document.getElementById("choiceBar"),
+  narration: document.getElementById("narrationPanel"),
+  main: document.getElementById("main"),
+  title: document.getElementById("exampleTitle"),
+  subtitle: document.getElementById("exampleSubtitle"),
+  stepUnit: document.getElementById("stepUnit"),
+  progress: document.getElementById("progress"),
+  progressFill: document.getElementById("progressFill"),
+  first: document.getElementById("firstStep"),
+  prev: document.getElementById("prevStep"),
+  next: document.getElementById("nextStep"),
+  last: document.getElementById("lastStep"),
+  play: document.getElementById("playPause"),
+  tooltip: document.getElementById("tooltip")
+};
+
+const AUTOPLAY_DELAY = 2800;
+const LABEL_PADDING = 6;
+
+const PANELS = {
+  processes: renderProcesses,
+  registers: renderRegisters,
+  shared: renderShared,
+  mode: renderMode,
+  semaphores: renderSemaphores,
+  lanes: renderLanes
+};
+
+const panelRefs = {};
+let canvasKey = "";
+
+const view = { exampleIndex: 0, stepIndex: 0, path: [], playing: false, timer: null };
+
+function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentExample() { return currentBuilt().example; }
+function isTree() { return currentBuilt().tree !== null; }
+
+function treeNode() {
+  let node = currentBuilt().tree.root;
+  view.path.forEach(function (id) { node = node.children[id]; });
+  return node;
+}
+
+function currentSnapshots() {
+  if (!isTree()) return currentBuilt().snapshots;
+  const list = [];
+  let node = currentBuilt().tree.root;
+  list.push(node.snapshot);
+  view.path.forEach(function (id) {
+    node = node.children[id];
+    list.push(node.snapshot);
+  });
+  return list;
+}
+
+function totalSteps() {
+  return isTree() ? currentBuilt().tree.depth + 1 : currentBuilt().snapshots.length;
+}
+
+function currentSnapshot() {
+  const list = currentSnapshots();
+  return isTree() ? list[list.length - 1] : list[view.stepIndex];
+}
+
+function currentIndex() { return isTree() ? view.path.length : view.stepIndex; }
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function renderRich(target, text) {
+  target.textContent = "";
+  const pattern = /\[\[(\w+):([^\]]+)\]\]|\*([^*]+)\*/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+    if (match[1]) {
+      const button = element("button", "tip", match[2]);
+      button.type = "button";
+      button.dataset.tip = match[1];
+      target.appendChild(button);
+    } else {
+      target.appendChild(element("strong", null, match[3]));
+    }
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) target.appendChild(document.createTextNode(text.slice(cursor)));
+  return target;
+}
+
+function buildPanel(id, example) {
+  const refs = { body: element("div", "panel-body") };
+  const section = element("section", "panel " + id);
+  const heading = element("h2");
+  const title = element("button", "tip", UI_TEXT.panels[id]);
+  title.type = "button";
+  title.dataset.tip = "panel:" + id;
+  heading.appendChild(title);
+  const note = (example.panelNotes || {})[id];
+  if (note) heading.appendChild(element("span", "panel-note", note));
+  section.appendChild(heading);
+  section.appendChild(refs.body);
+  refs.section = section;
+  return refs;
+}
+
+function canvasPanels(example) {
+  return example.canvas.panels.concat(example.canvas.wide || []);
+}
+
+function buildCanvas(example) {
+  const canvas = example.canvas;
+  const wide = canvas.wide || [];
+  const key = example.number + "|" + canvas.columns + "|" + canvas.panels.join(",") + "|" + wide.join(",");
+  if (key === canvasKey) return;
+  canvasKey = key;
+  Object.keys(panelRefs).forEach(function (id) { delete panelRefs[id]; });
+  const fresh = element("main", wide.length > 0 ? "has-wide" : null);
+  fresh.id = "main";
+  fresh.style.gridTemplateColumns = canvas.columns;
+  canvasPanels(example).forEach(function (id) {
+    const refs = buildPanel(id, example);
+    if (wide.indexOf(id) !== -1) refs.section.classList.add("wide");
+    panelRefs[id] = refs;
+    fresh.appendChild(refs.section);
+  });
+  dom.main.replaceWith(fresh);
+  dom.main = fresh;
+}
+
+function renderExampleList() {
+  dom.exampleList.textContent = "";
+  BUILT_EXAMPLES.forEach(function (built, index) {
+    const button = element("button");
+    button.type = "button";
+    button.appendChild(element("span", "num", built.example.number));
+    button.appendChild(element("span", null, built.example.short));
+    button.title = built.example.adds;
+    button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
+    button.addEventListener("click", function () { selectExample(index); });
+    dom.exampleList.appendChild(button);
+  });
+}
+
+function renderHeaderChoices() {
+  dom.choiceRow.hidden = true;
+}
+
+function statePill(name) {
+  const state = STATES[name];
+  const pill = element("span", "state-pill", state.label);
+  pill.style.color = state.color;
+  pill.style.borderColor = state.color;
+  pill.style.background = state.soft;
+  pill.title = state.gloss;
+  return pill;
+}
+
+function codeLine(line, number, mark, spinning) {
+  const row = element("div", "code-line " + line.role);
+  if (mark === "current") {
+    row.classList.add("current");
+    if (spinning) row.classList.add("spinning");
+  }
+  if (mark === "paused") row.classList.add("paused");
+  row.appendChild(element("span", "num", number));
+  row.appendChild(element("span", "text", line.t));
+  return row;
+}
+
+function sourceBlock(item, snapshot) {
+  const source = element("div", "source");
+  const lines = programLines(item.program);
+  const region = snapshot.regions[item.id] || null;
+  const current = snapshot.lines[item.id] || null;
+  const acting = snapshot.actor === item.id;
+  const spinning = acting && snapshot.spinning;
+  let box = null;
+  lines.forEach(function (line, index) {
+    const number = index + 1;
+    const inside = region && number >= region[0] && number <= region[1];
+    if (inside && !box) {
+      box = element("div", "region");
+      if (snapshot.changedRegions[item.id]) box.classList.add("changed");
+      box.appendChild(element("span", "region-tag", UI_TEXT.criticalTag));
+      source.appendChild(box);
+    }
+    if (!inside) box = null;
+    const mark = number === current ? (acting ? "current" : "paused") : null;
+    const row = codeLine(line, number, mark, spinning);
+    (inside ? box : source).appendChild(row);
+  });
+  return source;
+}
+
+function definitionBlock(key) {
+  const definition = DEFINITIONS[key];
+  const box = element("div", "definition");
+  box.appendChild(element("span", "definition-tag", UI_TEXT.definitionTag));
+  definition.lines.forEach(function (text) {
+    const row = element("div", "code-line code");
+    row.appendChild(element("span", "text", text));
+    box.appendChild(row);
+  });
+  return box;
+}
+
+function pickRow(item, node) {
+  const row = element("div", "pick-row");
+  const example = currentExample();
+  const available = node.available[item.id] === true;
+  const label = available ? example.tree.pickLabel : example.tree.pickDone;
+  const button = element("button", null, fill(label, { label: item.label }));
+  button.type = "button";
+  button.disabled = !available;
+  button.addEventListener("click", function () { pickProcess(item.id); });
+  row.appendChild(button);
+  return row;
+}
+
+function renderProcesses(snapshot) {
+  const example = currentExample();
+  const refs = panelRefs.processes;
+  refs.body.textContent = "";
+  const grid = element("div", "processes-grid");
+  grid.style.gridTemplateColumns = "repeat(" + example.processes.length + ", minmax(0, 1fr))";
+  const node = isTree() ? treeNode() : null;
+  example.processes.forEach(function (item) {
+    const column = element("div", "process-col");
+    if (node) column.appendChild(pickRow(item, node));
+    const head = element("div", "process-head");
+    head.appendChild(element("span", "name", item.label));
+    if (item.gloss) head.appendChild(element("span", "gloss", item.gloss));
+    if (snapshot.actor === item.id && snapshot.spinning) head.appendChild(element("span", "spin-chip", UI_TEXT.spinChip));
+    head.appendChild(statePill(snapshot.states[item.id]));
+    column.appendChild(head);
+    column.appendChild(sourceBlock(item, snapshot));
+    grid.appendChild(column);
+  });
+  refs.body.appendChild(grid);
+  if (example.definition) refs.body.appendChild(definitionBlock(example.definition));
+}
+
+function valueRow(name, value, gloss, owner, changed) {
+  const row = element("div", "value-row");
+  if (changed) row.classList.add("changed");
+  row.appendChild(element("span", "vname", name));
+  if (owner) row.appendChild(element("span", "vowner", owner));
+  row.appendChild(element("span", "vval", showValue(value)));
+  if (gloss) row.appendChild(element("span", "vgloss", gloss));
+  return row;
+}
+
+function renderRegisters(snapshot) {
+  const refs = panelRefs.registers;
+  refs.body.textContent = "";
+  const list = element("div", "value-rows");
+  currentExample().processes.forEach(function (item) {
+    if (!item.register) return;
+    const key = item.register.key;
+    list.appendChild(valueRow(item.register.name, snapshot.registers[key], null, item.label, snapshot.changedRegisters[key]));
+  });
+  refs.body.appendChild(list);
+}
+
+function renderShared(snapshot) {
+  const refs = panelRefs.shared;
+  refs.body.textContent = "";
+  const list = element("div", "value-rows");
+  currentExample().shared.forEach(function (item) {
+    list.appendChild(valueRow(item.name, snapshot.shared[item.key], item.gloss, null, snapshot.changedShared[item.key]));
+  });
+  refs.body.appendChild(list);
+}
+
+function renderMode(snapshot) {
+  const refs = panelRefs.mode;
+  refs.body.textContent = "";
+  const list = element("div", "value-rows");
+  const labels = UI_TEXT.modeLabels;
+  const gloss = UI_TEXT.modeGloss;
+  list.appendChild(valueRow(labels.mode, snapshot.mode.mode, gloss[snapshot.mode.mode], null, snapshot.changedMode.mode));
+  list.appendChild(valueRow(labels.flag, snapshot.mode.flag, snapshot.mode.flag === 1 ? gloss.flagOn : gloss.flagOff, null, snapshot.changedMode.flag));
+  list.appendChild(valueRow(labels.switches, snapshot.mode.switches, null, null, snapshot.changedMode.switches));
+  refs.body.appendChild(list);
+  if (!snapshot.mode.pending) return;
+  const slot = element("div", "badge-slot");
+  slot.appendChild(element("span", "badge", fill(UI_TEXT.pendingBadge, { flag: String(snapshot.mode.flag) })));
+  refs.body.appendChild(slot);
+}
+
+function renderSemaphores(snapshot) {
+  const refs = panelRefs.semaphores;
+  refs.body.textContent = "";
+  const list = element("div", "sem-list");
+  currentExample().semaphores.forEach(function (item) {
+    const semaphore = snapshot.semaphores[item.key];
+    const box = element("div", "sem-box");
+    if (snapshot.changedSemaphores[item.key]) box.classList.add("changed");
+    const head = element("div", "sem-head");
+    head.appendChild(element("span", "sem-name", item.name));
+    head.appendChild(element("span", "sem-value", showValue(semaphore.value)));
+    if (item.gloss) head.appendChild(element("span", "sem-gloss", item.gloss));
+    box.appendChild(head);
+    const queue = element("div", "sem-queue");
+    queue.appendChild(element("span", "sem-queue-label", UI_TEXT.queueLabel));
+    if (semaphore.queue.length === 0) {
+      queue.appendChild(element("span", "queue-empty", UI_TEXT.queueEmpty));
+    } else {
+      semaphore.queue.forEach(function (id, position) {
+        const chip = element("span", "queue-chip");
+        if (snapshot.freshInQueue[id]) chip.classList.add("fresh");
+        chip.appendChild(element("span", "ord", fill(UI_TEXT.queueOrder, { n: position + 1 })));
+        chip.appendChild(element("span", null, id));
+        queue.appendChild(chip);
+      });
+    }
+    box.appendChild(queue);
+    list.appendChild(box);
+  });
+  refs.body.appendChild(list);
+}
+
+function laneLabel(segment, isCpu) {
+  const texts = UI_TEXT.lanes;
+  if (isCpu) {
+    return {
+      full: fill(texts.kinds[segment.kind], { who: segment.who || "" }),
+      brief: fill(texts.shortKinds[segment.kind], { who: segment.who || "" })
+    };
+  }
+  if (segment.spinning) return { full: texts.stateKinds.spinning, brief: texts.shortStateKinds.spinning };
+  const base = texts.stateKinds[segment.kind];
+  return { full: base, brief: base };
+}
+
+function laneCells(grid, name, segments, isCpu, units, maxUnits, freshUnits) {
+  grid.appendChild(element("span", "lane-name", name));
+  let seen = 0;
+  segments.forEach(function (segment) {
+    const label = laneLabel(segment, isCpu);
+    const box = element("div", "lane-seg " + segment.kind);
+    if (!isCpu && segment.spinning) box.classList.add("spinning");
+    box.style.gridColumn = "span " + segment.units;
+    seen += segment.units;
+    if (freshUnits > 0 && seen > units - freshUnits) box.classList.add("fresh");
+    box.title = label.full;
+    const text = element("span", "lane-label", label.full);
+    text.dataset.full = label.full;
+    text.dataset.brief = label.brief;
+    box.appendChild(text);
+    grid.appendChild(box);
+  });
+  if (units >= maxUnits) return;
+  const rest = element("div", "lane-seg pending");
+  rest.style.gridColumn = "span " + (maxUnits - units);
+  grid.appendChild(rest);
+}
+
+function boardHead(definition, board, freshUnits, isLater) {
+  const head = element("div", "board-head" + (isLater ? " later" : ""));
+  head.appendChild(element("h3", "board-name", definition.label));
+  head.appendChild(element("span", "board-gloss", definition.gloss));
+  const counter = element("span", "board-counter", fill(definition.counter, {
+    units: String(board.units),
+    spin: String(board.spin),
+    overhead: String(board.overhead)
+  }));
+  if (freshUnits > 0) counter.classList.add("changed");
+  head.appendChild(counter);
+  return head;
+}
+
+function axisCells(grid, maxUnits) {
+  grid.appendChild(element("span", "lane-name"));
+  for (let mark = 1; mark <= maxUnits; mark += 1) {
+    const cell = element("div", "axis-mark");
+    cell.appendChild(element("span", null, String(mark)));
+    grid.appendChild(cell);
+  }
+}
+
+function renderLanes(snapshot) {
+  const example = currentExample();
+  const refs = panelRefs.lanes;
+  const maxUnits = currentBuilt().maxUnits;
+  refs.body.textContent = "";
+  const grid = element("div", "lane-grid");
+  grid.style.gridTemplateColumns = "46px repeat(" + maxUnits + ", minmax(0, 1fr))";
+  example.boards.forEach(function (definition, position) {
+    const board = snapshot.boards[definition.id];
+    const fresh = snapshot.freshUnits[definition.id];
+    grid.appendChild(boardHead(definition, board, fresh, position > 0));
+    laneCells(grid, UI_TEXT.lanes.cpuLane, board.cpu, true, board.units, maxUnits, fresh);
+    example.laneProcesses.forEach(function (item) {
+      laneCells(grid, item.label, board.lanes[item.id], false, board.units, maxUnits, fresh);
+    });
+  });
+  axisCells(grid, maxUnits);
+  refs.body.appendChild(grid);
+  const legend = element("div", "legend");
+  UI_TEXT.lanes.legend.forEach(function (item) {
+    const row = element("span", "item");
+    row.appendChild(element("span", "swatch " + item.kind));
+    row.appendChild(element("span", null, item.text));
+    legend.appendChild(row);
+  });
+  refs.body.appendChild(legend);
+  fitLaneLabels();
+}
+
+function fitLaneLabels() {
+  const labels = document.querySelectorAll(".lane-label");
+  Array.prototype.forEach.call(labels, function (label) {
+    label.hidden = false;
+    label.textContent = label.dataset.full;
+    const room = label.parentNode.clientWidth - LABEL_PADDING;
+    if (label.scrollWidth <= room) return;
+    label.textContent = label.dataset.brief;
+    if (label.scrollWidth <= room) return;
+    label.hidden = true;
+  });
+}
+
+function takeawayBlock(text) {
+  const box = element("div", "takeaway");
+  box.appendChild(element("span", "tag", UI_TEXT.takeawayTag));
+  renderRich(box.appendChild(element("span", "line")), text);
+  return box;
+}
+
+function compareBlock(compare, context) {
+  const wrapper = element("div", "compare");
+  const table = element("table");
+  const head = element("tr");
+  compare.headers.forEach(function (text) {
+    renderRich(head.appendChild(element("th")), fill(text, context));
+  });
+  table.appendChild(head);
+  compare.rows.forEach(function (cells) {
+    const row = element("tr");
+    cells.forEach(function (text, column) {
+      renderRich(row.appendChild(element("td", column === 0 ? "label" : null)), fill(text, context));
+    });
+    table.appendChild(row);
+  });
+  wrapper.appendChild(table);
+  return wrapper;
+}
+
+function renderNarration(snapshot) {
+  const example = currentExample();
+  dom.narration.textContent = "";
+  dom.narration.classList.toggle("with-extras", snapshot.last === true);
+  dom.narration.classList.toggle("no-compare", snapshot.last === true && !example.compare);
+  const main = element("div", "narration-main");
+  renderRich(main.appendChild(element("p", "narration-text")), snapshot.narration);
+  if (snapshot.note) renderRich(main.appendChild(element("p", "narration-note")), snapshot.note);
+  if (currentIndex() === 0 && example.stepUnitNote) {
+    renderRich(main.appendChild(element("p", "narration-note")), example.stepUnitNote);
+  }
+  dom.narration.appendChild(main);
+  if (!snapshot.last) return;
+  if (example.compare) {
+    const table = compareBlock(example.compare, snapshot.context);
+    table.classList.add("full");
+    dom.narration.appendChild(table);
+  }
+  const extras = element("div", "narration-extras");
+  extras.appendChild(takeawayBlock(fill(example.closing, snapshot.context)));
+  dom.narration.appendChild(extras);
+}
+
+function render() {
+  const example = currentExample();
+  const snapshot = currentSnapshot();
+  const total = totalSteps();
+  const index = currentIndex();
+  buildCanvas(example);
+  dom.title.textContent = example.number + ". " + example.title;
+  dom.subtitle.textContent = example.subtitle;
+  dom.stepUnit.textContent = example.stepUnit;
+  renderHeaderChoices();
+  canvasPanels(example).forEach(function (id) { PANELS[id](snapshot); });
+  renderNarration(snapshot);
+  dom.progress.textContent = fill(UI_TEXT.progress, { current: index + 1, total: total });
+  dom.progressFill.style.transform = "scaleX(" + ((index + 1) / total) + ")";
+  dom.first.disabled = index === 0;
+  dom.prev.disabled = index === 0;
+  dom.next.disabled = isTree() || index === total - 1;
+  dom.last.disabled = isTree() || index === total - 1;
+  dom.play.disabled = isTree();
+  dom.play.textContent = view.playing ? UI_TEXT.pause : UI_TEXT.play;
+  Array.prototype.forEach.call(dom.exampleList.children, function (button, position) {
+    button.setAttribute("aria-current", position === view.exampleIndex ? "true" : "false");
+  });
+}
+
+function goTo(index) {
+  if (isTree()) {
+    view.path = view.path.slice(0, Math.max(0, Math.min(index, view.path.length)));
+    render();
+    return;
+  }
+  const total = currentSnapshots().length;
+  view.stepIndex = Math.max(0, Math.min(index, total - 1));
+  render();
+  if (view.playing && view.stepIndex === total - 1) stopPlaying();
+}
+
+function pickProcess(id) {
+  const node = treeNode();
+  if (!node.children[id]) return;
+  view.path = view.path.concat([id]);
+  render();
+}
+
+function selectExample(index) {
+  stopPlaying();
+  view.exampleIndex = index;
+  view.stepIndex = 0;
+  view.path = [];
+  render();
+}
+
+function stopPlaying() {
+  view.playing = false;
+  if (view.timer) { clearTimeout(view.timer); view.timer = null; }
+  dom.play.textContent = UI_TEXT.play;
+}
+
+function scheduleTick() {
+  if (view.timer) clearTimeout(view.timer);
+  view.timer = setTimeout(function () {
+    if (!view.playing) return;
+    if (view.stepIndex >= currentSnapshots().length - 1) { stopPlaying(); render(); return; }
+    goTo(view.stepIndex + 1);
+    if (view.playing) scheduleTick();
+  }, AUTOPLAY_DELAY);
+}
+
+function startPlaying() {
+  view.playing = true;
+  scheduleTick();
+  render();
+}
+
+function togglePlaying() {
+  if (isTree()) return;
+  if (view.playing) { stopPlaying(); render(); return; }
+  startPlaying();
+}
+
+function lookupTooltip(key) {
+  if (key.indexOf("panel:") === 0) return PANEL_TIPS[key.slice(6)];
+  return TOOLTIPS[key];
+}
+
+function showTooltip(trigger, tip) {
+  dom.tooltip.textContent = "";
+  dom.tooltip.appendChild(element("strong", "tip-title", tip.title));
+  dom.tooltip.appendChild(document.createTextNode(tip.body));
+  dom.tooltip.classList.add("open");
+  const box = trigger.getBoundingClientRect();
+  const width = dom.tooltip.offsetWidth;
+  const height = dom.tooltip.offsetHeight;
+  let left = box.left + box.width / 2 - width / 2;
+  left = Math.min(left, window.innerWidth - width - 8);
+  let top = box.top - height - 8;
+  if (top < 8) top = box.bottom + 8;
+  dom.tooltip.style.left = Math.max(8, left) + "px";
+  dom.tooltip.style.top = top + "px";
+}
+
+function hideTooltip() { dom.tooltip.classList.remove("open"); }
+
+function closestElement(target, selector) {
+  return target && typeof target.closest === "function" ? target.closest(selector) : null;
+}
+
+["mouseover", "focusin"].forEach(function (name) {
+  document.addEventListener(name, function (event) {
+    const trigger = closestElement(event.target, "[data-tip]");
+    const tip = trigger ? lookupTooltip(trigger.dataset.tip) : null;
+    if (tip) showTooltip(trigger, tip);
+    else hideTooltip();
+  });
+});
+
+["mouseout", "focusout", "scroll"].forEach(function (name) {
+  document.addEventListener(name, hideTooltip, true);
+});
+
+dom.first.addEventListener("click", function () { stopPlaying(); goTo(0); });
+dom.prev.addEventListener("click", function () { stopPlaying(); goTo(currentIndex() - 1); });
+dom.next.addEventListener("click", function () { stopPlaying(); goTo(currentIndex() + 1); });
+dom.last.addEventListener("click", function () { stopPlaying(); goTo(totalSteps() - 1); });
+dom.play.addEventListener("click", togglePlaying);
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "ArrowRight" && !isTree()) { stopPlaying(); goTo(currentIndex() + 1); event.preventDefault(); }
+  if (event.key === "ArrowLeft") { stopPlaying(); goTo(currentIndex() - 1); event.preventDefault(); }
+  if (event.key === "Home") { stopPlaying(); goTo(0); event.preventDefault(); }
+  if (event.key === "End" && !isTree()) { stopPlaying(); goTo(totalSteps() - 1); event.preventDefault(); }
+  if (event.key === "Escape") hideTooltip();
+});
+
+window.addEventListener("resize", fitLaneLabels);
+
+dom.first.textContent = UI_TEXT.firstStep;
+dom.prev.textContent = UI_TEXT.prevStep;
+dom.next.textContent = UI_TEXT.nextStep;
+dom.last.textContent = UI_TEXT.lastStep;
+dom.play.textContent = UI_TEXT.play;
+
+Object.keys(UI_TEXT.panels).forEach(function (id) {
+  if (!PANELS[id]) console.error("El panel " + id + " tiene nombre pero no tiene dibujo");
+});
+
+Object.keys(PANELS).forEach(function (id) {
+  if (!UI_TEXT.panels[id]) console.error("El panel " + id + " tiene dibujo pero no tiene nombre");
+});
+
+renderExampleList();
+render();
+</script>
+
+</body>
+</html>

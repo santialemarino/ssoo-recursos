@@ -59,6 +59,13 @@ Resources in the same family share a **chassis**. They do not share a **canvas**
   on screen when it is the subject or when it changes. Panels may leave; when one
   leaves, the narration says so once, in one clause. Nothing stays on screen
   because it was introduced earlier.
+- **The unit of a step is canvas.** Each example declares it in a `stepUnit`
+  field that is always on screen, and the example that changes it says so once,
+  in full words. A resource gets a granularity *switch* only when the units
+  genuinely nest and both views are honest — same final state, same states passed
+  through at the boundaries, only the step count differing. Where collapsing
+  would change what the trace shows, there is no switch: the tighter unit is the
+  lesson and the example declares it.
 
 **Why this is written down.** The second resource took its panel grid from the
 first by instruction, and nobody checked it. It happened to fit the examples
@@ -110,6 +117,13 @@ this section.
 
 ## Known open decisions
 
-- **No visual identity defined.** There is no course palette or typeface. If a new
-  resource picks colours, say so explicitly when delivering it.
+- **The course palette is fixed for the things it names.** Process states are NEW
+  pink, READY green, RUNNING blue, BLOCKED red, READY SUSPENDED yellow, BLOCKED
+  SUSPENDED orange, TERMINATED grey; the two suspended tones must be distinct
+  from each other and legible on white. Gantt blocks are CPU burst blue, I/O
+  green, arrival at ready orange, end of process black, always with a legend, and
+  they are not the state colours — a blue Gantt block is a CPU burst, not
+  RUNNING. Everything else — typeface, neutrals, and any role the course does not
+  name — is still each resource's choice, and a resource that picks one says so
+  when delivering.
 - **No licence.** Deliberately absent; this is internal course material.
