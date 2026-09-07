@@ -37,7 +37,7 @@ se puede tocar. Si vas a modificar `index.html`, leelo antes.
 | 9 | Test & Set | Una instrucción que lee y escribe en un solo paso indivisible |
 | 10 | El semáforo, por dentro | `wait` y `signal`, y qué le pasa al proceso que no puede entrar |
 | 11 | El valor negativo | Qué cuenta el valor de un semáforo arriba y abajo de cero |
-| 12 | Girar o bloquearse | Cuánta CPU cuesta cada una de las dos esperas |
+| 12 | Busy-wait o bloqueo | Cuánta CPU cuesta cada una de las dos esperas |
 | 13 | Cinco impresoras | Un semáforo contador: arranca en la cantidad de instancias |
 | 14 | MILANESA | Que los semáforos se cruzan, y que los valores iniciales fijan quién arranca |
 | 15 | Sacar de una lista vacía | Que un mutex protege y no avisa |
@@ -54,6 +54,19 @@ Cada ejemplo termina con una **placa de cierre**: una frase, en un recuadro, que
 es lo que el estudiante se tiene que llevar de ese ejemplo. Está en el campo
 `closing`. Y cada título de panel tiene un globito que explica qué muestra ese
 panel, en `PANEL_TIPS`.
+
+La escalera va **agrupada en cinco tramos** —el problema, por software, por
+hardware, semáforos, los usos— con el nombre del tramo a la izquierda de sus
+botones. Es el mismo componente que usa `cpu-scheduling` (`UI_TEXT.groups`, el
+campo `group` de cada ejemplo, y un `<span class="group-cap">` que el dibujo
+inserta cada vez que cambia el grupo), y con él viene la otra mitad: **el botón
+muestra sólo el número, y el rótulo se despliega únicamente en el ejemplo
+corriente**. Sin eso los dieciocho rótulos más los cinco nombres de tramo pasan de
+dos renglones a tres, el encabezado crece 37 px y el panel de carriles del 12 se
+queda 20 px corto a 1280×720. Medido: con rótulos completos son tres renglones y
+136 px de encabezado; con número solo son dos renglones y 99 px, o sea lo mismo que
+antes de agrupar. El título entero del ejemplo sigue estando al lado del número de
+paso, así que no se pierde.
 
 Los controles son **Primero · Anterior · Siguiente · Último · Reproducir**, con
 las flechas del teclado y `Inicio` / `Fin`. Son los mismos que en los otros tres
@@ -189,6 +202,35 @@ vez de empujar la página.
 Los nombres de los estados van **en inglés y en mayúscula**, como en el apunte:
 `RUNNING`, `READY`, `BLOCKED`. Son los tres únicos que este recurso necesita, y
 los otros cuatro no se dibujan.
+
+### Las líneas que no son líneas del programa
+
+Varios ejemplos abren una línea de código en las instrucciones que de verdad
+ejecuta: `tareasPendientes++` son tres, `deshabilitarInterrupciones()` son tres, y
+el `if` del ejemplo 3 se evalúa en dos. Esas filas llevan `role: "expansion"` y se
+dibujan distinto de dos maneras:
+
+- **van sobre una banda gris continua**, que arranca debajo de la línea glosada y
+  termina donde vuelve el programa;
+- **no llevan número de línea**, porque no son líneas del programa. La numeración
+  cuenta sólo las filas reales, así que el listado del ejemplo 3 se numera 1 a 5
+  aunque tenga siete filas.
+
+Sin esto el ejemplo 3 era ilegible: las dos filas que evalúan la condición y la
+línea que está adentro del `if` tenían el mismo aspecto y la misma numeración, y no
+había manera de saber cuál era cuál.
+
+**Ojo con el número al editar:** el campo `line` de un paso es el índice de la fila
+en el listado, contando todas las filas, y **no** el número que se ve en pantalla.
+En el ejemplo 3 el `printf` es `line: 5` y en pantalla dice 3. Se edita mirando el
+arreglo, no la pantalla, y el recurso verifica que todo `line` caiga en una fila
+ejecutable.
+
+El primer intento de separarlas fue una barrita vertical al lado del número. Quedó
+mal: cada fila dibujaba su propio tramo de 2 px y el relleno vertical de la fila
+dejaba huecos, así que en vez de un corchete se veía una línea entrecortada pegada
+al número. La banda no tiene ese problema porque el fondo de filas contiguas se
+toca.
 
 ---
 
@@ -593,12 +635,26 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
   | Grafito | Lo que cambió en este paso: el anillo, el borde y el texto de lo marcado |
   | Neutros | La sección crítica dibujada, los semáforos, el modo y el `IF`, las colas |
 
-- **Girar es una trama, no un color.** Un proceso que gasta CPU en un `while` está
-  ejecutando, así que no puede ser rojo, y el rojo ya está ocupado dos veces. Es
-  azul con un rayado diagonal. Se lee en un proyector mediocre, que es dónde se
-  muestran estos recursos, y no gasta un rol de color. Además el bloque dice
-  «gira sin avanzar» y la chapita al lado del nombre dice «girando»: la trama no
-  es el único que lo cuenta.
+- **El busy-wait es una trama, no un color.** Un proceso que ocupa la CPU en un
+  `while` está ejecutando, así que no puede ser rojo, y el rojo ya está tomado dos
+  veces. Es azul con un rayado diagonal. Se lee en un proyector mediocre, que es
+  donde se muestran estos recursos, y no ocupa un rol de color. Además el bloque
+  dice «en busy-wait» y la chapita al lado del nombre dice lo mismo: la trama no es
+  lo único que lo cuenta.
+- **El término es `busy-wait`, en inglés, y no se traduce.** Una primera versión
+  inventó el verbo «girar» —girando, gira en el while, CPU gastada girando— y era
+  una españolización forzada: el apunte dice `busy-wait` y `spinlock`, y la regla
+  del repositorio es que los términos que la materia dice en inglés se quedan en
+  inglés. Lo que sí es español natural y se usa: *bloquear*, *bloqueado*,
+  *esperar*. En la narración, en vez de un verbo inventado, se describe lo que
+  pasa: «se queda en el while», «vuelve a preguntar». Y por el mismo motivo el
+  ejemplo 12 se llama **Busy-wait o bloqueo** y no «Girar o bloquearse». La otra
+  opción, si la cátedra la prefiere, es *Spinlock o mutex*, que es como el apunte
+  titula esa comparación; se eligió la primera porque lo que la traza muestra es la
+  espera, no dos APIs de lock.
+- **Nada de «gastar» en un rótulo.** El contador decía «CPU gastada girando» y
+  ahora dice «CPU en busy-wait». Los rótulos van en registro técnico y neutro; la
+  narración puede ser más llana, pero tampoco coloquial.
 - **El panel de Semáforos no estrena color, y el de Modo y IF tampoco.** En el
   recurso de procesos el ámbar quiere decir PCB y el violeta, hilo, y los roles de
   color son chasis. Acá el valor de un semáforo es texto, la cola son chapitas
