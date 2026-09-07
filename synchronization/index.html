@@ -335,6 +335,98 @@
   .value-row.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); background: var(--marked-soft); }
   .value-row.changed .vname, .value-row.changed .vval { color: var(--marked); }
 
+  .list-box {
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--region-fill);
+    padding: 5px 8px 7px;
+  }
+
+  .list-box.changed { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
+  .list-head { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+
+  .list-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .list-count { margin-left: auto; font-size: 13px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .list-box.changed .list-count, .list-box.changed .list-name { color: var(--marked); }
+  .list-gloss { flex: 1 0 100%; font-size: 10.5px; color: var(--muted); line-height: 1.3; }
+  .list-bar { display: flex; align-items: stretch; gap: 8px; margin-top: 6px; }
+  .list-slots { flex: 1 1 auto; display: grid; gap: 3px; min-width: 0; }
+
+  .list-slot {
+    height: 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background: var(--card);
+  }
+
+  .list-slot.taken { background: var(--marked-soft); border-color: var(--ink-soft); }
+  .list-extra { flex: 0 0 auto; display: flex; gap: 3px; padding-left: 7px; border-left: 1px dashed var(--line-strong); }
+  .list-extra .list-slot { width: 16px; border-style: dashed; border-color: var(--ink); background: repeating-linear-gradient(135deg, var(--card) 0 4px, var(--marked-soft) 4px 8px); }
+  .list-items { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+  .list-chip {
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    background: var(--card);
+    padding: 1px 7px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  .list-note { display: block; font-size: 10.5px; color: var(--ink-soft); font-weight: 650; margin-top: 5px; }
+  .list-empty { font-size: 11.5px; color: var(--muted); margin-top: 6px; display: block; }
+
+  .output-box { border: 1px solid var(--line-strong); border-radius: 8px; background: var(--region-fill); padding: 7px 9px 9px; }
+  .output-line { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .output-chip {
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    background: var(--card);
+    padding: 2px 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .output-chip.fresh { border-color: var(--marked); box-shadow: 0 0 0 2px var(--marked-soft); }
+  .output-empty { font-size: 12px; color: var(--muted); margin: 0; }
+  .output-run { display: block; font-size: 10.5px; color: var(--muted); margin-top: 7px; word-break: break-word; }
+
+  .marks-row { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; margin-bottom: 7px; }
+
+  .mark-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1.5px solid;
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .mark-chip .where { font-size: 10px; font-weight: 650; }
+
+  .line-marks { display: flex; gap: 3px; padding-left: 12px; }
+
+  .line-mark {
+    font-size: 10px;
+    font-weight: 800;
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 0 4px;
+    white-space: nowrap;
+  }
+
   .sem-list { display: flex; flex-direction: column; gap: 9px; }
 
   .sem-box {
@@ -426,7 +518,9 @@
     padding: 0 3px;
   }
 
-  .lane-seg.pending { border-style: dashed; border-color: var(--line); background: transparent; }
+  .lane-seg.pending { border-style: dashed; border-color: var(--line); background: transparent; color: var(--muted); }
+  .lane-seg.done { border-color: var(--line-strong); background: var(--region-fill-alt); color: var(--muted); }
+  .lane-seg.absent { border-style: dashed; border-color: var(--line-strong); background: transparent; color: var(--muted); }
   .lane-seg.busy { border-color: var(--running); background: var(--running-soft); color: var(--running); }
   .lane-seg.spin { border-color: var(--running); background: var(--spin-fill); color: var(--running); }
   .lane-seg.overhead { border-color: var(--blocked); background: var(--blocked-soft); color: var(--blocked); }
@@ -469,6 +563,8 @@
   .legend .swatch.overhead { border-color: var(--blocked); background: var(--blocked-soft); }
   .legend .swatch.READY { border-color: var(--ready); background: var(--ready-soft); }
   .legend .swatch.BLOCKED { border-color: var(--blocked); background: var(--blocked-soft); }
+  .legend .swatch.absent { border-color: var(--line-strong); border-style: dashed; background: transparent; }
+  .legend .swatch.done { border-color: var(--line-strong); background: var(--region-fill-alt); }
 
   footer { flex: 0 0 auto; display: block; min-height: 0; }
 
@@ -696,8 +792,14 @@ const UI_TEXT = {
     shared: "Memoria compartida",
     mode: "Modo y IF",
     semaphores: "Semáforos",
+    output: "Salida",
     lanes: "Carriles de tiempo"
   },
+  variantLabel: "Ver el mismo caso con",
+  listCount: "{count} de {capacity}",
+  listOver: "Se pasó por {over} de lo que le cabe.",
+  listEmpty: "vacía",
+  outputEmpty: "nada",
   firstStep: "Primero",
   prevStep: "Anterior",
   nextStep: "Siguiente",
@@ -731,10 +833,14 @@ const UI_TEXT = {
       { kind: "spin", text: "girando en el while: gasta CPU sin avanzar" },
       { kind: "overhead", text: "cambio de contexto: no ejecuta nadie" },
       { kind: "READY", text: "listo, esperando la CPU" },
-      { kind: "BLOCKED", text: "bloqueado, esperando el semáforo" }
+      { kind: "BLOCKED", text: "bloqueado, esperando el semáforo" },
+      { kind: "absent", text: "todavía no llegó al sistema" },
+      { kind: "done", text: "ya terminó su trabajo" }
     ]
   }
 };
+
+const LANE_KINDS = { absent: "todavía no llegó", done: "ya terminó" };
 
 const STATES = {
   RUNNING: { label: "RUNNING", gloss: "en ejecución", color: "#1d4ed8", soft: "#e8eefc" },
@@ -762,6 +868,10 @@ const PANEL_TIPS = {
   semaphores: {
     title: "Semáforos",
     body: "El valor de cada semáforo y la cola de procesos bloqueados en él, en el orden en que se bloquearon. Arriba de cero el valor cuenta instancias libres; abajo de cero, procesos esperando."
+  },
+  output: {
+    title: "Salida",
+    body: "Lo que los procesos fueron imprimiendo, en el orden en que lo imprimieron. Cada recuadro es un printf."
   },
   lanes: {
     title: "Carriles de tiempo",
@@ -1020,6 +1130,99 @@ const PROGRAMS = {
       "  wait(mutex);",
       "  tareasPendientes++;",
       "  signal(mutex);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "impresoras": {
+    lines: [
+      { t: "while (true) {", role: "frame" },
+      "  wait(contImpresoras)",
+      "  imprimir()",
+      "  signal(contImpresoras)",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "milanesa-p1": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(semP1);",
+      '  printf("MILA")',
+      "  signal(semP2);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "milanesa-p2": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(semP2);",
+      '  printf("NESA")',
+      "  signal(semP1);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "consumidor-mutex": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(mutexLista);",
+      "  tarea = obtenerTarea(listaTareas);",
+      "  signal(mutexLista);",
+      "  ejecutarTarea(tarea);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "productor-mutex": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  nuevaTarea = crearTarea();",
+      "  wait(mutexLista);",
+      "  agregarTarea(nuevaTarea, listaTareas);",
+      "  signal(mutexLista);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "consumidor-aviso": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(tareasPendientes);",
+      "  wait(mutexLista);",
+      "  tarea = obtenerTarea(listaTareas);",
+      "  signal(mutexLista);",
+      "  ejecutarTarea(tarea);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "productor-aviso": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  nuevaTarea = crearTarea();",
+      "  wait(mutexLista);",
+      "  agregarTarea(nuevaTarea, listaTareas);",
+      "  signal(mutexLista);",
+      "  signal(tareasPendientes);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "consumidor-acotada": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  wait(tareasPendientes);",
+      "  wait(mutexLista);",
+      "  tarea = obtenerTarea(listaTareas);",
+      "  signal(mutexLista);",
+      "  signal(lugarEnLista);",
+      "  ejecutarTarea(tarea);",
+      { t: "}", role: "frame" }
+    ]
+  },
+  "productor-acotada": {
+    lines: [
+      { t: "while (1) {", role: "frame" },
+      "  nuevaTarea = crearTarea();",
+      "  wait(lugarEnLista);",
+      "  wait(mutexLista);",
+      "  agregarTarea(nuevaTarea, listaTareas);",
+      "  signal(mutexLista);",
+      "  signal(tareasPendientes);",
       { t: "}", role: "frame" }
     ]
   }
@@ -1610,7 +1813,7 @@ const EXAMPLES = [
     subtitle: "Si nadie puede interrumpir, nadie puede intercalarse. Y hay que pagarlo.",
     stepUnit: "Un paso = una instrucción",
     stepUnitNote: "Volvemos a un paso por instrucción, porque acá lo que hay que contar son instrucciones: las tres del incremento, y las que hacen falta para deshabilitar y volver a habilitar las interrupciones.",
-    canvas: { columns: "minmax(116px, 1.75fr) minmax(118px, 0.5fr) minmax(196px, 0.72fr) minmax(118px, 0.8fr)", panels: ["processes", "registers", "shared", "mode"] },
+    canvas: { columns: "minmax(116px, 1.85fr) minmax(118px, 0.5fr) minmax(196px, 0.62fr) minmax(118px, 0.8fr)", panels: ["processes", "registers", "shared", "mode"] },
     processes: [
       { id: "P1", label: "P1", gloss: "agrega tareas", program: "interrupciones-p1", register: { key: "reg1", name: "reg₁" } },
       { id: "P2", label: "P2", gloss: "realiza tareas", program: "interrupciones-p2", register: { key: "reg2", name: "reg₂" } }
@@ -1679,8 +1882,8 @@ const EXAMPLES = [
         ops: [{ op: "mode.set", value: "usuario" }]
       },
       {
-        narration: "Ahora IF vale {flag}, la interrupción pendiente se atiende, y el planificador de corto plazo le puede dar la CPU a P2.",
-        note: "P2 nunca pudo entrar: no porque el código se lo impidiera, sino porque no llegó a ejecutar.",
+        narration: "Con IF en {flag}, la interrupción pendiente se atiende y el planificador puede darle la CPU a P2.",
+        note: "P2 no pudo entrar. No porque el código lo impida, sino porque no llegó a ejecutar.",
         ops: [
           { op: "interrupt.service" },
           { op: "state.set", process: "P1", value: "READY" },
@@ -1696,7 +1899,7 @@ const EXAMPLES = [
         ["Procesos que pudieron intercalarse", "ninguno"]
       ]
     },
-    closing: "Funciona porque le saca al planificador la oportunidad de reprogramar, y hay que pagarlo cada vez.",
+    closing: "Le saca al planificador la oportunidad de reprogramar, y cuesta cuatro cambios de modo.",
     expectedFinalState: {
       shared: { tp: 1 },
       registers: { reg1: 1 },
@@ -1779,7 +1982,7 @@ const EXAMPLES = [
       { id: "P2", label: "P2", gloss: "realiza tareas", program: "semaforo-p2" }
     ],
     shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
-    semaphores: [{ key: "semVar", name: "semVar", value: 1, gloss: "una sola instancia: uno adentro por vez" }],
+    semaphores: [{ key: "semVar", name: "semVar", value: 1, gloss: "uno adentro por vez" }],
     steps: [
       {
         actor: "P1",
@@ -1844,7 +2047,7 @@ const EXAMPLES = [
       { id: "P3", label: "P3", program: "mutex-comun" }
     ],
     shared: [{ key: "tp", name: "tareasPendientes", value: 0, gloss: "cuántas tareas quedan por hacer" }],
-    semaphores: [{ key: "mutex", name: "mutex", value: 1, gloss: "una sola instancia: uno adentro por vez" }],
+    semaphores: [{ key: "mutex", name: "mutex", value: 1, gloss: "uno adentro por vez" }],
     steps: [
       {
         actor: "P1",
@@ -2016,7 +2219,7 @@ const EXAMPLES = [
     compare: {
       headers: ["Un spinlock gana sólo si se dan las tres", ""],
       rows: [
-        ["Hay más de una CPU", "acá hay una sola: el que gira le saca el turno al que tiene que salir"],
+        ["Hay más de una CPU", "acá hay una sola: el que gira le saca el turno al otro"],
         ["La sección crítica es muy corta", "más corta que los dos cambios de contexto"],
         ["La carrera es poco probable", "casi siempre se entra sin girar"]
       ]
@@ -2028,6 +2231,572 @@ const EXAMPLES = [
         block: { units: 8, spin: 0, overhead: 2 }
       }
     }
+  },
+
+  {
+    number: 13,
+    title: "Cinco impresoras",
+    short: "Cinco impresoras",
+    adds: "Agrega: un semáforo que cuenta instancias en vez de dar un solo turno.",
+    subtitle: "Cinco impresoras para seis que quieren imprimir.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 1.6fr) minmax(126px, 0.8fr)", panels: ["processes", "semaphores"] },
+    panelNotes: { processes: "Los seis corren el mismo programa: cuatro alumnos y dos profesores." },
+    sharedProgram: "impresoras",
+    processes: [
+      { id: "A1", label: "A1", gloss: "alumno", program: "impresoras" },
+      { id: "A2", label: "A2", gloss: "alumno", program: "impresoras" },
+      { id: "A3", label: "A3", gloss: "alumno", program: "impresoras" },
+      { id: "A4", label: "A4", gloss: "alumno", program: "impresoras" },
+      { id: "P1", label: "P1", gloss: "profesor", program: "impresoras" },
+      { id: "P2", label: "P2", gloss: "profesor", program: "impresoras" }
+    ],
+    semaphores: [{ key: "contImpresoras", name: "contImpresoras", value: 5, gloss: "impresoras libres" }],
+    steps: [
+      {
+        actor: "A1",
+        line: 2,
+        narration: "Cinco impresoras y seis procesos que las usan. El semáforo no arranca en 1: arranca en la cantidad de impresoras que hay. A1 hace wait y el valor queda en {contImpresoras}.",
+        note: "Los alumnos y los profesores corren el mismo programa y comparten el mismo semáforo: la pila de impresoras es una sola.",
+        ops: [{ op: "sem.wait", name: "contImpresoras" }]
+      },
+      { actor: "A2", line: 2, narration: "A2 hace wait y toma otra: quedan {contImpresoras} libres.", ops: [{ op: "sem.wait", name: "contImpresoras" }] },
+      { actor: "A3", line: 2, narration: "A3 toma la tercera: quedan {contImpresoras}.", ops: [{ op: "sem.wait", name: "contImpresoras" }] },
+      { actor: "A4", line: 2, narration: "A4 toma la cuarta: queda {contImpresoras}.", ops: [{ op: "sem.wait", name: "contImpresoras" }] },
+      {
+        actor: "P1",
+        line: 2,
+        narration: "P1 toma la quinta y el valor queda en {contImpresoras}: no queda ninguna libre, y nadie está esperando todavía.",
+        note: "Cinco procesos adentro a la vez. Un mutex no serviría acá: dejaría entrar a uno solo y tendríamos cuatro impresoras paradas.",
+        ops: [{ op: "sem.wait", name: "contImpresoras" }]
+      },
+      {
+        actor: "P2",
+        line: 2,
+        narration: "P2 llega sexto. El valor queda en {contImpresoras}, abajo de cero, así que se bloquea y queda en la cola.",
+        ops: [{ op: "sem.wait", name: "contImpresoras" }]
+      },
+      { actor: "A1", line: 3, narration: "A1 usa su impresora. El valor sigue en {contImpresoras}: nadie devolvió nada." },
+      {
+        actor: "A1",
+        line: 4,
+        narration: "A1 termina y hace signal: el valor queda en {contImpresoras} y, como sigue siendo cero o menos, se desbloquea al primero de la cola. La impresora de A1 pasa a P2.",
+        ops: [{ op: "sem.signal", name: "contImpresoras" }]
+      },
+      { actor: "P2", line: 3, narration: "P2 imprime, con la impresora que dejó A1. Siguen habiendo cinco en uso y {contImpresoras} libres." },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "P2 termina y hace signal: el valor queda en {contImpresoras}. Esta vez la cola estaba vacía, así que la impresora queda libre.",
+        note: "El valor nunca dejó de decir la verdad: arriba de cero, cuántas impresoras quedan; abajo de cero, cuántos esperan una.",
+        ops: [{ op: "sem.signal", name: "contImpresoras" }]
+      }
+    ],
+    compare: {
+      headers: ["Semáforo", "Con qué arranca"],
+      rows: [
+        ["Mutex", "en 1, porque el recurso es uno solo"],
+        ["Contador", "en la cantidad de instancias que hay"]
+      ]
+    },
+    closing: "Un semáforo contador arranca en la cantidad de instancias, y su valor es el inventario.",
+    expectedFinalState: {
+      semaphores: { contImpresoras: { value: 1, queue: [] } },
+      states: { A1: "READY", A2: "READY", A3: "READY", A4: "READY", P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 14,
+    title: "MILANESA",
+    short: "MILANESA",
+    adds: "Agrega: usar semáforos para forzar un orden, y qué pasa si los valores iniciales cambian.",
+    subtitle: "Dos procesos que se pasan el turno para escribir media palabra cada uno.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 1.5fr) minmax(126px, 0.8fr) minmax(126px, 0.85fr)", panels: ["processes", "semaphores", "output"] },
+    processes: [
+      { id: "P1", label: "P1", program: "milanesa-p1" },
+      { id: "P2", label: "P2", program: "milanesa-p2" }
+    ],
+    output: { empty: "Todavía no imprimió nadie.", run: "Se leyó: {run}" },
+    variants: [
+      {
+        variantLabel: "Como está en la diapo",
+        semaphores: [
+          { key: "semP1", name: "semP1", value: 1, gloss: "le da el turno a P1" },
+          { key: "semP2", name: "semP2", value: 0, gloss: "le da el turno a P2" }
+        ],
+        steps: [
+          {
+            actor: "P1",
+            line: 2,
+            narration: "*semP1* arranca en 1 y *semP2* en 0, así que sólo P1 puede pasar. Hace wait y el valor queda en {semP1}.",
+            note: "La diapo muestra los valores con P1 ya adentro, no los del arranque: por eso ahí *semP1* aparece en {semP1}. Acá arrancó en 1 y este paso es el que lo bajó.",
+            ops: [{ op: "sem.wait", name: "semP1" }]
+          },
+          {
+            actor: "P2",
+            line: 2,
+            narration: "P2 intenta arrancar, pero *semP2* arrancó en 0: el valor queda en {semP2} y P2 se bloquea sin imprimir nada.",
+            ops: [{ op: "sem.wait", name: "semP2" }]
+          },
+          { actor: "P1", line: 3, narration: "P1 imprime su mitad.", ops: [{ op: "output.print", text: "MILA" }] },
+          {
+            actor: "P1",
+            line: 4,
+            narration: "P1 hace signal de *semP2*, no del suyo: el valor queda en {semP2} y P2 se desbloquea.",
+            ops: [{ op: "sem.signal", name: "semP2" }]
+          },
+          { actor: "P2", line: 3, narration: "P2 imprime la otra mitad.", ops: [{ op: "output.print", text: "NESA" }] },
+          {
+            actor: "P2",
+            line: 4,
+            narration: "P2 hace signal de *semP1*: el valor queda en {semP1} y P1 puede dar otra vuelta.",
+            note: "Cada proceso espera en *su* semáforo y hace signal *del otro*. Eso es lo que los encadena, y por eso ninguno puede adelantarse.",
+            ops: [{ op: "sem.signal", name: "semP1" }]
+          },
+          { actor: "P1", line: 2, narration: "Segunda vuelta. P1 hace wait y el valor queda en {semP1}.", ops: [{ op: "sem.wait", name: "semP1" }] },
+          { actor: "P1", line: 3, narration: "P1 imprime.", ops: [{ op: "output.print", text: "MILA" }] },
+          { actor: "P1", line: 4, narration: "P1 le pasa el turno: *semP2* queda en {semP2}.", ops: [{ op: "sem.signal", name: "semP2" }] },
+          { actor: "P2", line: 2, narration: "P2 hace wait y esta vez pasa de largo: el valor queda en {semP2}.", ops: [{ op: "sem.wait", name: "semP2" }] },
+          { actor: "P2", line: 3, narration: "P2 imprime.", ops: [{ op: "output.print", text: "NESA" }] },
+          {
+            actor: "P2",
+            line: 4,
+            narration: "P2 le devuelve el turno y *semP1* queda en {semP1}, igual que al arranque.",
+            note: "La salida alterna sola, y va a alternar siempre: no hay ningún orden que dependa de quién agarre la CPU.",
+            ops: [{ op: "sem.signal", name: "semP1" }]
+          }
+        ],
+        expectedFinalState: {
+          semaphores: { semP1: { value: 1, queue: [] }, semP2: { value: 0, queue: [] } },
+          output: ["MILA", "NESA", "MILA", "NESA"],
+          states: { P1: "READY", P2: "RUNNING" }
+        }
+      },
+      {
+        variantLabel: "Los dos en 1",
+        semaphores: [
+          { key: "semP1", name: "semP1", value: 1, gloss: "le da el turno a P1" },
+          { key: "semP2", name: "semP2", value: 1, gloss: "le da el turno a P2" }
+        ],
+        steps: [
+          {
+            actor: "P2",
+            line: 2,
+            narration: "Mismo programa, con los dos semáforos en 1. Ahora P2 también puede pasar: hace wait y el valor queda en {semP2}.",
+            note: "Nada cambió en el código. Lo único distinto son los dos valores del arranque.",
+            ops: [{ op: "sem.wait", name: "semP2" }]
+          },
+          { actor: "P2", line: 3, narration: "P2 imprime primero.", ops: [{ op: "output.print", text: "NESA" }] },
+          { actor: "P1", line: 2, narration: "P1 hace wait y también pasa: el valor queda en {semP1}.", ops: [{ op: "sem.wait", name: "semP1" }] },
+          {
+            actor: "P1",
+            line: 3,
+            narration: "P1 imprime segundo. La salida ya dice {output}.",
+            ops: [{ op: "output.print", text: "MILA" }]
+          },
+          { actor: "P1", line: 4, narration: "P1 hace signal de *semP2*, que queda en {semP2}.", ops: [{ op: "sem.signal", name: "semP2" }] },
+          {
+            actor: "P1",
+            line: 2,
+            narration: "P1 da otra vuelta y hace wait: el valor queda en {semP1}, abajo de cero, así que P1 se bloquea.",
+            ops: [{ op: "sem.wait", name: "semP1" }]
+          },
+          { actor: "P2", line: 4, narration: "P2 hace signal de *semP1*: queda en {semP1} y P1 se desbloquea.", ops: [{ op: "sem.signal", name: "semP1" }] },
+          { actor: "P2", line: 2, narration: "P2 hace wait y pasa: *semP2* queda en {semP2}.", ops: [{ op: "sem.wait", name: "semP2" }] },
+          { actor: "P2", line: 3, narration: "P2 imprime otra vez.", ops: [{ op: "output.print", text: "NESA" }] },
+          {
+            actor: "P1",
+            line: 3,
+            narration: "P1 retoma donde había quedado e imprime. La salida quedó {output}.",
+            note: "Con los dos semáforos en 1 el orden lo decide el intercalado, igual que en el ejemplo 2. Con otro intercalado la salida sería otra.",
+            ops: [{ op: "output.print", text: "MILA" }]
+          }
+        ],
+        expectedFinalState: {
+          semaphores: { semP1: { value: 0, queue: [] }, semP2: { value: 0, queue: [] } },
+          output: ["NESA", "MILA", "NESA", "MILA"],
+          states: { P1: "RUNNING", P2: "READY" }
+        }
+      }
+    ],
+    compare: {
+      headers: ["Regla", "Cómo se ve"],
+      rows: [
+        ["Cada uno espera en el suyo", "P1 hace wait de *semP1*; P2, de *semP2*"],
+        ["Cada uno avisa en el del otro", "P1 hace signal de *semP2*; P2, de *semP1*"],
+        ["El arranque decide quién empieza", "el que tiene su semáforo en 1"]
+      ]
+    },
+    closing: "Los semáforos se cruzan: cada uno avisa en el del otro, nunca en el propio."
+  },
+
+  {
+    number: 15,
+    title: "Sacar de una lista vacía",
+    short: "Lista vacía",
+    adds: "Agrega: que un mutex protege la lista y no dice nada sobre lo que hay adentro.",
+    subtitle: "El mutex funciona, nadie corrompe la lista, y el consumidor igual se lleva nada.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 2.15fr) minmax(196px, 0.8fr) minmax(126px, 0.55fr)", panels: ["processes", "shared", "semaphores"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "consumidor", program: "consumidor-mutex" },
+      { id: "P2", label: "P2", gloss: "productor", program: "productor-mutex" }
+    ],
+    shared: [{ key: "lista", kind: "list", name: "listaTareas", capacity: 20, fill: 0, prefix: "T", gloss: "las tareas que están esperando que alguien las ejecute" }],
+    semaphores: [{ key: "mutexLista", name: "mutexLista", value: 1, gloss: "uno solo en la lista por vez" }],
+    steps: [
+      {
+        actor: "P2",
+        line: 2,
+        narration: "El productor crea una tarea. Todavía no la puso en la lista: crearla no toca nada compartido, así que está afuera del mutex.",
+        note: "La lista arranca {lista_items}. El consumidor no tiene nada para sacar y no lo sabe."
+      },
+      {
+        actor: "P1",
+        line: 2,
+        narration: "El consumidor hace wait del mutex y entra: el valor queda en {mutexLista}.",
+        ops: [{ op: "sem.wait", name: "mutexLista" }]
+      },
+      {
+        actor: "P2",
+        line: 3,
+        narration: "El productor quiere entrar a la lista y no puede: el valor queda en {mutexLista} y se bloquea. El mutex está haciendo su trabajo.",
+        note: "Los dos tocan *listaTareas*, y el mutex garantiza que nunca la toquen a la vez. Eso es lo único que garantiza.",
+        ops: [{ op: "sem.wait", name: "mutexLista" }]
+      },
+      {
+        actor: "P1",
+        line: 3,
+        narration: "El consumidor saca una tarea de la lista. La lista está vacía, así que se lleva {lista_taken}.",
+        note: "Nadie corrompió nada: la lista está intacta. Lo que pasó es que no había nada para sacar.",
+        ops: [{ op: "list.take", name: "lista" }]
+      },
+      {
+        actor: "P1",
+        line: 4,
+        narration: "El consumidor libera el mutex, que queda en {mutexLista}, y desbloquea al productor.",
+        ops: [{ op: "sem.signal", name: "mutexLista" }]
+      },
+      { actor: "P1", line: 5, narration: "Y ejecuta la tarea que se llevó, que es {lista_taken}." },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "Recién ahora el productor agrega la suya: la lista pasa a tener {lista}.",
+        ops: [{ op: "list.push", name: "lista", item: "T1" }]
+      },
+      {
+        actor: "P2",
+        line: 5,
+        narration: "El productor libera el mutex, que vuelve a {mutexLista}.",
+        note: "La tarea llegó un paso tarde. El consumidor ya había preguntado, y nadie tenía manera de decirle que esperara.",
+        ops: [{ op: "sem.signal", name: "mutexLista" }]
+      }
+    ],
+    compare: {
+      headers: ["El mutex garantiza", "El mutex no garantiza"],
+      rows: [
+        ["que no la toquen dos a la vez", "que haya algo adentro cuando alguien saca"],
+        ["que la lista quede consistente", "que el consumidor sepa cuándo preguntar"]
+      ]
+    },
+    closing: "Un mutex protege. No avisa.",
+    expectedFinalState: {
+      semaphores: { mutexLista: { value: 1, queue: [] } },
+      lists: { lista: { count: 1, capacity: 20 } },
+      states: { P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 16,
+    title: "Avisar que hay algo",
+    short: "Avisar",
+    adds: "Agrega: un semáforo que cuenta lo que hay en la lista, para que el consumidor no pregunte al aire.",
+    subtitle: "El consumidor queda arreglado. El productor, no.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 2.15fr) minmax(196px, 0.8fr) minmax(126px, 0.62fr)", panels: ["processes", "shared", "semaphores"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "consumidor", program: "consumidor-aviso" },
+      { id: "P2", label: "P2", gloss: "productor", program: "productor-aviso" }
+    ],
+    shared: [{ key: "lista", kind: "list", name: "listaTareas", capacity: 20, fill: 0, prefix: "T", gloss: "tiene lugar para veinte tareas" }],
+    semaphores: [
+      { key: "mutexLista", name: "mutexLista", value: 1, gloss: "uno solo en la lista por vez" },
+      { key: "tareasPendientes", name: "tareasPendientes", value: 0, gloss: "tareas que hay para sacar" }
+    ],
+    steps: [
+      {
+        actor: "P1",
+        line: 2,
+        narration: "El consumidor gana un wait nuevo, antes del mutex. *tareasPendientes* arranca en 0, así que el valor queda en {tareasPendientes} y el consumidor se bloquea: ya no pregunta al aire.",
+        note: "Ojo con el nombre: acá *tareasPendientes* es un semáforo, no la variable entera del ejemplo 1. El panel lo muestra entre los semáforos por eso.",
+        ops: [{ op: "sem.wait", name: "tareasPendientes" }]
+      },
+      { actor: "P2", line: 2, narration: "El productor crea una tarea." },
+      { actor: "P2", line: 3, narration: "Entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
+      { actor: "P2", line: 4, narration: "La agrega: la lista pasa a tener {lista}.", ops: [{ op: "list.push", name: "lista", item: "T1" }] },
+      { actor: "P2", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
+      {
+        actor: "P2",
+        line: 6,
+        narration: "Y ahora sí avisa: signal de *tareasPendientes*, que queda en {tareasPendientes}, y el consumidor se desbloquea.",
+        note: "El aviso va *después* de soltar el mutex. Si fuera antes, el consumidor se despertaría para chocar contra un mutex tomado.",
+        ops: [{ op: "sem.signal", name: "tareasPendientes" }]
+      },
+      { actor: "P1", line: 3, narration: "El consumidor retoma y entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
+      { actor: "P1", line: 4, narration: "Saca una tarea y se lleva {lista_taken}. La lista queda con {lista}.", ops: [{ op: "list.take", name: "lista" }] },
+      { actor: "P1", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "Y ejecuta la tarea que sacó, que esta vez existe: {lista_taken}.",
+        note: "Del lado del consumidor está resuelto. Nunca más va a sacar de una lista vacía."
+      },
+      {
+        narration: "Mientras el consumidor está ocupado ejecutando, el productor sigue solo: da veinte vueltas y la lista llega a las {lista} tareas que le caben.",
+        note: "Cada vuelta agregó una tarea y avisó una vez, así que *tareasPendientes* quedó en {tareasPendientes}: hay veinte esperando que alguien las saque.",
+        ops: [
+          { op: "list.fill", name: "lista", count: 20, prefix: "T" },
+          { op: "sem.set", name: "tareasPendientes", value: 20 }
+        ]
+      },
+      { actor: "P2", line: 2, narration: "Y el productor crea la vuelta veintiuno." },
+      { actor: "P2", line: 3, narration: "Entra al mutex, que queda en {mutexLista}. Nadie se lo impide: el mutex sólo mira que no haya dos adentro.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
+      {
+        actor: "P2",
+        line: 4,
+        narration: "Y la agrega. La lista queda con {lista} tareas y sólo tiene lugar para {lista_capacity}.",
+        note: "Nada en el código le preguntó si había lugar. *tareasPendientes* cuenta lo que hay; nadie cuenta lo que falta.",
+        ops: [{ op: "list.push", name: "lista", item: "T21" }]
+      },
+      { actor: "P2", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
+      {
+        actor: "P2",
+        line: 6,
+        narration: "Y avisa de una tarea más: *tareasPendientes* queda en {tareasPendientes}.",
+        note: "El semáforo dice la verdad sobre cuántas tareas hay. El problema es que hay más de las que caben.",
+        ops: [{ op: "sem.signal", name: "tareasPendientes" }]
+      }
+    ],
+    compare: {
+      headers: ["Quién pregunta antes de actuar", "Con qué semáforo"],
+      rows: [
+        ["El consumidor, antes de sacar", "*tareasPendientes*: cuántas hay"],
+        ["El productor, antes de poner", "con ninguno"]
+      ]
+    },
+    closing: "El consumidor está arreglado. El productor, no.",
+    expectedFinalState: {
+      semaphores: {
+        mutexLista: { value: 1, queue: [] },
+        tareasPendientes: { value: 21, queue: [] }
+      },
+      lists: { lista: { count: 21, capacity: 20 } },
+      states: { P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 17,
+    title: "Lista acotada",
+    short: "Lista acotada",
+    adds: "Agrega: el tercer semáforo, el que cuenta el lugar que queda.",
+    subtitle: "Tres semáforos, tres problemas distintos, y ninguno reemplaza a otro.",
+    stepUnit: "Un paso = una línea",
+    canvas: { columns: "minmax(116px, 2.15fr) minmax(196px, 0.78fr) minmax(126px, 0.72fr)", panels: ["processes", "shared", "semaphores"] },
+    processes: [
+      { id: "P1", label: "P1", gloss: "consumidor", program: "consumidor-acotada" },
+      { id: "P2", label: "P2", gloss: "productor", program: "productor-acotada" }
+    ],
+    shared: [{ key: "lista", kind: "list", name: "listaTareas", capacity: 20, fill: 20, prefix: "T", gloss: "tiene lugar para veinte tareas" }],
+    semaphores: [
+      { key: "mutexLista", name: "mutexLista", value: 1, gloss: "uno solo en la lista por vez" },
+      { key: "tareasPendientes", name: "tareasPendientes", value: 20, gloss: "tareas que hay para sacar" },
+      { key: "lugarEnLista", name: "lugarEnLista", value: 0, gloss: "lugares libres en la lista" }
+    ],
+    steps: [
+      {
+        actor: "P2",
+        line: 2,
+        narration: "Arrancamos con la lista llena: {lista} tareas y lugar para {lista_capacity}. El productor gana un wait nuevo, y crea su tarea como siempre.",
+        note: "El tercer semáforo, *lugarEnLista*, arranca en la cantidad de lugares que hay y ya está en {lugarEnLista}: la lista está llena."
+      },
+      {
+        actor: "P2",
+        line: 3,
+        narration: "El productor pide lugar. *lugarEnLista* queda en {lugarEnLista}, abajo de cero, así que se bloquea antes de tocar la lista.",
+        note: "Es la simetría exacta del ejemplo 16: el consumidor pregunta cuántas hay, el productor pregunta cuánto lugar queda.",
+        ops: [{ op: "sem.wait", name: "lugarEnLista" }]
+      },
+      { actor: "P1", line: 2, narration: "El consumidor pide una tarea: *tareasPendientes* queda en {tareasPendientes} y pasa de largo, porque hay de sobra.", ops: [{ op: "sem.wait", name: "tareasPendientes" }] },
+      { actor: "P1", line: 3, narration: "Entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
+      { actor: "P1", line: 4, narration: "Saca {lista_taken}. La lista queda con {lista}.", ops: [{ op: "list.take", name: "lista" }] },
+      { actor: "P1", line: 5, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
+      {
+        actor: "P1",
+        line: 6,
+        narration: "Y avisa que liberó un lugar: *lugarEnLista* queda en {lugarEnLista} y el productor se desbloquea.",
+        note: "El consumidor hace signal de *lugarEnLista*, y el productor hará signal de *tareasPendientes*. Se cruzan, igual que en el ejemplo 14.",
+        ops: [{ op: "sem.signal", name: "lugarEnLista" }]
+      },
+      { actor: "P1", line: 7, narration: "El consumidor ejecuta la tarea que sacó, {lista_taken}." },
+      { actor: "P2", line: 4, narration: "El productor retoma con el lugar ya reservado y entra al mutex, que queda en {mutexLista}.", ops: [{ op: "sem.wait", name: "mutexLista" }] },
+      {
+        actor: "P2",
+        line: 5,
+        narration: "Agrega la suya: la lista vuelve a tener {lista} de {lista_capacity}. No se pasó.",
+        ops: [{ op: "list.push", name: "lista", item: "T21" }]
+      },
+      { actor: "P2", line: 6, narration: "Suelta el mutex, que vuelve a {mutexLista}.", ops: [{ op: "sem.signal", name: "mutexLista" }] },
+      {
+        actor: "P2",
+        line: 7,
+        narration: "Y avisa que hay una más: *tareasPendientes* queda en {tareasPendientes}.",
+        note: "La lista nunca pasó de {lista_capacity} y el consumidor nunca sacó de una vacía. Ninguno de los dos tuvo que revisar nada: los semáforos los frenaron antes.",
+        ops: [{ op: "sem.signal", name: "tareasPendientes" }]
+      }
+    ],
+    compare: {
+      headers: ["Semáforo", "Qué problema resuelve"],
+      rows: [
+        ["*mutexLista*", "que no se pisen: uno solo por vez"],
+        ["*tareasPendientes*", "avisarle al consumidor que hay algo"],
+        ["*lugarEnLista*", "avisarle al productor que hay lugar"],
+        ["Ninguno reemplaza a otro", "si falta uno, vuelve su problema"]
+      ]
+    },
+    closing: "Tres semáforos, tres problemas distintos, y ninguno reemplaza a otro.",
+    expectedFinalState: {
+      semaphores: {
+        mutexLista: { value: 1, queue: [] },
+        tareasPendientes: { value: 20, queue: [] },
+        lugarEnLista: { value: 0, queue: [] }
+      },
+      lists: { lista: { count: 20, capacity: 20 } },
+      states: { P1: "READY", P2: "RUNNING" }
+    }
+  },
+
+  {
+    number: 18,
+    title: "El de mayor prioridad esperando",
+    short: "Inversión",
+    adds: "Agrega: la inversión de prioridades, y la herencia como arreglo.",
+    subtitle: "El proceso de mayor prioridad del sistema, esperando detrás de los otros dos.",
+    stepUnit: "Un paso = una unidad de tiempo",
+    canvas: { columns: "minmax(576px, 1fr)", panels: ["lanes"] },
+    panelNotes: { lanes: "P1 tiene el recurso R y necesita 3 unidades. P2 necesita 4 y no usa R. P3 necesita 2 y sí usa R." },
+    laneNameWidth: "92px",
+    laneProcesses: [
+      { id: "P1", label: "P1 (baja)" },
+      { id: "P2", label: "P2 (media)" },
+      { id: "P3", label: "P3 (alta)" }
+    ],
+    compare: {
+      headers: ["", "Sin herencia", "Con herencia"],
+      rows: [
+        ["¿P2 pudo desalojar a P1?", "sí", "no, no mientras P1 tenga R"],
+        ["¿Quién esperó más?", "P3, el de mayor prioridad", "P2, el del medio"],
+        ["Trabajo total", "nueve unidades", "las mismas nueve"]
+      ]
+    },
+    closing: "El arreglo no es que P3 espere menos: es que el que lo está frenando corra con la prioridad de P3 hasta soltarlo.",
+    variants: [
+      {
+        variantLabel: "Sin herencia",
+        boards: [{ id: "turnos", label: "Sin herencia", gloss: "cada proceso corre con su propia prioridad", counter: "P3 esperó bloqueado: {P3_BLOCKED} de {units}" }],
+        steps: [
+      {
+        narration: "Prioridades: P3 es la más alta, P2 la del medio y P1 la más baja. P1 ya tomó el recurso R con wait(semM) y está adentro de su sección crítica. P2 y P3 todavía no llegaron.",
+        note: "Este eje es el tiempo, como en el ejemplo 12: cada paso es una unidad. El carril punteado quiere decir que ese proceso todavía no está en el sistema.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "absent", P3: "absent" } }]
+      },
+      {
+        narration: "Llega P3, el de mayor prioridad, y necesita R. R lo tiene P1, así que P3 se bloquea. P1 sigue ejecutando porque es el único que puede.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "absent", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "Llega P2, que no necesita R. Tiene más prioridad que P1, así que lo desaloja y se queda con la CPU.",
+        note: "Y acá está la inversión: el de mayor prioridad del sistema es P3, y el que ejecuta es P2, el del medio.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "P2 sigue. P3 no puede hacer nada: espera un recurso que tiene P1, y P1 no ejecuta.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "P2 sigue. Van tres unidades con P3 bloqueado.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "P2 termina su última unidad y deja la CPU.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "Recién ahora vuelve P1, termina su sección crítica y suelta R. P3 se desbloquea.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "done", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "P3 por fin ejecuta.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P3" }, states: { P1: "done", P2: "done", P3: "RUNNING" } }]
+      },
+      {
+        narration: "P3 termina. Esperó {turnos_P3_BLOCKED} de las {turnos_units} unidades, y el que lo tenía frenado corría con la prioridad más baja del sistema.",
+        note: "P2 nunca tocó R. Se cruzó en el medio simplemente por tener más prioridad que el que lo tenía.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P3" }, states: { P1: "done", P2: "done", P3: "RUNNING" } }]
+      }
+        ],
+        expectedFinalState: { boards: { turnos: { units: 9, spin: 0, overhead: 0 } } }
+      },
+      {
+        variantLabel: "Con herencia de prioridades",
+        boards: [{ id: "turnos", label: "Con herencia de prioridades", gloss: "el que tiene el recurso corre con la prioridad del que lo espera", counter: "P3 esperó bloqueado: {P3_BLOCKED} de {units}" }],
+        steps: [
+      {
+        narration: "La misma situación, con herencia de prioridades. P1 tiene R y está adentro de su sección crítica.",
+        note: "La regla es una sola: mientras un proceso tenga un recurso que otro de más prioridad está esperando, corre con la prioridad de ese otro.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "absent", P3: "absent" } }]
+      },
+      {
+        narration: "Llega P3, necesita R y se bloquea. Y acá cambia todo: P1 pasa a correr con la prioridad de P3 mientras tenga el recurso.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "absent", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "Llega P2 y no puede desalojar a P1, porque P1 está corriendo con la prioridad de P3, que es más alta que la de P2. P2 queda en READY.",
+        note: "Compará con el otro caso: en esta misma unidad, sin herencia, la CPU se la llevaba P2.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY", P3: "BLOCKED" } }]
+      },
+      {
+        narration: "P1 termina su sección crítica, suelta R y vuelve a su prioridad de siempre. P3 se desbloquea y, como es el de mayor prioridad, se queda con la CPU.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P3" }, states: { P1: "done", P2: "READY", P3: "RUNNING" } }]
+      },
+      {
+        narration: "P3 ejecuta su última unidad. Esperó {turnos_P3_BLOCKED} unidades en total.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P3" }, states: { P1: "done", P2: "READY", P3: "RUNNING" } }]
+      },
+      {
+        narration: "Con P3 terminado, la CPU va a P2, que es el que queda con más prioridad.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "done", P2: "RUNNING", P3: "done" } }]
+      },
+      {
+        narration: "P2 sigue.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "done", P2: "RUNNING", P3: "done" } }]
+      },
+      {
+        narration: "P2 sigue.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "done", P2: "RUNNING", P3: "done" } }]
+      },
+      {
+        narration: "P2 termina. El trabajo total fue el mismo, {turnos_units} unidades: lo único que cambió es quién esperó.",
+        note: "La herencia no le sacó tiempo a nadie. Movió la espera del proceso de mayor prioridad al del medio, que es donde tiene que estar.",
+        ops: [{ op: "time.advance", board: "turnos", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "done", P2: "RUNNING", P3: "done" } }]
+      }
+        ],
+        expectedFinalState: { boards: { turnos: { units: 9, spin: 0, overhead: 0 } } }
+      }
+    ]
   }
 ];
 </script>
@@ -2092,6 +2861,14 @@ function cloneSemaphores(semaphores) {
   return target;
 }
 
+function cloneLists(lists) {
+  const target = {};
+  Object.keys(lists).forEach(function (key) {
+    target[key] = { items: lists[key].items.slice(), capacity: lists[key].capacity, taken: lists[key].taken };
+  });
+  return target;
+}
+
 function cloneRegions(regions) {
   const target = {};
   Object.keys(regions).forEach(function (key) { target[key] = regions[key].slice(); });
@@ -2102,6 +2879,8 @@ function cloneState(state) {
   return {
     shared: copy(state.shared),
     registers: copy(state.registers),
+    lists: cloneLists(state.lists),
+    output: state.output.slice(),
     semaphores: cloneSemaphores(state.semaphores),
     states: copy(state.states),
     lines: copy(state.lines),
@@ -2113,9 +2892,19 @@ function cloneState(state) {
   };
 }
 
+function filledList(item) {
+  const items = [];
+  for (let n = 1; n <= (item.fill || 0); n += 1) items.push(item.prefix + n);
+  return { items: items, capacity: item.capacity, taken: null };
+}
+
 function initialState(example) {
   const shared = {};
-  (example.shared || []).forEach(function (item) { shared[item.key] = item.value; });
+  const lists = {};
+  (example.shared || []).forEach(function (item) {
+    if (item.kind === "list") lists[item.key] = filledList(item);
+    else shared[item.key] = item.value;
+  });
   const registers = {};
   const states = {};
   const lines = {};
@@ -2135,6 +2924,8 @@ function initialState(example) {
   return {
     shared: shared,
     registers: registers,
+    lists: lists,
+    output: [],
     semaphores: semaphores,
     states: states,
     lines: lines,
@@ -2190,12 +2981,28 @@ function applyOp(state, op, actor, example) {
   if (op.op === "shared.write") { state.shared[op.name] = state.registers[op.reg]; return; }
   if (op.op === "shared.set") { state.shared[op.name] = op.value; return; }
   if (op.op === "reset") {
-    (example.shared || []).forEach(function (item) { state.shared[item.key] = item.value; });
+    (example.shared || []).forEach(function (item) {
+      if (item.kind !== "list") state.shared[item.key] = item.value;
+    });
     Object.keys(state.registers).forEach(function (key) { state.registers[key] = null; });
     Object.keys(state.lines).forEach(function (key) { state.lines[key] = null; });
     return;
   }
   if (op.op === "region.set") { state.regions = cloneRegions(op.regions); return; }
+  if (op.op === "list.push") { state.lists[op.name].items.push(op.item); return; }
+  if (op.op === "list.take") {
+    const list = state.lists[op.name];
+    list.taken = list.items.length ? list.items.shift() : null;
+    return;
+  }
+  if (op.op === "list.fill") {
+    const list = state.lists[op.name];
+    list.items = [];
+    for (let n = 1; n <= op.count; n += 1) list.items.push(op.prefix + n);
+    return;
+  }
+  if (op.op === "output.print") { state.output.push(op.text); return; }
+  if (op.op === "sem.set") { state.semaphores[op.name].value = op.value; return; }
   if (op.op === "sem.wait") {
     const semaphore = state.semaphores[op.name];
     if (!semaphore) return;
@@ -2275,10 +3082,17 @@ function fillContext(state) {
     context.flag = String(state.mode.flag);
     context.switches = String(state.mode.switches);
   }
+  Object.keys(state.lists).forEach(function (key) {
+    const list = state.lists[key];
+    context[key] = String(list.items.length);
+    context[key + "_capacity"] = String(list.capacity);
+    context[key + "_taken"] = list.taken === null ? UI_TEXT.none : list.taken;
+    context[key + "_items"] = list.items.length ? list.items.join(", ") : UI_TEXT.listEmpty;
+  });
+  context.output = state.output.length ? state.output.join(" ") : UI_TEXT.outputEmpty;
   Object.keys(state.boards).forEach(function (id) {
-    context[id + "_units"] = String(state.boards[id].units);
-    context[id + "_spin"] = String(state.boards[id].spin);
-    context[id + "_overhead"] = String(state.boards[id].overhead);
+    const counts = boardCounts(state.boards[id]);
+    Object.keys(counts).forEach(function (key) { context[id + "_" + key] = counts[key]; });
   });
   context.spins = String(state.spins);
   return context;
@@ -2295,6 +3109,8 @@ function snapshotOf(state, step) {
     context: context,
     shared: state.shared,
     registers: state.registers,
+    lists: state.lists,
+    output: state.output,
     semaphores: state.semaphores,
     states: state.states,
     lines: state.lines,
@@ -2326,6 +3142,11 @@ function markOne(snapshot, previous) {
     }
     after.queue.forEach(function (id) { if (before.queue.indexOf(id) === -1) snapshot.freshInQueue[id] = true; });
   });
+  snapshot.changedLists = {};
+  Object.keys(snapshot.lists).forEach(function (key) {
+    if (previous.lists[key].items.join() !== snapshot.lists[key].items.join()) snapshot.changedLists[key] = true;
+  });
+  snapshot.freshOutput = snapshot.output.length - previous.output.length;
   snapshot.changedMode = snapshot.mode ? changedKeys(previous.mode, snapshot.mode) : {};
   snapshot.changedRegions = {};
   Object.keys(snapshot.regions).forEach(function (key) {
@@ -2430,8 +3251,26 @@ const OP_TARGETS = {
   "interrupt.raise": {},
   "interrupt.service": {},
   "time.advance": { board: "boards" },
-  "state.set": { process: "processes" }
+  "state.set": { process: "processes" },
+  "list.push": { name: "lists" },
+  "list.take": { name: "lists" },
+  "list.fill": { name: "lists" },
+  "output.print": {},
+  "sem.set": { name: "semaphores" }
 };
+
+function boardCounts(board) {
+  const counts = { units: String(board.units), spin: String(board.spin), overhead: String(board.overhead) };
+  const kinds = Object.keys(STATES).concat(Object.keys(LANE_KINDS));
+  Object.keys(board.lanes).forEach(function (pid) {
+    kinds.forEach(function (kind) { counts[pid + "_" + kind] = "0"; });
+    board.lanes[pid].forEach(function (segment) {
+      const key = pid + "_" + segment.kind;
+      counts[key] = String(Number(counts[key]) + segment.units);
+    });
+  });
+  return counts;
+}
 
 function unresolved(text) {
   return /\{\w+\}/.test(text);
@@ -2445,24 +3284,30 @@ function unbalanced(text) {
 }
 
 function declaredNames(example) {
-  const names = { registers: {}, shared: {}, semaphores: {}, boards: {}, processes: {} };
+  const names = { registers: {}, shared: {}, semaphores: {}, boards: {}, processes: {}, lists: {} };
   (example.processes || []).forEach(function (item) {
     names.processes[item.id] = true;
     if (item.register) names.registers[item.register.key] = true;
   });
-  (example.shared || []).forEach(function (item) { names.shared[item.key] = true; });
+  (example.shared || []).forEach(function (item) {
+    if (item.kind === "list") names.lists[item.key] = true;
+    else names.shared[item.key] = true;
+  });
   (example.semaphores || []).forEach(function (item) { names.semaphores[item.key] = true; });
   (example.boards || []).forEach(function (board) { names.boards[board.id] = true; });
   return names;
 }
 
-function verifyOp(op, label, example, names, problems) {
+function verifyOp(op, label, example, names, problems, step) {
   const targets = OP_TARGETS[op.op];
   if (!targets) { problems.push(label + " usa la operación " + op.op + ", que no existe"); return; }
   Object.keys(targets).forEach(function (field) {
     const kind = targets[field];
     if (!names[kind][op[field]]) problems.push(label + ": la operación " + op.op + " apunta a " + op[field] + ", que el ejemplo no declara");
   });
+  if (op.op === "sem.set" && step.actor) {
+    problems.push(label + " le pone un valor a un semáforo desde un paso que ejecuta un proceso: eso sólo vale para un salto narrado");
+  }
   if (op.op === "reset") {
     if ((example.semaphores || []).length) problems.push(label + " reinicia, y el ejemplo tiene semáforos que reiniciar no toca");
     if (example.mode) problems.push(label + " reinicia, y el ejemplo tiene modo que reiniciar no toca");
@@ -2499,7 +3344,14 @@ function verifyContextKeys(example, problems) {
     if (seen[key]) problems.push("la clave {" + key + "} la reclaman " + seen[key] + " y " + owner);
     seen[key] = owner;
   };
-  (example.shared || []).forEach(function (item) { claim(item.key, "la variable " + item.name); });
+  (example.shared || []).forEach(function (item) {
+    claim(item.key, "la variable " + item.name);
+    if (item.kind !== "list") return;
+    claim(item.key + "_capacity", "la lista " + item.name);
+    claim(item.key + "_taken", "la lista " + item.name);
+    claim(item.key + "_items", "la lista " + item.name);
+  });
+  if (example.output) claim("output", "el panel de salida");
   (example.processes || []).forEach(function (item) {
     if (item.register) claim(item.register.key, "el registro " + item.register.name);
   });
@@ -2538,9 +3390,7 @@ function collectTexts(example, snapshots) {
   }
   (example.boards || []).forEach(function (board) {
     snapshots.forEach(function (snapshot, index) {
-      const state = snapshot.boards[board.id];
-      const context = { units: String(state.units), spin: String(state.spin), overhead: String(state.overhead) };
-      texts.push({ where: "contador de " + board.id + " en el paso " + (index + 1), text: fill(board.counter, context) });
+      texts.push({ where: "contador de " + board.id + " en el paso " + (index + 1), text: fill(board.counter, boardCounts(snapshot.boards[board.id])) });
     });
   });
   return texts;
@@ -2563,6 +3413,17 @@ function verifyStructure(example, problems) {
   if (example.definition && !DEFINITIONS[example.definition]) {
     problems.push("apunta a la definición " + example.definition + ", que no existe");
   }
+  if (example.sharedProgram) {
+    const shown = (example.processes || []).map(function (item) { return item.program; });
+    if (shown.filter(function (key) { return key !== shown[0]; }).length) {
+      problems.push("muestra un solo listado y sus procesos no corren el mismo programa");
+    }
+  }
+  const printsHere = example.steps && example.steps.some(function (step) {
+    return (step.ops || []).some(function (op) { return op.op === "output.print"; });
+  });
+  if (printsHere && panels.indexOf("output") === -1) problems.push("imprime y no muestra el panel de salida");
+  if (!printsHere && panels.indexOf("output") !== -1) problems.push("muestra el panel de salida y nunca imprime");
   Object.keys(example.panelNotes || {}).forEach(function (id) {
     if (panels.indexOf(id) === -1) problems.push("hay una aclaración para el panel " + id + ", que este ejemplo no muestra");
   });
@@ -2606,7 +3467,7 @@ function verifySteps(example, problems) {
     const label = "paso " + (index + 1);
     if (!step.narration) problems.push(label + " no tiene narración");
     if (step.line && !step.actor) problems.push(label + " tiene línea pero no dice qué proceso ejecuta");
-    (step.ops || []).forEach(function (op) { verifyOp(op, label, example, names, problems); });
+    (step.ops || []).forEach(function (op) { verifyOp(op, label, example, names, problems, step); });
     if (!step.line) return;
     verifyLine(example, problems, label, step.actor, step.line);
   });
@@ -2617,7 +3478,8 @@ function verifySnapshots(example, snapshots, problems) {
   snapshots.forEach(function (snapshot, index) {
     const label = "paso " + (index + 1);
     Object.keys(snapshot.states).forEach(function (id) {
-      if (!STATES[snapshot.states[id]]) problems.push(label + " pone a " + id + " en " + snapshot.states[id] + ", que no está en STATES");
+      const value = snapshot.states[id];
+      if (!STATES[value] && !LANE_KINDS[value]) problems.push(label + " pone a " + id + " en " + value + ", que no está en STATES");
     });
     Object.keys(snapshot.semaphores).forEach(function (key) {
       const semaphore = snapshot.semaphores[key];
@@ -2679,6 +3541,21 @@ function verifyFinalState(example, snapshots, problems) {
     if (got.value !== want.value) problems.push("al final " + key + " vale " + got.value + " y se esperaba " + want.value);
     if (got.queue.join() !== want.queue.join()) problems.push("al final la cola de " + key + " tiene [" + got.queue.join(", ") + "] y se esperaba [" + want.queue.join(", ") + "]");
   });
+  if (expected.output) {
+    if (last.output.join(" ") !== expected.output.join(" ")) {
+      problems.push("al final la salida dice [" + last.output.join(" ") + "] y se esperaba [" + expected.output.join(" ") + "]");
+    }
+  }
+  Object.keys(expected.lists || {}).forEach(function (key) {
+    const want = expected.lists[key];
+    const got = last.lists[key];
+    if (!got) { problems.push("se espera un estado final para " + key + ", que no es una lista del ejemplo"); return; }
+    if (got.items.length !== want.count) problems.push("al final " + key + " tiene " + got.items.length + " tareas y se esperaban " + want.count);
+    if (got.capacity !== want.capacity) problems.push("al final " + key + " tiene lugar para " + got.capacity + " y se esperaba " + want.capacity);
+    if (want.items && got.items.join() !== want.items.join()) {
+      problems.push("al final " + key + " tiene [" + got.items.join(", ") + "] y se esperaba [" + want.items.join(", ") + "]");
+    }
+  });
   Object.keys(expected.regions || {}).forEach(function (id) {
     if (!last.regions[id]) { problems.push("se espera una región final para " + id + ", que no tiene región"); return; }
     if (last.regions[id].join() !== expected.regions[id].join()) problems.push("al final la región de " + id + " no es la esperada");
@@ -2709,7 +3586,7 @@ function verifyTreeMoves(example, tree, problems) {
       const label = "la jugada " + (position + 1) + " de " + id;
       if (!move.narration) problems.push(label + " no tiene narración");
       verifyLine(example, problems, label, id, move.line);
-      (move.ops || []).forEach(function (op) { verifyOp(op, label, example, names, problems); });
+      (move.ops || []).forEach(function (op) { verifyOp(op, label, example, names, problems, { actor: id }); });
     });
   });
   const strings = [
@@ -2725,7 +3602,8 @@ function verifyTreeMoves(example, tree, problems) {
     strings.push({ where: "narración de un nodo", text: node.snapshot.narration });
     if (node.snapshot.note) strings.push({ where: "nota de un nodo", text: node.snapshot.note });
     Object.keys(node.snapshot.states).forEach(function (id) {
-      if (!STATES[node.snapshot.states[id]]) problems.push("un nodo pone a " + id + " en " + node.snapshot.states[id] + ", que no está en STATES");
+      const value = node.snapshot.states[id];
+      if (!STATES[value] && !LANE_KINDS[value]) problems.push("un nodo pone a " + id + " en " + value + ", que no está en STATES");
     });
   });
   strings.forEach(function (item) {
@@ -2761,7 +3639,33 @@ function boardUnits(example) {
   return totals;
 }
 
+function buildVariant(example, label) {
+  const problems = [];
+  const built = buildOne(example);
+  built.problems.forEach(function (problem) { problems.push(label ? label + ": " + problem : problem); });
+  built.problems = problems;
+  built.label = label;
+  return built;
+}
+
 function buildExample(example) {
+  const variants = example.variants || null;
+  if (!variants) {
+    const built = buildVariant(example, null);
+    return { example: example, variants: [built], problems: built.problems };
+  }
+  const built = variants.map(function (variant) {
+    const merged = Object.assign({}, example, variant);
+    delete merged.variants;
+    return buildVariant(merged, variant.variantLabel);
+  });
+  const problems = [];
+  built.forEach(function (one) { one.problems.forEach(function (problem) { problems.push(problem); }); });
+  if (variants.some(function (variant) { return !variant.variantLabel; })) problems.push("hay una variante sin nombre");
+  return { example: example, variants: built, problems: problems };
+}
+
+function buildOne(example) {
   const problems = [];
   verifyStructure(example, problems);
   if (example.mode === "tree") {
@@ -2793,6 +3697,7 @@ BUILT_EXAMPLES.forEach(function (built) {
     console.error("Ejemplo " + built.example.number + ": " + problem);
   });
 });
+
 </script>
 
 <script id="ui">
@@ -2825,15 +3730,18 @@ const PANELS = {
   shared: renderShared,
   mode: renderMode,
   semaphores: renderSemaphores,
+  output: renderOutput,
   lanes: renderLanes
 };
 
 const panelRefs = {};
 let canvasKey = "";
 
-const view = { exampleIndex: 0, stepIndex: 0, path: [], playing: false, timer: null };
+const view = { exampleIndex: 0, variantIndex: 0, stepIndex: 0, path: [], playing: false, timer: null };
 
-function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentEntry() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentVariants() { return currentEntry().variants; }
+function currentBuilt() { return currentVariants()[view.variantIndex]; }
 function currentExample() { return currentBuilt().example; }
 function isTree() { return currentBuilt().tree !== null; }
 
@@ -2943,6 +3851,7 @@ function renderExampleList() {
     button.appendChild(element("span", "num", built.example.number));
     button.appendChild(element("span", null, built.example.short));
     button.title = built.example.adds;
+    button.disabled = built.problems.length > 0;
     button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
     button.addEventListener("click", function () { selectExample(index); });
     dom.exampleList.appendChild(button);
@@ -2950,7 +3859,18 @@ function renderExampleList() {
 }
 
 function renderHeaderChoices() {
-  dom.choiceRow.hidden = true;
+  const variants = currentVariants();
+  if (variants.length < 2) { dom.choiceRow.hidden = true; return; }
+  dom.choiceRow.hidden = false;
+  dom.choiceLabel.textContent = UI_TEXT.variantLabel;
+  dom.choiceBar.textContent = "";
+  variants.forEach(function (variant, index) {
+    const button = element("button", null, variant.label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", index === view.variantIndex ? "true" : "false");
+    button.addEventListener("click", function () { selectVariant(index); });
+    dom.choiceBar.appendChild(button);
+  });
 }
 
 function statePill(name) {
@@ -3025,8 +3945,50 @@ function pickRow(item, node) {
   return row;
 }
 
+function markChip(item, snapshot, forLine) {
+  const state = STATES[snapshot.states[item.id]];
+  const chip = element("span", forLine ? "line-mark" : "mark-chip");
+  chip.style.color = state.color;
+  chip.style.borderColor = state.color;
+  chip.style.background = state.soft;
+  if (forLine) {
+    chip.textContent = item.label;
+    chip.title = item.label + " · " + state.label;
+    return chip;
+  }
+  chip.appendChild(element("span", "who", item.label));
+  chip.appendChild(element("span", "where", state.label));
+  chip.title = item.gloss ? item.gloss + " · " + state.gloss : state.gloss;
+  return chip;
+}
+
+function renderSharedSource(snapshot) {
+  const example = currentExample();
+  const refs = panelRefs.processes;
+  refs.body.textContent = "";
+  const marks = element("div", "marks-row");
+  example.processes.forEach(function (item) { marks.appendChild(markChip(item, snapshot, false)); });
+  refs.body.appendChild(marks);
+  const source = element("div", "source");
+  const lines = programLines(example.sharedProgram);
+  lines.forEach(function (line, index) {
+    const number = index + 1;
+    const here = example.processes.filter(function (item) { return snapshot.lines[item.id] === number; });
+    const acting = here.filter(function (item) { return item.id === snapshot.actor; }).length > 0;
+    const row = codeLine(line, number, here.length ? (acting ? "current" : "paused") : null, false);
+    if (here.length) {
+      const badges = element("span", "line-marks");
+      here.forEach(function (item) { badges.appendChild(markChip(item, snapshot, true)); });
+      row.appendChild(badges);
+    }
+    source.appendChild(row);
+  });
+  refs.body.appendChild(source);
+}
+
 function renderProcesses(snapshot) {
   const example = currentExample();
+  if (example.sharedProgram) { renderSharedSource(snapshot); return; }
   const refs = panelRefs.processes;
   refs.body.textContent = "";
   const grid = element("div", "processes-grid");
@@ -3070,14 +4032,72 @@ function renderRegisters(snapshot) {
   refs.body.appendChild(list);
 }
 
+function listBox(item, snapshot) {
+  const state = snapshot.lists[item.key];
+  const box = element("div", "list-box");
+  if (snapshot.changedLists[item.key]) box.classList.add("changed");
+  const head = element("div", "list-head");
+  head.appendChild(element("span", "list-name", item.name));
+  head.appendChild(element("span", "list-count", fill(UI_TEXT.listCount, {
+    count: String(state.items.length),
+    capacity: String(state.capacity)
+  })));
+  if (item.gloss) head.appendChild(element("span", "list-gloss", item.gloss));
+  box.appendChild(head);
+  const bar = element("div", "list-bar");
+  const slots = element("div", "list-slots");
+  slots.style.gridTemplateColumns = "repeat(" + state.capacity + ", minmax(0, 1fr))";
+  for (let n = 0; n < state.capacity; n += 1) {
+    slots.appendChild(element("div", "list-slot" + (n < state.items.length ? " taken" : "")));
+  }
+  bar.appendChild(slots);
+  const over = state.items.length - state.capacity;
+  if (over > 0) {
+    const extra = element("div", "list-extra");
+    for (let n = 0; n < over; n += 1) extra.appendChild(element("div", "list-slot taken"));
+    bar.appendChild(extra);
+  }
+  box.appendChild(bar);
+  if (over > 0) box.appendChild(element("span", "list-note", fill(UI_TEXT.listOver, { over: String(over) })));
+  if (state.items.length === 0) box.appendChild(element("span", "list-empty", UI_TEXT.listEmpty));
+  else if (state.items.length <= 6) {
+    const chips = element("div", "list-items");
+    state.items.forEach(function (name) { chips.appendChild(element("span", "list-chip", name)); });
+    box.appendChild(chips);
+  }
+  return box;
+}
+
 function renderShared(snapshot) {
   const refs = panelRefs.shared;
   refs.body.textContent = "";
-  const list = element("div", "value-rows");
+  const rows = element("div", "value-rows");
   currentExample().shared.forEach(function (item) {
-    list.appendChild(valueRow(item.name, snapshot.shared[item.key], item.gloss, null, snapshot.changedShared[item.key]));
+    if (item.kind === "list") rows.appendChild(listBox(item, snapshot));
+    else rows.appendChild(valueRow(item.name, snapshot.shared[item.key], item.gloss, null, snapshot.changedShared[item.key]));
   });
-  refs.body.appendChild(list);
+  refs.body.appendChild(rows);
+}
+
+function renderOutput(snapshot) {
+  const refs = panelRefs.output;
+  const example = currentExample();
+  refs.body.textContent = "";
+  const box = element("div", "output-box");
+  if (snapshot.output.length === 0) {
+    box.appendChild(element("p", "output-empty", example.output.empty));
+    refs.body.appendChild(box);
+    return;
+  }
+  const line = element("div", "output-line");
+  snapshot.output.forEach(function (text, index) {
+    const chip = element("span", "output-chip", text);
+    if (index >= snapshot.output.length - snapshot.freshOutput) chip.classList.add("fresh");
+    line.appendChild(chip);
+  });
+  box.appendChild(line);
+  box.appendChild(element("span", "output-run", fill(example.output.run, { run: snapshot.output.join("") })));
+  refs.body.appendChild(box);
 }
 
 function renderMode(snapshot) {
@@ -3130,6 +4150,7 @@ function renderSemaphores(snapshot) {
 
 function laneLabel(segment, isCpu) {
   const texts = UI_TEXT.lanes;
+  if (LANE_KINDS[segment.kind]) return { full: LANE_KINDS[segment.kind], brief: LANE_KINDS[segment.kind] };
   if (isCpu) {
     return {
       full: fill(texts.kinds[segment.kind], { who: segment.who || "" }),
@@ -3168,11 +4189,7 @@ function boardHead(definition, board, freshUnits, isLater) {
   const head = element("div", "board-head" + (isLater ? " later" : ""));
   head.appendChild(element("h3", "board-name", definition.label));
   head.appendChild(element("span", "board-gloss", definition.gloss));
-  const counter = element("span", "board-counter", fill(definition.counter, {
-    units: String(board.units),
-    spin: String(board.spin),
-    overhead: String(board.overhead)
-  }));
+  const counter = element("span", "board-counter", fill(definition.counter, boardCounts(board)));
   if (freshUnits > 0) counter.classList.add("changed");
   head.appendChild(counter);
   return head;
@@ -3193,7 +4210,7 @@ function renderLanes(snapshot) {
   const maxUnits = currentBuilt().maxUnits;
   refs.body.textContent = "";
   const grid = element("div", "lane-grid");
-  grid.style.gridTemplateColumns = "46px repeat(" + maxUnits + ", minmax(0, 1fr))";
+  grid.style.gridTemplateColumns = (example.laneNameWidth || "46px") + " repeat(" + maxUnits + ", minmax(0, 1fr))";
   example.boards.forEach(function (definition, position) {
     const board = snapshot.boards[definition.id];
     const fresh = snapshot.freshUnits[definition.id];
@@ -3205,8 +4222,21 @@ function renderLanes(snapshot) {
   });
   axisCells(grid, maxUnits);
   refs.body.appendChild(grid);
+  const shown = {};
+  example.boards.forEach(function (definition) {
+    const board = snapshot.boards[definition.id];
+    board.cpu.forEach(function (segment) { shown[segment.kind] = true; });
+    Object.keys(board.lanes).forEach(function (pid) {
+      board.lanes[pid].forEach(function (segment) {
+        if (segment.spinning) shown.spin = true;
+        else if (segment.kind === "RUNNING") shown.busy = true;
+        else shown[segment.kind] = true;
+      });
+    });
+  });
   const legend = element("div", "legend");
   UI_TEXT.lanes.legend.forEach(function (item) {
+    if (!shown[item.kind]) return;
     const row = element("span", "item");
     row.appendChild(element("span", "swatch " + item.kind));
     row.appendChild(element("span", null, item.text));
@@ -3325,6 +4355,15 @@ function pickProcess(id) {
 function selectExample(index) {
   stopPlaying();
   view.exampleIndex = index;
+  view.variantIndex = 0;
+  view.stepIndex = 0;
+  view.path = [];
+  render();
+}
+
+function selectVariant(index) {
+  stopPlaying();
+  view.variantIndex = index;
   view.stepIndex = 0;
   view.path = [];
   render();

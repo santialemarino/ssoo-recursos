@@ -18,14 +18,11 @@ plazo, cambio de contexto, hilos, `BLOCKED` e interrupciones.
 Este archivo es la documentación del recurso: qué enseña, cómo editarlo y qué no
 se puede tocar. Si vas a modificar `index.html`, leelo antes.
 
-**Este recurso está a medio construir.** Tiene los ejemplos 1 a 12, que son el
-mecanismo; faltan los ejemplos 13 a 18, que son los usos (N instancias,
-ordenamiento, productor-consumidor e inversión de prioridades). No está enlazado
-desde la portada.
+**No está enlazado desde la portada.**
 
 ---
 
-## Los doce ejemplos que ya están
+## Los dieciocho ejemplos
 
 | # | Ejemplo | Qué enseña |
 |---|---|---|
@@ -41,9 +38,17 @@ desde la portada.
 | 10 | El semáforo, por dentro | `wait` y `signal`, y qué le pasa al proceso que no puede entrar |
 | 11 | El valor negativo | Qué cuenta el valor de un semáforo arriba y abajo de cero |
 | 12 | Girar o bloquearse | Cuánta CPU cuesta cada una de las dos esperas |
+| 13 | Cinco impresoras | Un semáforo contador: arranca en la cantidad de instancias |
+| 14 | MILANESA | Que los semáforos se cruzan, y que los valores iniciales fijan quién arranca |
+| 15 | Sacar de una lista vacía | Que un mutex protege y no avisa |
+| 16 | Avisar que hay algo | Un semáforo para contar lo que hay, y el productor que sigue sin freno |
+| 17 | Lista acotada | El tercer semáforo, el que cuenta el lugar que queda |
+| 18 | El de mayor prioridad esperando | Inversión de prioridades, y la herencia como arreglo |
 
-Son **128 pasos** en total. El ejemplo 2 no es una traza: es un árbol de 69 nodos
-y 20 hojas, y cada camino tiene 7 pasos.
+Los doce primeros son **el mecanismo**; del 13 al 18 son **los usos**. Son
+**214 pasos** en total, contando las dos variantes del 14 y las dos del 18. El
+ejemplo 2 no es una traza: es un árbol de 69 nodos y 20 hojas, y cada camino
+tiene 7 pasos.
 
 Cada ejemplo termina con una **placa de cierre**: una frase, en un recuadro, que
 es lo que el estudiante se tiene que llevar de ese ejemplo. Está en el campo
@@ -103,6 +108,12 @@ que la cambia trae un `stepUnitNote` y lo dice una vez, con todas las letras.
 | 10 | línea | el valor del semáforo y quién se bloquea | Procesos + Memoria compartida + **Semáforos** |
 | 11 | línea | el valor negativo y el orden de la cola | igual que el 10 |
 | 12 | unidad de tiempo | cuánta CPU se gasta en cada espera | **Carriles de tiempo**, y nada más |
+| 13 | línea | el valor del contador y quién queda en la cola | Procesos (un solo listado con seis marcas) + Semáforos. **Sin memoria compartida**: no hay variable, hay semáforo |
+| 14 | línea | los dos semáforos y lo que se va imprimiendo | Procesos + Semáforos + **Salida** |
+| 15 | línea | la lista y el mutex | Procesos + Memoria compartida (la lista) + Semáforos |
+| 16 | línea | la lista pasándose de su tamaño | igual que el 15 |
+| 17 | línea | los tres semáforos moviéndose juntos | igual que el 15 |
+| 18 | unidad de tiempo | quién tiene la CPU y quién está bloqueado | **Carriles de tiempo**, y nada más |
 
 Cuatro decisiones de canvas que conviene entender antes de cambiarlas:
 
@@ -117,9 +128,25 @@ Cuatro decisiones de canvas que conviene entender antes de cambiarlas:
   tercera columna.** No es un proceso: no tiene puntero ni estado, y ponerla al
   lado de dos que sí los tienen la haría parecer uno.
 - **En el 12 no hay panel de código.** El tema es cuánta CPU se gasta, no qué
-  línea corre, y con las dos comparaciones en pantalla no queda alto para más. Es
-  el único canvas donde el eje es el tiempo, y la narración del primer paso lo
-  dice.
+  línea corre, y con las dos comparaciones en pantalla no queda alto para más. La
+  narración del primer paso lo dice.
+- **En el 13 hay un solo listado y seis marcas, no seis columnas.** Los seis
+  procesos corren el mismo programa, así que seis columnas iguales serían el mismo
+  código repetido seis veces —y a 1280 px no entran: cada columna necesita unos
+  200 px y el panel tendría que medir 1276 él solo—. En su lugar va el programa una
+  vez, con una chapita por proceso al lado de la línea donde está cada uno y una
+  fila arriba con los seis y su estado. Es el mismo recurso que usa el ejemplo 8 de
+  *Procesos e hilos* para tres hilos sobre una fuente. El campo que lo activa es
+  `sharedProgram`, y el recurso verifica al cargar que todos los procesos de ese
+  ejemplo corran de verdad el mismo programa.
+- **En el 18 los carriles llevan la prioridad en el nombre** (`P1 (baja)`,
+  `P2 (media)`, `P3 (alta)`), porque sin eso no se entiende por qué P2 desaloja a
+  P1. La herencia no tiene marca propia: lo que se ve es que en la variante con
+  herencia P2 **no** se queda con la CPU en la unidad 3, y la narración lo dice.
+- **La referencia de colores de los carriles se arma con lo que hay en pantalla.**
+  El 12 usa giro y cambios de contexto; el 18 usa «todavía no llegó» y «ya
+  terminó». Antes la referencia era una lista fija y mostraba las cinco cosas
+  siempre: en el 18 nombraba dos que no estaban y se callaba dos que sí.
 
 ---
 
@@ -127,12 +154,13 @@ Cuatro decisiones de canvas que conviene entender antes de cambiarlas:
 
 | Panel | Muestra | Lo usan |
 |---|---|---|
-| Procesos | una columna por proceso, con su programa y su línea actual; al lado del nombre, su estado | 1 a 11 |
+| Procesos | una columna por proceso, con su programa y su línea actual; al lado del nombre, su estado. En el 13, un solo listado con una marca por proceso | 1 a 11, 13 a 17 |
 | Registros | el registro propio de cada proceso | 1, 2, 3, 4, 8 |
-| Memoria compartida | las variables compartidas, con su valor y una glosa | 1 a 11 |
+| Memoria compartida | las variables compartidas, con su valor y una glosa; y la lista, con su barra de lugares ocupados | 1 a 11, 15 a 17 |
 | Modo y IF | el modo del procesador, el `IF`, el contador de cambios de modo y la chapita de interrupción pendiente | 8 |
-| Semáforos | el valor de cada semáforo y su cola de bloqueados, en orden | 10, 11 |
-| Carriles de tiempo | un carril de CPU y uno por proceso, en dos tableros comparables | 12 |
+| Semáforos | el valor de cada semáforo y su cola de bloqueados, en orden | 10, 11, 13 a 17 |
+| Salida | lo que se fue imprimiendo, un recuadro por `printf` | 14 |
+| Carriles de tiempo | un carril de CPU y uno por proceso | 12, 18 |
 | Narración | un párrafo por paso, más una nota cuando hace falta | todos |
 
 En el panel de Procesos, la línea del proceso que **ejecuta en este paso** va en
@@ -176,6 +204,13 @@ nombra a su manera:
   no se pueden renumerar. Van con el nombre entero justamente para que no se
   confundan con el `P1` de los ejemplos 1 a 4, que es otro proceso.
 - **Ejemplos 9 a 12: `P1` y `P2`,** genéricos.
+- **Ejemplo 13: `A1` a `A4` y `P1` y `P2`.** Acá la letra dice el grupo: `A` de
+  alumno, `P` de profesor. Es el único ejemplo donde `P` no quiere decir «proceso»,
+  y por eso cada chapita lleva la glosa al lado.
+- **Ejemplos 14 a 18: `P1`, `P2` y, en el 18, `P3`.** En el 15, el 16 y el 17 `P1`
+  es el consumidor y `P2` el productor, como en la filmina 31. En el 18 el número
+  no dice la prioridad: `P3` es la más alta y `P1` la más baja, y por eso el
+  carril de cada uno lleva la prioridad escrita.
 
 ---
 
@@ -256,6 +291,10 @@ Las operaciones disponibles son estas, y no hay otras:
 | `interrupt.raise` / `interrupt.service` | Prende y apaga la chapita de interrupción pendiente |
 | `time.advance` | Agrega unidades de tiempo a un tablero de carriles |
 | `state.set` | Fuerza el estado de un proceso, después de la derivación |
+| `list.push` / `list.take` | Agrega una tarea a la lista, o saca la primera |
+| `list.fill` | Deja la lista con `count` tareas de golpe; es para un salto narrado |
+| `output.print` | Agrega un recuadro al panel de salida |
+| `sem.set` | Le pone un valor a un semáforo sin pasar por wait ni signal. **Sólo vale en un paso sin proceso**, o sea en un salto narrado, y el recurso lo verifica |
 
 **Los valores no se declaran: se calculan.** `reg.read` no lleva el número que va
 a quedar en el registro, lo lee de la memoria compartida. Es lo que hace que el
@@ -293,7 +332,11 @@ fila abajo, a todo el ancho. Además:
 - `regions` — la sección crítica dibujada al empezar.
 - `guards` — las condiciones de espera, por proceso y por línea.
 - `definition` — un bloque de código que no es de nadie (el `TestAndSet` del 9).
-- `boards` y `laneProcesses` — los tableros de carriles y sus procesos (sólo el 12).
+- `boards`, `laneProcesses` y `laneNameWidth` — los tableros de carriles, sus
+  procesos y el ancho de la columna de nombres (12 y 18).
+- `sharedProgram` — dibuja un solo listado con una marca por proceso (sólo el 13).
+- `output` — habilita el panel de salida (sólo el 14).
+- `variants` — las variantes del ejemplo (14 y 18).
 - `panelNotes` — una aclaración chica en el encabezado de un panel.
 - `compare` — la tabla del paso de cierre.
 - `mode: "tree"` y `tree` — el árbol del ejemplo 2; ver abajo.
@@ -325,12 +368,59 @@ verifica contra el árbol al cargar. La cuenta es **9 órdenes terminan en −1,
 0 y 9 en 1**, y la nota de cada hoja la dice con el número que sale del árbol, no
 escrito a mano.
 
+### Las variantes de un ejemplo
+
+Los ejemplos 14 y 18 corren la misma situación de dos maneras:
+
+```js
+variants: [
+  { variantLabel: "Como está en la diapo", semaphores: [...], steps: [...], expectedFinalState: {...} },
+  { variantLabel: "Los dos en 1", semaphores: [...], steps: [...], expectedFinalState: {...} }
+]
+```
+
+Cada variante se mezcla sobre el ejemplo con `Object.assign`, así que hereda todo
+lo que no redefine —el programa, el canvas, la tabla de cierre, la frase de
+cierre— y redefine lo que le toca. Tiene su propia lista de pasos y su propio
+`expectedFinalState`, y el recurso verifica las dos por separado al abrirse.
+
+El selector va en la **única fila de elección del encabezado**, la misma ranura
+que el recurso hermano usa para su filtro. En esta mitad no hay filtro, así que la
+fila estaba libre; no se agrega una segunda. Cambiar de variante vuelve al paso 1
+de la variante nueva: no hay estado que sobreviva al cambio, porque cada variante
+tiene sus propios snapshots calculados de antemano.
+
+### La lista y la salida
+
+Dos paneles que la primera mitad no necesitaba.
+
+**La lista** es un ítem del panel de memoria compartida con `kind: "list"`, su
+`capacity`, y opcionalmente `fill` y `prefix` para arrancar llena. Se dibuja como
+una barra de `capacity` casilleros con los ocupados rellenos, el contero `21 de 20`
+al lado del nombre, y los nombres de las tareas cuando hay seis o menos. **Lo que
+se pasa de la capacidad se dibuja afuera de la barra**, después de una línea
+punteada y con el casillero rayado: es la manera de que el ejemplo 16 muestre que
+la lista se pasó sin que haya que creerle a un número.
+
+**La salida** es el panel del ejemplo 14: un recuadro por `printf`, en orden, y
+abajo la tirada completa sin separadores, que es donde se lee `MILANESAMILANESA`.
+
+### Los carriles del 18
+
+El campo `laneNameWidth` ensancha la columna de nombres para que entren las
+prioridades. Y hay dos estados de carril que no son estados de proceso:
+`absent` («todavía no llegó») y `done` («ya terminó»). Son acromáticos a
+propósito —`absent` punteado y vacío, `done` con un relleno neutro— porque el
+apunte pinta `TERMINATED` de gris y este recurso decidió no dibujar ese estado:
+un bloque gris en un carril lo estaría metiendo por la ventana. Los dos llevan su
+texto encima y en la referencia, así que no dicen nada sólo con el color.
+
 ---
 
 ## Lo que el recurso verifica solo al abrirse
 
 Al final de cada ejemplo hay un `expectedFinalState`. **No es decorativo**: al
-abrir la página el recurso corre las doce trazas enteras y avisa por la consola
+abrir la página el recurso corre las veinte trazas enteras y avisa por la consola
 del navegador si algo no da. Acá importa más que en los recursos hermanos: un
 intercalado mal contado por un paso sigue pareciendo plausible en pantalla.
 
@@ -479,7 +569,7 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
 ## Decisiones que conviene revisar
 
 - **Toda la narración la escribió un agente y no la revisó nadie de la cátedra.**
-  Es lo primero que hay que leer, línea por línea, los 128 pasos. Los programas
+  Es lo primero que hay que leer, línea por línea, los 214 pasos. Los programas
   salen del apunte; el español que los rodea, no.
 - **El registro es impersonal o en primera del plural** («se apila», «vemos»), no
   voseante. Es el mismo criterio que el recurso de procesos, y se aparta a
@@ -533,13 +623,15 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
 ## Verificación antes de publicar un cambio
 
 1. Abrirlo con doble clic, sin servidor y sin internet. Funciona igual.
-2. La consola del navegador limpia, en los doce ejemplos.
+2. La consola del navegador limpia, en los dieciocho ejemplos y en las cuatro
+   variantes (dos del 14 y dos del 18).
 3. Ningún `expectedFinalState` ni invariante reportado en la consola.
 4. Recorrer cada ejemplo entero para adelante y después entero para atrás: cada
    paso intermedio se ve exactamente igual en los dos sentidos. En el 2, recorrer
-   los veinte órdenes.
+   los veinte órdenes; en el 14 y el 18, las dos variantes, y cambiar de variante a
+   mitad de camino y volver.
 5. A 1280×720 (el proyector del aula) entra todo, sin scroll de página y sin que
-   ningún panel scrollee, en los 128 pasos. Ojo con el paso de cierre: el pie crece
+   ningún panel scrollee, en los 214 pasos. Ojo con el paso de cierre: el pie crece
    con la placa y la tabla, y los paneles de arriba pierden ese alto.
 6. Lo mismo con el sistema en «reducir movimiento».
 7. A 390 px de ancho se lee en una columna y nada se va para el costado. Barrer
@@ -553,51 +645,69 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
 11. Contraste de todo el texto contra el fondo que de verdad le toca, calculado y
     no mirado, con piso de 4,5:1. La trama del giro y el recuadro de la sección
     crítica son los fondos que hay que revisar primero.
-12. Ninguna chapita, pastilla o banda tiene su texto pegado al propio borde, y dos
+12. Que no quede código tapado: medir `scrollWidth` contra `clientWidth` **del
+    contenedor `.source`**, no del `span` del texto. El `span` nunca se recorta
+    —crece con su contenido—, así que medirlo a él da cero mientras el listado está
+    cortado. Así se pasaron 64 tableros con código tapado en el 15, el 16 y el 17.
+13. Que la referencia de los carriles nombre exactamente lo que hay en pantalla, ni
+    más ni menos.
+14. Ninguna chapita, pastilla o banda tiene su texto pegado al propio borde, y dos
     filas marcadas seguidas no se tocan.
-13. Si se tocó el canvas de un ejemplo: la unidad del paso sigue declarada y
+15. Si se tocó el canvas de un ejemplo: la unidad del paso sigue declarada y
     visible, y ningún panel quedó en pantalla sin ser tema ni cambiar.
 
-Lo medido en la construcción, para tener referencia: 512 tableros recorridos en
+Lo medido en la construcción, para tener referencia: **856 tableros** recorridos en
 cuatro configuraciones sin un desborde a 1280×720, diecisiete anchos de 320 a 1920
-sin scroll horizontal de página ni un texto cortado, 80 combinaciones distintas de
-texto y fondo todas arriba del piso de contraste, los veinte órdenes del ejemplo 2
-recorridos en el navegador, y el eje del 12 alineado al pixel en Chromium y en
-WebKit.
+sin scroll horizontal de página, sin un texto cortado y sin código tapado de 1280
+para arriba, **106 combinaciones** distintas de texto y fondo todas arriba del piso
+de contraste, los veinte órdenes del ejemplo 2 recorridos en el navegador, el eje
+del 12 y del 18 alineado al pixel en Chromium y en WebKit, y **veintinueve
+mutaciones** de los datos que la consola reporta sin que la página se caiga.
+
+**Lo que no está garantizado, y está medido:** entre 1001 y 1180 px de ancho con
+una ventana de 720–768 px de alto, el panel de semáforos del 17 scrollea entre 5 y
+19 px, y el listado de código de algunos ejemplos scrollea adentro de su panel. De
+1180 para arriba no scrollea nada. Para comparar: `process-lifecycle` scrollea
+141 px a 1024.
 
 ---
 
-## Lo que falta: los ejemplos 13 a 18
+## Dónde el recurso se aparta del apunte, en la segunda mitad
 
-Son los usos de los semáforos, y **no tienen que necesitar ningún cambio en el
-motor**. Si alguno lo necesita, el motor se construyó a medida de la primera mitad
-y eso es un defecto para reportar, no para esquivar.
-
-| # | Ejemplo | Qué enseña |
-|---|---|---|
-| 13 | Cinco impresoras | Un semáforo contador arranca en la cantidad de instancias |
-| 14 | MILANESA | Que los semáforos se cruzan, y que los valores iniciales fijan quién arranca |
-| 15 | Sacar de una lista vacía | Que un mutex protege pero no avisa |
-| 16 | Avisar que hay algo | Un semáforo para contar lo que hay |
-| 17 | Lista acotada | Un tercer semáforo para contar el lugar que queda |
-| 18 | El de mayor prioridad esperando | Inversión de prioridades, y la herencia como arreglo |
-
-Dos cosas que ya están decididas para esa mitad y conviene no volver a discutir:
-
-- **El 14 y el 18 llevan variantes**, con el selector en la única fila de elección
-  del encabezado. Ese renglón está libre: en esta mitad no hay ni filtro ni
-  variantes.
-- **La primera columna de la filmina 31 —la versión sin ningún semáforo— se salta
-  a propósito.** Es la lección del ejemplo 1 sobre otra variable, y en este recurso
-  nada se dice dos veces.
-
-Y dos que hay que arreglar al construirlos:
-
-- **La filmina 28 tiene un error**: la columna de Profesores termina en
-  `wait(contImpresoras)` donde tiene que decir `signal(contImpresoras)`. El
-  ejemplo 13 va con la versión corregida, y esta línea del README es el aviso de
-  que el recurso y la filmina difieren ahí.
-- **El semáforo del 16 se llama `tareasPendientes`, igual que la variable entera
-  con la carrera del ejemplo 1.** La colisión viene del apunte y no se renombra: el
-  recurso no contradice al apunte en un identificador. La narración lo aclara una
-  vez, ahí, y el panel lo rotula como semáforo.
+- **La filmina 28 tiene un error y el recurso lo corrige.** La columna de
+  Profesores termina en `wait(contImpresoras)` donde tiene que decir
+  `signal(contImpresoras)`. El ejemplo 13 va con la versión corregida. Si alguien
+  compara pantalla y filmina, esta línea es la que difiere.
+- **El ejemplo 13 muestra un solo listado, no las dos columnas de la filmina.**
+  Los programas de Alumnos y de Profesores son idénticos letra por letra; lo único
+  distinto es el comentario del encabezado. Mostrarlos dos veces no enseña nada y
+  no entra. Los dos grupos se nombran en la aclaración del panel y en los rótulos
+  de los procesos (A1 a A4 alumnos, P1 y P2 profesores).
+- **La primera columna de la filmina 31 se salta a propósito.** Es la versión sin
+  ningún semáforo, o sea la lección del ejemplo 1 sobre otra variable, y en este
+  recurso nada se dice dos veces. El recurso arranca en la segunda columna, que es
+  la del mutex solo.
+- **El semáforo del 16 y del 17 se llama `tareasPendientes`, igual que la variable
+  entera con la carrera del ejemplo 1.** La colisión viene del apunte y no se
+  renombra: el recurso no contradice al apunte en un identificador. La narración lo
+  aclara una vez, en el primer paso del 16, y el panel lo rotula entre los
+  semáforos y no entre las variables.
+- **El ejemplo 16 comprime veinte vueltas del productor en un paso.** Llenar la
+  lista de a una serían más de cien pasos. El paso es un evento narrado, sin
+  proceso, y usa `list.fill` y `sem.set`; `sem.set` está restringido por
+  verificación a pasos sin proceso justamente para que no se cuele en una traza
+  normal.
+- **El ejemplo 17 arranca con la lista llena**, en vez de llenarla en pantalla, por
+  el mismo motivo. La narración del primer paso lo dice y el panel lo muestra.
+- **Las listas del 15 y del 16 llevan capacidad 20 aunque su código no la
+  controle.** La capacidad sólo la declara la filmina 31 en su cuarta columna
+  (`lugarEnLista = 20`). Dibujarla desde el 15 es lo que permite que el 16 muestre
+  la lista pasándose: sin barra, «se pasó» sería una afirmación de la narración y
+  nada más.
+- **El ejemplo 18 le pone números al planteo.** La filmina 32 da el orden de los
+  hechos (`T=0` P1 toma R, `T=1` llega P3 y se bloquea, `T=2` llega P2 y desaloja)
+  y no cuánto dura cada cosa. Acá P1 necesita 3 unidades adentro de su sección
+  crítica, P2 necesita 4 y P3 necesita 2, elegidos para que las dos variantes den
+  el mismo trabajo total —nueve unidades— y la única diferencia sea quién espera:
+  P3 espera 6 unidades sin herencia y 2 con herencia. Si la cátedra tiene otros
+  números, se cambian las duraciones y las dos trazas se rehacen.
