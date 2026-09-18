@@ -193,11 +193,15 @@ mayúsculas sin que nadie lo decidiera. Se les agregó la línea que faltaba, as
 los cuatro recursos vuelven a coincidir.
 
 Los anchos de columna van con `minmax(<piso>, <fr>)`. El piso de cada panel es lo
-que mide su propio título: el `fr` manda a 1280 px y el piso sólo ata entre 1001 y
-1180, que es donde antes el encabezado `MEMORIA COMPARTIDA` del ejemplo 8 se salía
-del panel. El código fuente no entra en el piso porque `.source` tiene su propio
-`overflow-x`: si la columna se angosta, el programa scrollea adentro de su panel en
-vez de empujar la página.
+que mide su propio título, y el `fr` manda de 1240 px para arriba, que es el único
+tramo donde los paneles van uno al lado del otro. El código fuente no entra en el
+piso porque `.source` tiene su propio `overflow-x`, así que un panel angosto no
+empuja la página: tapa el programa adentro suyo. Por eso el corte de la grilla está
+en 1240 y no en 1000. Entre 1001 y 1239 los paneles entraban a lo ancho pero el
+código no, y el listado se cortaba en medio de un identificador
+—`obtenerTarea(listaTare`— sin barra de scroll ni ninguna otra señal de que
+seguía. Abajo de 1240 la grilla pasa a una sola columna y cada panel usa todo el
+ancho.
 
 Los nombres de los estados van **en inglés y en mayúscula**, como en el apunte:
 `RUNNING`, `READY`, `BLOCKED`. Son los tres únicos que este recurso necesita, y
@@ -713,6 +717,8 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
     contenedor `.source`**, no del `span` del texto. El `span` nunca se recorta
     —crece con su contenido—, así que medirlo a él da cero mientras el listado está
     cortado. Así se pasaron 64 tableros con código tapado en el 15, el 16 y el 17.
+    Medirlo en todo el barrido de anchos, no sólo a 1280: el tramo de 1001 a 1239 px
+    tenía 127 tableros tapados y a 1280 daba cero.
 13. Que la referencia de los carriles nombre exactamente lo que hay en pantalla, ni
     más ni menos.
 14. Ninguna chapita, pastilla o banda tiene su texto pegado al propio borde, y dos
@@ -722,17 +728,16 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
 
 Lo medido en la construcción, para tener referencia: **856 tableros** recorridos en
 cuatro configuraciones sin un desborde a 1280×720, diecisiete anchos de 320 a 1920
-sin scroll horizontal de página, sin un texto cortado y sin código tapado de 1280
+sin scroll horizontal de página, sin un texto cortado y sin código tapado de 360 px
 para arriba, **106 combinaciones** distintas de texto y fondo todas arriba del piso
 de contraste, los veinte órdenes del ejemplo 2 recorridos en el navegador, el eje
 del 12 y del 18 alineado al pixel en Chromium y en WebKit, y **veintinueve
 mutaciones** de los datos que la consola reporta sin que la página se caiga.
 
-**Lo que no está garantizado, y está medido:** entre 1001 y 1180 px de ancho con
-una ventana de 720–768 px de alto, el panel de semáforos del 17 scrollea entre 5 y
-19 px, y el listado de código de algunos ejemplos scrollea adentro de su panel. De
-1180 para arriba no scrollea nada. Para comparar: `process-lifecycle` scrollea
-141 px a 1024.
+**Lo que no está garantizado, y está medido:** a 320 px de ancho, que está abajo del
+piso de 390, el listado de código de algunos ejemplos sigue tapado adentro de su
+panel. De 360 px para arriba no queda código tapado en ningún ancho, y ningún panel
+scrollea ni para el costado ni para abajo.
 
 ---
 
