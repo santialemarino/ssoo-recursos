@@ -833,7 +833,9 @@
     .panel-body { overflow: visible; }
     .map-region.stack { min-height: 120px; }
     .narration-body { overflow: visible; }
-    .narration-body.with-extras { grid-template-columns: 1fr; }
+    .narration-body.with-extras, .narration-body.with-extras.no-compare { grid-template-columns: 1fr; }
+    .compare.full { grid-column: auto; grid-row: auto; margin: 7px 0 0; }
+    .narration-extras { overflow: visible; }
     .narration-head { flex-direction: column; align-items: flex-start; gap: 3px; }
     .processes.two { grid-template-columns: 1fr; }
     .pcb-cards.side { grid-template-columns: 1fr; }
