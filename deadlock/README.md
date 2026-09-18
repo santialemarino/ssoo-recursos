@@ -60,6 +60,34 @@ las flechas del teclado y `Inicio` / `Fin`. Son los mismos que en los otros cuat
 recursos de la familia: si acá se agrega o se saca uno, hay que hacer lo mismo
 allá. La regla está en `CLAUDE.md`.
 
+### La escalera no se mueve al cambiar de ejemplo
+
+El componente es el de `cpu-scheduling` y `synchronization` —el botón muestra sólo
+el número y el rótulo se despliega únicamente en el ejemplo corriente—, con **tres
+agregados que acá hicieron falta** y que los recursos hermanos todavía no tienen:
+
+1. **El rótulo desplegado ocupa siempre el mismo ancho.** Al cargar, el recurso mide
+   los dieciséis rótulos, se queda con el más largo y reserva ese ancho en
+   `--ladder-label`. Sin esto la escalera cambiaba de ancho según qué ejemplo
+   estuviera abierto: a 1440 px pasaba de uno a dos renglones, el encabezado crecía
+   37 px y **todo el canvas de abajo se corría** al avanzar de ejemplo.
+2. **Cada tramo es un bloque que no se parte.** El nombre del tramo y sus botones van
+   juntos en un `<span class="group">`, así que un tramo entero cambia de renglón o
+   no cambia, pero nunca queda el rótulo arriba y los botones abajo, y el 15 y el 16
+   nunca se separan.
+3. **Abajo de 1000 px el rótulo no se despliega.** Ahí el título completo del ejemplo
+   ya está en el encabezado de la narración, que a ese ancho va en su propio
+   renglón, así que el rótulo del botón sería lo mismo dicho dos veces.
+
+Con los tres, **la escalera queda quieta**: medido en 79 anchos de 360 a 1920 px,
+recorriendo los dieciséis ejemplos en cada uno, ningún botón cambia de renglón y el
+alto del encabezado no cambia nunca. Sin ellos había quince anchos donde sí pasaba.
+
+Si se agrega un ejemplo con un rótulo más largo que los que hay, no hay nada que
+tocar: el ancho se vuelve a medir solo al cargar. Lo que sí conviene es no escribir
+rótulos mucho más largos que los actuales, porque el ancho reservado es el del más
+largo y se lo come el botón corriente aunque su rótulo sea corto.
+
 **No usa `localStorage`.** Lo único que el estudiante elige es la estrategia del
 ejemplo 16, y eso es exploración, no una respuesta: no se guarda en ningún lado.
 

@@ -91,7 +91,8 @@
   .choices button { padding: 3px 10px; font-size: 12.5px; }
   .choices button[aria-pressed="true"] { background: var(--running); border-color: var(--running); color: #fff; }
 
-  .examples { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .examples { display: flex; align-items: center; gap: 6px 0; flex-wrap: wrap; }
+  .examples .group { display: inline-flex; align-items: center; gap: 6px; }
 
   .group-cap {
     font-size: 10.5px;
@@ -102,7 +103,7 @@
     padding: 0 4px 0 8px;
   }
 
-  .examples > .group-cap:first-child { padding-left: 0; }
+  .examples > .group:first-child .group-cap { padding-left: 0; }
 
   .examples button {
     display: flex;
@@ -129,7 +130,7 @@
   }
 
   .examples button .short { display: none; }
-  .examples button[aria-current="true"] .short { display: inline; }
+  .examples button[aria-current="true"] .short { display: inline; flex: 0 0 auto; width: var(--ladder-label, auto); text-align: left; }
   .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
   .examples button[aria-current="true"] .num { background: rgba(0, 0, 0, 0.22); color: #fff; }
 
@@ -755,6 +756,7 @@
 
   @media (max-width: 1000px) {
     body { padding-bottom: calc(122px + env(safe-area-inset-bottom)); }
+    .examples button[aria-current="true"] .short { display: none; }
     .processes-grid { grid-template-columns: 1fr !important; }
     .narration-body.with-extras, .narration-body.with-extras.no-compare { grid-template-columns: 1fr; }
     .compare.full { grid-column: auto; grid-row: auto; margin: 7px 0 0; }
@@ -1673,7 +1675,7 @@ const EXAMPLES = [
     number: 7,
     group: "evasion",
     title: "Lo que cada uno puede llegar a pedir",
-    short: "Lo que puede llegar a pedir",
+    short: "El máximo declarado",
     adds: "Agrega: estado seguro y secuencia segura, con un solo tipo de recurso.",
     subtitle: "Doce instancias, tres procesos, y la pregunta de si existe un orden en que todos terminen.",
     stepUnit: "Un paso = un paso del algoritmo",
@@ -1728,7 +1730,7 @@ const EXAMPLES = [
     number: 8,
     group: "evasion",
     title: "La petición que se bloquea con el recurso libre",
-    short: "Se bloquea con recurso libre",
+    short: "La petición rechazada",
     adds: "Agrega: que una petición válida y disponible puede rechazarse igual.",
     subtitle: "El mismo estado del ejemplo anterior, con una petición más de P3.",
     stepUnit: "Un paso = un paso del algoritmo",
@@ -2338,7 +2340,7 @@ const EXAMPLES = [
     number: 15,
     group: "cierre",
     title: "En qué momento interviene cada una",
-    short: "En qué momento interviene",
+    short: "En qué momento",
     adds: "Agrega: las tres estrategias comparadas sobre el mismo pedido.",
     subtitle: "Un solo pedido de recurso, recorrido tres veces.",
     stepUnit: "Un paso = una estrategia",
@@ -3234,9 +3236,12 @@ function buildCanvas() {
 function renderExampleList() {
   dom.exampleList.textContent = "";
   let lastGroup = null;
+  let section = null;
   BUILT_EXAMPLES.forEach(function (built, index) {
     if (built.example.group !== lastGroup) {
-      dom.exampleList.appendChild(element("span", "group-cap", UI_TEXT.groups[built.example.group]));
+      section = element("span", "group");
+      section.appendChild(element("span", "group-cap", UI_TEXT.groups[built.example.group]));
+      dom.exampleList.appendChild(section);
       lastGroup = built.example.group;
     }
     const button = element("button");
@@ -3246,7 +3251,7 @@ function renderExampleList() {
     button.title = built.example.short + " · " + built.example.adds;
     button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
     button.addEventListener("click", function () { selectExample(index); });
-    dom.exampleList.appendChild(button);
+    section.appendChild(button);
   });
 }
 
@@ -3855,6 +3860,19 @@ function renderLanes(snapshot) {
   }
 }
 
+function fitLadderLabels() {
+  const labels = dom.exampleList.querySelectorAll("button .short");
+  let widest = 0;
+  Array.prototype.forEach.call(labels, function (label) {
+    label.style.display = "inline";
+    label.style.width = "auto";
+    widest = Math.max(widest, label.getBoundingClientRect().width);
+    label.style.display = "";
+    label.style.width = "";
+  });
+  dom.exampleList.style.setProperty("--ladder-label", Math.ceil(widest) + "px");
+}
+
 function fitLaneLabels() {
   const lanes = panelRefs.lanes;
   if (!lanes) return;
@@ -4203,6 +4221,7 @@ Object.keys(PANELS).forEach(function (id) {
 });
 
 renderExampleList();
+fitLadderLabels();
 render();
 </script>
 </body>
