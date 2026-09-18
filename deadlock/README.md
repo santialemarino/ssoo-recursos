@@ -62,31 +62,33 @@ allá. La regla está en `CLAUDE.md`.
 
 ### La escalera no se mueve al cambiar de ejemplo
 
-El componente es el de `cpu-scheduling` y `synchronization` —el botón muestra sólo
-el número y el rótulo se despliega únicamente en el ejemplo corriente—, con **tres
-agregados que acá hicieron falta** y que los recursos hermanos todavía no tienen:
+**Los botones muestran sólo el número, siempre, también el del ejemplo corriente.**
+Los recursos hermanos despliegan el rótulo adentro del botón corriente, y acá no,
+por una razón medida: el rótulo desplegado hace que el botón cambie de ancho según
+qué ejemplo esté abierto, y eso mueve a todos los botones que vienen después. Medido
+sobre los dieciséis ejemplos, con el rótulo adentro **catorce de los dieciséis
+botones cambiaban de lugar** al navegar, y a 1440 px la escalera pasaba de uno a dos
+renglones, con lo que el encabezado crecía 37 px y se corría todo el canvas de abajo.
 
-1. **El rótulo desplegado ocupa siempre el mismo ancho.** Al cargar, el recurso mide
-   los dieciséis rótulos, se queda con el más largo y reserva ese ancho en
-   `--ladder-label`. Sin esto la escalera cambiaba de ancho según qué ejemplo
-   estuviera abierto: a 1440 px pasaba de uno a dos renglones, el encabezado crecía
-   37 px y **todo el canvas de abajo se corría** al avanzar de ejemplo.
-2. **Cada tramo es un bloque que no se parte.** El nombre del tramo y sus botones van
-   juntos en un `<span class="group">`, así que un tramo entero cambia de renglón o
-   no cambia, pero nunca queda el rótulo arriba y los botones abajo, y el 15 y el 16
-   nunca se separan.
-3. **Abajo de 1000 px el rótulo no se despliega.** Ahí el título completo del ejemplo
-   ya está en el encabezado de la narración, que a ese ancho va en su propio
-   renglón, así que el rótulo del botón sería lo mismo dicho dos veces.
+No se pierde nada, porque el nombre del ejemplo ya está dos renglones más abajo: el
+encabezado de la narración muestra el número y el **título completo** —más completo
+que el rótulo corto—, y el `title` de cada botón sigue trayendo el rótulo y la frase
+de qué agrega, así que al pasar el mouse por un número se ve qué ejemplo es.
 
-Con los tres, **la escalera queda quieta**: medido en 79 anchos de 360 a 1920 px,
-recorriendo los dieciséis ejemplos en cada uno, ningún botón cambia de renglón y el
-alto del encabezado no cambia nunca. Sin ellos había quince anchos donde sí pasaba.
+Lo otro que la escalera hace distinto es que **cada tramo es un bloque que no se
+parte**: el nombre del tramo y sus botones van juntos en un `<span class="group">`.
+Sin eso, un tramo podía quedar con el rótulo en un renglón y los botones en el
+siguiente.
 
-Si se agrega un ejemplo con un rótulo más largo que los que hay, no hay nada que
-tocar: el ancho se vuelve a medir solo al cargar. Lo que sí conviene es no escribir
-rótulos mucho más largos que los actuales, porque el ancho reservado es el del más
-largo y se lo come el botón corriente aunque su rótulo sea corto.
+Con las dos cosas, **la escalera queda quieta**: medido en 79 anchos de 360 a
+1920 px, recorriendo los dieciséis ejemplos en cada uno, ningún botón cambia de
+posición —ni de renglón ni de lugar en el renglón— y el alto del encabezado no
+cambia nunca. A 1280 px el encabezado mide 99 px, el mismo presupuesto que en
+`synchronization`.
+
+**Esto es una diferencia con `cpu-scheduling` y `synchronization`**, que tienen el
+mismo problema y todavía no el arreglo. Portarlo son pocas líneas en cada uno, y
+conviene hacerlo para que los cinco vuelvan a verse igual.
 
 **No usa `localStorage`.** Lo único que el estudiante elige es la estrategia del
 ejemplo 16, y eso es exploración, no una respuesta: no se guarda en ningún lado.

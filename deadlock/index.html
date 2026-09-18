@@ -129,8 +129,6 @@
     font-weight: 700;
   }
 
-  .examples button .short { display: none; }
-  .examples button[aria-current="true"] .short { display: inline; flex: 0 0 auto; width: var(--ladder-label, auto); text-align: left; }
   .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
   .examples button[aria-current="true"] .num { background: rgba(0, 0, 0, 0.22); color: #fff; }
 
@@ -440,7 +438,6 @@
 
   .board-head { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .board-counter { margin-left: auto; font-size: 11.5px; color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
-  .board-counter.changed { color: var(--marked); }
 
   .lane-name {
     grid-column: 1;
@@ -756,7 +753,6 @@
 
   @media (max-width: 1000px) {
     body { padding-bottom: calc(122px + env(safe-area-inset-bottom)); }
-    .examples button[aria-current="true"] .short { display: none; }
     .processes-grid { grid-template-columns: 1fr !important; }
     .narration-body.with-extras, .narration-body.with-extras.no-compare { grid-template-columns: 1fr; }
     .compare.full { grid-column: auto; grid-row: auto; margin: 7px 0 0; }
@@ -1170,7 +1166,7 @@ const EXAMPLES = [
       },
       {
         narration: "Las cuatro flechas cierran un ciclo: se sale de P1, se pasa por R1, se llega a P2, se pasa por R2 y se vuelve a P1.",
-        note: "Ninguno de los dos va a liberar lo que tiene, porque para liberarlo primero tendría que avanzar, y para avanzar necesita lo que tiene el otro.",
+        note: "Esto es un [[deadlock:deadlock]]: ninguno de los dos va a liberar lo que tiene, porque para liberarlo primero tendría que avanzar, y para avanzar necesita lo que tiene el otro.",
         graph: {
           states: { P1: "BLOCKED", P2: "BLOCKED" },
           held: { R1: ["P2"], R2: ["P1"] },
@@ -1233,7 +1229,7 @@ const EXAMPLES = [
         graph: { states: { P1: "RUNNING", P2: "BLOCKED", P3: "TERMINATED" }, held: { R1: ["P2", "P1"], R2: ["P1"] }, requests: [] }
       },
       {
-        narration: "P1 termina y libera todo. P2 toma R2, se desbloquea y también termina: los tres terminan.",
+        narration: "P1 termina y libera todo. P2 toma R2, se desbloquea y ya puede terminar: ninguno de los tres quedó trabado.",
         note: "El ciclo estaba dibujado y no había deadlock. Lo que lo sostenía era una instancia en manos de alguien que no esperaba nada.",
         graph: { states: { P1: "TERMINATED", P2: "RUNNING", P3: "TERMINATED" }, held: { R1: ["P2"], R2: ["P2"] }, requests: [] }
       }
@@ -1635,7 +1631,7 @@ const EXAMPLES = [
       },
       {
         stage: "grafo",
-        narration: "Del otro lado, el ciclo. P1 retiene RA y pide RB, así que la política pide que F(RB) sea mayor que F(RA).",
+        narration: "Del otro lado, la [[esperaCircular:espera circular]]. P1 retiene RA y pide RB, así que la política pide que F(RB) sea mayor que F(RA).",
         graph: { states: { P1: "BLOCKED", P2: "READY", P3: "READY" }, held: { RA: ["P1"], RB: ["P2"], RC: ["P3"] }, requests: [["P1", "RB"]] },
         inequalities: ["F(RB) > F(RA)"]
       },
@@ -1675,7 +1671,7 @@ const EXAMPLES = [
     number: 7,
     group: "evasion",
     title: "Lo que cada uno puede llegar a pedir",
-    short: "El máximo declarado",
+    short: "Lo que puede llegar a pedir",
     adds: "Agrega: estado seguro y secuencia segura, con un solo tipo de recurso.",
     subtitle: "Doce instancias, tres procesos, y la pregunta de si existe un orden en que todos terminen.",
     stepUnit: "Un paso = un paso del algoritmo",
@@ -1698,7 +1694,7 @@ const EXAMPLES = [
         ledger: [{ label: "Inicial", available: 3, act: "start" }]
       },
       {
-        narration: "A P2 le faltaban {P2_falta_antes} y había {disponible_antes}: alcanza. Se le dan, así que pasa a tener {P2_tiene} y quedan {disponible}.",
+        narration: "A P2 le faltaban {P2_falta_antes} y había {disponible_antes}: alcanza. Se le dan, así que pasa a tener {P2_tiene} y el disponible queda en {disponible}.",
         pool: { available: 1, rows: { P1: { assigned: 5, second: 10 }, P2: { assigned: 4, second: 4 }, P3: { assigned: 2, second: 9 } } },
         ledger: [{ label: "Inicial", available: 3, act: "start" }, { label: "Elijo P2", available: 1, act: "choose", who: "P2" }]
       },
@@ -1730,7 +1726,7 @@ const EXAMPLES = [
     number: 8,
     group: "evasion",
     title: "La petición que se bloquea con el recurso libre",
-    short: "La petición rechazada",
+    short: "Se bloquea con recurso libre",
     adds: "Agrega: que una petición válida y disponible puede rechazarse igual.",
     subtitle: "El mismo estado del ejemplo anterior, con una petición más de P3.",
     stepUnit: "Un paso = un paso del algoritmo",
@@ -1869,6 +1865,7 @@ const EXAMPLES = [
     closing: "El criterio es el mismo del ejemplo 7. Lo que cambia es que hay que mirar todos los recursos a la vez, y por eso hacen falta matrices.",
     processes: [{ id: "P1" }, { id: "P2" }, { id: "P3" }],
     matrices: { resources: ["R1", "R2", "R3"], total: [2, 3, 2] },
+    panelNotes: { ledger: "Es una simulación: las matrices siguen mostrando el estado que se evalúa." },
     variants: [
       {
         variantLabel: "Se concede",
@@ -1918,7 +1915,7 @@ const EXAMPLES = [
             ledger: [{ label: "Inicial", available: [0, 1, 1], act: "start" }]
           },
           {
-            narration: "A P3 le falta {P3_necesidad} y hay {disponible_antes}: se puede. Se lo elige, termina y devuelve todo lo que tenía.",
+            narration: "A P3 le falta {P3_necesidad} y hay {disponible}: se puede. La simulación lo elige, lo termina, y le devuelve al sistema todo lo que tenía.",
             pedido: [0, 1, 0],
             matrices: {
               max: { P1: [2, 0, 1], P2: [1, 3, 1], P3: [1, 1, 1] },
@@ -1929,7 +1926,7 @@ const EXAMPLES = [
             ledger: [{ label: "Inicial", available: [0, 1, 1], act: "start" }, { label: "Elijo P3", available: [0, 1, 0], act: "choose", who: "P3" }, { label: "Finaliza P3", available: [1, 2, 1], act: "finish", who: "P3" }]
           },
           {
-            narration: "Con eso alcanza para P2, que necesita {P2_necesidad}. Se lo elige, termina y devuelve todo.",
+            narration: "Con lo que devolvió P3 alcanza para P2, que necesita {P2_necesidad}. La simulación sigue: lo elige y también lo termina.",
             pedido: [0, 1, 0],
             matrices: {
               max: { P1: [2, 0, 1], P2: [1, 3, 1], P3: [1, 1, 1] },
@@ -1940,7 +1937,7 @@ const EXAMPLES = [
             ledger: [{ label: "Inicial", available: [0, 1, 1], act: "start" }, { label: "Elijo P3", available: [0, 1, 0], act: "choose", who: "P3" }, { label: "Finaliza P3", available: [1, 2, 1], act: "finish", who: "P3" }, { label: "Elijo P2", available: [0, 0, 1], act: "choose", who: "P2" }, { label: "Finaliza P2", available: [1, 3, 2], act: "finish", who: "P2" }]
           },
           {
-            narration: "Y queda P1, que necesita {P1_necesidad}. Termina, devuelve todo, y el disponible vuelve a ser {totales}: la secuencia P3, P2, P1 existe, así que la petición se concede.",
+            narration: "Y queda P1, que necesita {P1_necesidad}. La última fila de la simulación vuelve a {totales}, así que la secuencia P3, P2, P1 existe y la petición se concede.",
             note: "P3, P1, P2 también funciona. No hace falta encontrar todas: con que exista una, alcanza.",
             pedido: [0, 1, 0],
             matrices: {
@@ -2013,7 +2010,7 @@ const EXAMPLES = [
           },
           {
             narration: "No hay por dónde empezar, así que no hay secuencia segura: la petición se rechaza y P2 espera.",
-            note: "Basta con que falte un solo tipo de recurso. En {disponible} no entra ninguna de las tres necesidades, y con las matrices eso se ve de un vistazo.",
+            note: "Basta con que falte un solo tipo de recurso. En {disponible_antes}, que es lo que quedaba en la simulación, no entra ninguna de las tres necesidades.",
             pedido: [0, 2, 0],
             matrices: {
               max: { P1: [2, 0, 1], P2: [1, 3, 1], P3: [1, 1, 1] },
@@ -2106,7 +2103,7 @@ const EXAMPLES = [
     processes: [{ id: "P1" }, { id: "P2" }, { id: "P3" }],
     pool: { instances: 12, secondColumn: "ask" },
     compare: {
-      headers: ["Para elegir la víctima se mira", "Y eso dice"],
+      headers: ["Para elegir la [[victima:víctima]] se mira", "Y eso dice"],
       rows: [
         ["La prioridad y el tipo de proceso", "no es lo mismo finalizar un proceso del sistema que uno de usuario"],
         ["Cuánto hace que está ejecutando", "cuanto más lleva, más trabajo se pierde al finalizarlo"],
@@ -2237,7 +2234,7 @@ const EXAMPLES = [
           { narration: "Unidad 11. Avanza P1." },
           {
             narration: "Unidad 12. Avanza P2 y la detección corre una vez más: en doce unidades se ejecutó {corridas} veces.",
-            note: "Ese es el precio de esta frecuencia: {corridas} corridas del algoritmo a cambio de {trabado} unidad perdida."
+            note: "Ese es el precio de esta frecuencia: corridas del algoritmo, {corridas}; unidades trabado sin que nadie se entere, {trabado}."
           }
         ]
       },
@@ -2263,7 +2260,7 @@ const EXAMPLES = [
           { narration: "Unidad 11. Siguen trabados. Van {trabado} unidades sin que nadie lo note." },
           {
             narration: "Unidad 12. Recién ahora corre el algoritmo y encuentra el deadlock. Pasaron {trabado} unidades desde que se formó.",
-            note: "{corridas} corridas del algoritmo contra {trabado} unidades de recursos retenidos. Es la otra punta de la misma decisión."
+            note: "La otra punta de la misma decisión: corridas del algoritmo, {corridas}; unidades trabado sin que nadie se entere, {trabado}."
           }
         ]
       }
@@ -2308,7 +2305,7 @@ const EXAMPLES = [
           { narration: "Unidad 6. Siguen los dos bloqueados." },
           { narration: "Unidad 7. Siguen los dos bloqueados, cada uno con un recurso que el otro necesita." },
           {
-            narration: "Unidad 8. Terminó el horizonte y ninguno de los dos hizo nada desde la unidad 4.",
+            narration: "Unidad 8. Terminó el horizonte y ninguno de los dos hizo nada desde la unidad 5.",
             note: "Esto se ve desde afuera sin esfuerzo: los dos procesos figuran en BLOCKED."
           }
         ]
@@ -2327,7 +2324,7 @@ const EXAMPLES = [
           { narration: "Unidad 4. P2 ve que A está ocupado, suelta B y también reintenta." },
           { narration: "Unidad 5. P1 vuelve a tomar A, porque quedó libre." },
           { narration: "Unidad 6. P2 vuelve a tomar B." },
-          { narration: "Unidad 7. P1 encuentra B ocupado otra vez y vuelve a soltar A. Van dos vueltas idénticas." },
+          { narration: "Unidad 7. P1 encuentra B ocupado otra vez y vuelve a soltar A. Van dos vueltas idénticas, y a eso se le dice [[livelock:livelock]]." },
           {
             narration: "Unidad 8. P2 suelta B. Terminó el horizonte, ninguno entró nunca a su sección crítica, y los dos usaron la CPU todo el tiempo.",
             note: "Para que dejen de tropezarse alcanza con que los dos no esperen lo mismo antes de reintentar."
@@ -2340,7 +2337,7 @@ const EXAMPLES = [
     number: 15,
     group: "cierre",
     title: "En qué momento interviene cada una",
-    short: "En qué momento",
+    short: "En qué momento interviene",
     adds: "Agrega: las tres estrategias comparadas sobre el mismo pedido.",
     subtitle: "Un solo pedido de recurso, recorrido tres veces.",
     stepUnit: "Un paso = una estrategia",
@@ -2460,6 +2457,8 @@ const EXAMPLES = [
 </script>
 
 <script id="engine">
+const USED_TIPS = {};
+
 function fill(template, values) {
   return String(template).replace(/\{(\w+)\}/g, function (whole, key) {
     return values[key] === undefined ? whole : String(values[key]);
@@ -2638,6 +2637,15 @@ function buildSnapshots(example, variant) {
   });
 }
 
+function collectTipKeys(text, into) {
+  const pattern = /\[\[(\w+):/g;
+  let match = pattern.exec(text);
+  while (match) {
+    into[match[1]] = true;
+    match = pattern.exec(text);
+  }
+}
+
 function verifyTexts(example, variant, snapshots, problems) {
   const pieces = [];
   snapshots.forEach(function (snapshot, index) {
@@ -2656,6 +2664,12 @@ function verifyTexts(example, variant, snapshots, problems) {
   pieces.forEach(function (piece) {
     if (unresolved(piece.text)) problems.push("quedó un dato sin completar en la " + piece.where);
     if (unbalanced(piece.text)) problems.push("quedó una marca sin cerrar en la " + piece.where);
+    const keys = {};
+    collectTipKeys(piece.text, keys);
+    Object.keys(keys).forEach(function (key) {
+      if (!TOOLTIPS[key]) problems.push("la " + piece.where + " pide el globito " + key + ", que no existe");
+      USED_TIPS[key] = true;
+    });
   });
 }
 
@@ -3085,6 +3099,10 @@ BUILT_EXAMPLES.forEach(function (built) {
     console.error("Ejemplo " + built.example.number + ": " + problem);
   });
 });
+
+Object.keys(TOOLTIPS).forEach(function (key) {
+  if (!USED_TIPS[key]) console.error("El globito " + key + " está escrito y ninguna narración lo invoca");
+});
 </script>
 
 <script id="ui">
@@ -3119,7 +3137,6 @@ const BOX_TOP = 18;
 const NODE_RADIUS = 27;
 const NODE_CENTER_Y = 244;
 const EDGE_GAP = 3;
-const LABEL_OFFSET = 12;
 const LABEL_FRACTIONS = [0.5, 0.3, 0.7, 0.2, 0.8];
 
 const PANELS = {
@@ -3247,7 +3264,6 @@ function renderExampleList() {
     const button = element("button");
     button.type = "button";
     button.appendChild(element("span", "num", built.example.number));
-    button.appendChild(element("span", "short", built.example.short));
     button.title = built.example.short + " · " + built.example.adds;
     button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
     button.addEventListener("click", function () { selectExample(index); });
@@ -3860,19 +3876,6 @@ function renderLanes(snapshot) {
   }
 }
 
-function fitLadderLabels() {
-  const labels = dom.exampleList.querySelectorAll("button .short");
-  let widest = 0;
-  Array.prototype.forEach.call(labels, function (label) {
-    label.style.display = "inline";
-    label.style.width = "auto";
-    widest = Math.max(widest, label.getBoundingClientRect().width);
-    label.style.display = "";
-    label.style.width = "";
-  });
-  dom.exampleList.style.setProperty("--ladder-label", Math.ceil(widest) + "px");
-}
-
 function fitLaneLabels() {
   const lanes = panelRefs.lanes;
   if (!lanes) return;
@@ -4221,7 +4224,6 @@ Object.keys(PANELS).forEach(function (id) {
 });
 
 renderExampleList();
-fitLadderLabels();
 render();
 </script>
 </body>
