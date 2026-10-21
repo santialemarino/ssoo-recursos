@@ -1,0 +1,4290 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23b45309%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%229.5%22%20width%3D%2213%22%20height%3D%2213%22%20rx%3D%222.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%2F%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M13%209.5V5M19%209.5V5M13%2027v-4.5M19%2027v-4.5M9.5%2013H5M9.5%2019H5M27%2013h-4.5M27%2019h-4.5%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<title>Práctica avanzada de memoria</title>
+<style>
+  :root {
+    --ink: #10151d;
+    --ink-soft: #35404f;
+    --muted: #5f6877;
+    --faint: #6b7484;
+    --line: #e3e7ee;
+    --line-strong: #c6ccd8;
+    --page: #edf0f6;
+    --card: #ffffff;
+
+    --running: #1d4ed8;
+    --running-soft: #e8eefc;
+
+    --role-page: #6d28d9;
+    --role-page-soft: #f1ebfd;
+    --role-offset: #0b6a62;
+    --role-offset-soft: #e3f4f1;
+    --role-frame: #9a4507;
+    --role-frame-soft: #fdf1e3;
+    --role-segment: #be185d;
+    --role-segment-soft: #fce8f1;
+    --role-outer: #4338ca;
+    --role-outer-soft: #eceefd;
+    --role-pid: #475569;
+    --role-pid-soft: #eef1f5;
+    --role-flag: #35404f;
+    --role-flag-soft: #eef0f4;
+
+    --fault: #10151d;
+    --fault-soft: #eef0f4;
+
+
+    --marked: #1c2534;
+    --marked-soft: #e3e8f1;
+    --region-fill-alt: #f2f5f9;
+
+    --radius: 11px;
+    --shadow: 0 1px 2px rgba(16, 21, 29, 0.05), 0 1px 8px rgba(16, 21, 29, 0.04);
+    --fast: 160ms;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--page);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 10px 14px 12px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 640; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out, color var(--fast) ease-out, transform var(--fast) ease-out;
+  }
+
+  button:hover:not([disabled]) { border-color: var(--faint); }
+  button:active:not([disabled]) { transform: translateY(1px); }
+
+  button:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--marked);
+    outline-offset: 2px;
+  }
+
+  button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  header { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+
+  .head-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  header > h1 { font-size: 16px; letter-spacing: -0.012em; color: var(--ink-soft); }
+
+
+
+  .examples { display: flex; align-items: center; gap: 6px 0; flex-wrap: wrap; }
+  .examples .group { display: inline-flex; align-items: center; gap: 6px; }
+
+  .group-cap {
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 4px 0 8px;
+  }
+
+  .examples > .group:first-child .group-cap { padding-left: 0; }
+
+  .examples button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 8px;
+    font-size: 12.5px;
+    text-align: left;
+    box-shadow: var(--shadow);
+  }
+
+  .examples button .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .examples button[aria-current="true"] { background: var(--running); border-color: var(--running); color: #fff; }
+  .examples button[aria-current="true"] .num { background: rgba(0, 0, 0, 0.22); color: #fff; }
+
+  .examples button .done-mark {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .stack { display: grid; gap: 9px; min-height: 0; min-width: 0; }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .panel > h2 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 9px 12px 8px;
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+
+  .panel > h2::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line-strong);
+    flex: 0 0 auto;
+  }
+
+  .panel.address > h2::before, .panel.entry > h2::before { background: var(--running); }
+  .panel.calc > h2::before, .panel.clues > h2::before, .panel.log > h2::before { background: var(--ink-soft); }
+
+  .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; text-transform: inherit; white-space: nowrap; }
+  .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
+
+  .panel > h2 .panel-note {
+    margin-left: auto;
+    min-width: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--faint);
+    text-align: right;
+  }
+
+  .panel-body {
+    padding: 8px 11px;
+    overflow: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .bitlines { display: flex; flex-direction: column; gap: 12px; }
+
+  .bitline { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+
+  .bitline .caption {
+    flex: 0 0 52px;
+    padding-top: 6px;
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 750;
+    color: var(--faint);
+  }
+
+  .bitline .track { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; min-width: 0; flex: 1 1 auto; }
+
+  .fields-scroll { overflow-x: auto; max-width: 100%; padding: 2px 3px 3px; margin: -2px -3px -3px; }
+
+  .fields { display: flex; gap: 7px; align-items: flex-start; }
+
+  .field { display: flex; flex-direction: column; align-items: stretch; gap: 3px; border-radius: 5px; padding: 0 0 2px; }
+  .field.fresh { box-shadow: 0 0 0 2px var(--marked); }
+
+  .field .cells { display: flex; gap: 2px; }
+
+  .bit {
+    width: var(--bit-w, 19px);
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    border-top: 3px solid currentColor;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .bit.nibble { margin-left: 3px; }
+
+  .valuebox {
+    min-width: 58px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 11px;
+    border-radius: 5px;
+    border-top: 3px solid currentColor;
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 750;
+  }
+
+  .field .meta { display: flex; flex-direction: column; align-items: center; font-size: 11px; line-height: 1.25; font-weight: 700; white-space: nowrap; padding: 0 2px; }
+  .field .meta .sub { font-weight: 600; color: var(--muted); }
+
+  .role-page { color: var(--role-page); }
+  .role-page .bit, .role-page .valuebox { background: var(--role-page-soft); }
+  .role-offset { color: var(--role-offset); }
+  .role-offset .bit, .role-offset .valuebox { background: var(--role-offset-soft); }
+  .role-frame { color: var(--role-frame); }
+  .role-frame .bit, .role-frame .valuebox { background: var(--role-frame-soft); }
+  .role-segment { color: var(--role-segment); }
+  .role-segment .bit, .role-segment .valuebox { background: var(--role-segment-soft); }
+  .role-outer { color: var(--role-outer); }
+  .role-outer .bit, .role-outer .valuebox { background: var(--role-outer-soft); }
+  .role-pid { color: var(--role-pid); }
+  .role-pid .bit, .role-pid .valuebox { background: var(--role-pid-soft); }
+  .role-flag { color: var(--role-flag); }
+  .role-flag .bit, .role-flag .valuebox { background: var(--role-flag-soft); }
+  .role-whole { color: var(--ink-soft); }
+  .role-whole .bit, .role-whole .valuebox { background: var(--region-fill-alt); }
+
+  .field.unknown .bit, .field.unknown .valuebox { color: var(--muted); }
+
+  .total {
+    align-self: flex-start;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    padding-top: 1px;
+  }
+
+  .total .equals { font-family: var(--mono); font-size: 17px; font-weight: 750; line-height: 1.35; color: var(--ink); white-space: nowrap; }
+  .total .equals.pending { color: var(--muted); }
+  .total .sub { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .total.fresh .equals { box-shadow: 0 0 0 2px var(--marked); border-radius: 5px; padding: 0 6px; margin-left: -6px; }
+
+  .equation {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--ink-soft);
+    border-left: 3px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 2px 0 2px 9px;
+  }
+
+  .equation .mark { font-family: inherit; font-weight: 800; min-width: 1ch; }
+  .equation.ok { border-left-color: var(--ink); color: var(--ink); }
+  .equation.fail { border-left-color: var(--fault); border-left-style: dashed; color: var(--fault); }
+  .equation.fresh { background: var(--marked-soft); }
+
+  .verdict-line {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 9px;
+    border: 2px dashed var(--fault);
+    background: var(--fault-soft);
+    color: var(--fault);
+    border-radius: 7px;
+    padding: 4px 11px;
+    font-weight: 750;
+    font-size: 15px;
+  }
+
+  .verdict-line .mark { font-weight: 800; }
+
+  .table-group { display: flex; flex-wrap: wrap; gap: 14px 16px; align-items: flex-start; }
+  .table-block { min-width: 0; max-width: 100%; }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+  .table-block.active h3 { color: var(--ink); }
+  .table-block h3 { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); font-weight: 750; margin-bottom: 5px; }
+
+  .grid-table { border-collapse: separate; border-spacing: 0 3px; font-size: 14px; font-variant-numeric: tabular-nums; margin-top: -3px; }
+  .grid-table th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 750; padding: 0 11px 3px 7px; white-space: nowrap; border-bottom: 3px solid transparent; }
+  .grid-table th.role-page { border-bottom-color: var(--role-page); }
+  .grid-table th.role-frame { border-bottom-color: var(--role-frame); }
+  .grid-table th.role-segment { border-bottom-color: var(--role-segment); }
+  .grid-table th.role-pid { border-bottom-color: var(--role-pid); }
+  .grid-table th.role-offset { border-bottom-color: var(--role-offset); }
+  .grid-table th.role-outer { border-bottom-color: var(--role-outer); }
+  .grid-table td { padding: 2px 11px 2px 7px; font-family: var(--mono); font-size: 13.5px; white-space: nowrap; color: var(--ink-soft); }
+  .grid-table td.role-page { color: var(--role-page); font-weight: 700; }
+  .grid-table td.role-frame { color: var(--role-frame); font-weight: 700; }
+  .grid-table td.role-segment { color: var(--role-segment); font-weight: 700; }
+  .grid-table td.role-pid { color: var(--role-pid); font-weight: 700; }
+  .grid-table td.role-outer { color: var(--role-outer); font-weight: 700; }
+  .grid-table td.empty { color: var(--muted); font-weight: 400; }
+  .grid-table tr.focus td { background: var(--marked-soft); color: var(--ink); }
+  .grid-table tr.focus td.role-page, .grid-table tr.focus td.role-frame, .grid-table tr.focus td.role-segment, .grid-table tr.focus td.role-pid, .grid-table tr.focus td.role-outer { color: inherit; }
+  .grid-table tr.focus td:first-child { box-shadow: inset 3px 0 0 var(--marked); border-radius: 5px 0 0 5px; }
+  .grid-table tr.focus td:last-child { border-radius: 0 5px 5px 0; }
+  .grid-table tr.fault td { background: var(--fault-soft); color: var(--fault); }
+  .grid-table tr.fault td { font-weight: 750; }
+  .grid-table tr.fault td:first-child { box-shadow: inset 3px 0 0 var(--fault); border-radius: 5px 0 0 5px; }
+  .grid-table tr.fault td:last-child { border-radius: 0 5px 5px 0; }
+  .grid-table td.mark { box-shadow: inset 0 0 0 2px var(--marked); border-radius: 5px; background: var(--marked-soft); color: var(--ink); font-weight: 750; }
+  .grid-table tr.gap td { color: var(--muted); font-family: inherit; padding-top: 0; padding-bottom: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 3px 14px; margin-top: 9px; }
+  .legend .item { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); }
+  .legend .swatch { width: 14px; height: 10px; border-radius: 2px; border: 1px solid; flex: 0 0 auto; }
+  .legend .swatch.seg { border-color: var(--role-segment); background: var(--role-segment-soft); }
+  .legend .swatch.unknown { border-color: var(--line-strong); border-style: dashed; background: var(--card); }
+
+  .strip-wrap { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .strip { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 220px; border-radius: 6px; }
+
+  .block {
+    position: relative;
+    min-height: 26px;
+    border: 1.5px solid var(--line-strong);
+    border-top-width: 0.75px;
+    border-bottom-width: 0.75px;
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 2px 9px;
+    font-size: 12px;
+  }
+
+  .block:first-child { border-top-width: 1.5px; border-radius: 6px 6px 0 0; }
+  .block:last-child { border-bottom-width: 1.5px; border-radius: 0 0 6px 6px; }
+  .block .name { font-weight: 750; white-space: nowrap; }
+  .block .range { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+  .block.seg { background: var(--role-segment-soft); border-color: var(--role-segment); color: var(--role-segment); }
+  .block.unknown { border-style: dashed; color: var(--muted); }
+  .block.focus { box-shadow: inset 0 0 0 2px var(--marked); }
+
+  .block .marker {
+    position: absolute;
+    left: -1px;
+    right: -1px;
+    height: 0;
+    border-top: 2.5px solid var(--ink);
+    z-index: 2;
+  }
+
+  .block .marker.fail { border-top-style: dashed; border-top-color: var(--fault); }
+  .block .marker .pin {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -11px;
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 750;
+    border-radius: 4px;
+    padding: 2px 6px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .block .marker.fail .pin { background: var(--fault); }
+
+  .list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+
+  .list li {
+    display: flex;
+    gap: 9px;
+    align-items: baseline;
+    font-size: 13.5px;
+    line-height: 1.38;
+    border-left: 3px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 1px 0 1px 9px;
+    color: var(--ink-soft);
+  }
+
+  .list li.fresh { border-left-color: var(--marked); background: var(--marked-soft); color: var(--ink); }
+  .list li .n { font-size: 11px; font-weight: 750; color: var(--muted); min-width: 1.3em; font-variant-numeric: tabular-nums; }
+  .list li .state { margin-left: auto; padding-left: 8px; font-size: 11px; font-weight: 750; color: var(--muted); white-space: nowrap; }
+  .list li.used { color: var(--muted); }
+  .list li.used .state { color: var(--ink-soft); }
+  .empty-list { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+  footer { flex: 0 0 auto; display: block; min-height: 0; }
+
+  .narration-panel { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+
+  .narration-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 12px 7px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .narration-head .title { font-weight: 660; font-size: 14.5px; }
+  .narration-head .subtitle { font-size: 13px; color: var(--muted); flex: 1; min-width: 160px; }
+
+  .step-unit {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--page);
+    border-radius: 5px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  .narration-body {
+    padding: 9px 12px 4px;
+    flex: 1 1 auto;
+    min-height: 113px;
+    max-height: 170px;
+    overflow-y: auto;
+  }
+
+  .narration-body.with-extras {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.1fr) minmax(300px, 0.85fr);
+    gap: 6px 18px;
+    align-content: start;
+  }
+
+  .narration-body.with-extras.no-compare { grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr); }
+  .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr); }
+
+  .narration-extras { min-width: 0; min-height: 0; overflow-y: auto; }
+  .narration-main { min-width: 0; }
+
+  .narration-text { font-size: 15.5px; margin: 0; color: var(--ink); }
+  .narration-note { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
+
+  .takeaway {
+    padding: 7px 11px;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    animation: flash var(--fast) ease-out;
+  }
+
+  .takeaway .tag, .ask-box .tag {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .takeaway .line { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+  .ask-box { padding: 6px 11px 8px; border: 2px solid var(--ink); border-radius: 8px; }
+  .ask-box .question { font-size: 14.5px; font-weight: 700; margin: 0; }
+
+  .ask-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 7px; }
+
+  .ask-options button {
+    text-align: left;
+    padding: 5px 10px;
+    font-size: 13.5px;
+    font-weight: 620;
+    line-height: 1.3;
+    box-shadow: var(--shadow);
+  }
+
+  .ask-result { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .ask-result .answer { font-size: 13px; line-height: 1.38; margin: 0; color: var(--ink-soft); border-left: 3px solid var(--line-strong); padding: 1px 0 1px 9px; }
+  .ask-result .answer.right { border-left-color: var(--ink); }
+  .ask-result .answer.wrong { border-left-color: var(--fault); }
+  .ask-result .answer .head { display: block; font-weight: 750; color: var(--ink); }
+  .ask-result .answer.wrong .head { color: var(--fault); }
+  .ask-result .retry { align-self: flex-start; padding: 3px 10px; font-size: 12.5px; }
+
+  .compare { margin: 7px 0 0; overflow-x: auto; }
+  .compare.full { grid-column: 2; grid-row: 1; margin: 0; }
+  .compare table { border-collapse: collapse; font-size: 11.5px; line-height: 1.3; }
+  .compare th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 700; padding: 0 14px 4px 0; }
+  .compare td { padding: 2px 14px 2px 0; vertical-align: top; }
+  .compare tr + tr td { border-top: 1px solid var(--line); }
+  .compare td.label { color: var(--muted); }
+
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 4px 12px 0; }
+
+  .progress-track { flex: 1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--running);
+    border-radius: 2px;
+    transition: transform var(--fast) ease-out;
+    transform-origin: left center;
+  }
+
+  .progress { font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 12px 8px; }
+
+  .controls .big { padding: 7px 16px; font-size: 15px; font-weight: 640; }
+
+  .controls .big.primary { background: var(--running); border-color: var(--running); color: #fff; }
+  .controls .big.primary:hover:not([disabled]) { background: #1a45bd; border-color: #1a45bd; }
+  .controls .big.primary[disabled] { background: var(--running); border-color: var(--running); }
+  .controls .small { padding: 6px 11px; font-size: 13px; }
+
+  .tip {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    border-bottom: 1px dotted var(--running);
+    cursor: help;
+    border-radius: 0;
+  }
+
+  .tip:hover { border-bottom-style: solid; }
+
+  #tooltip {
+    position: fixed;
+    z-index: 20;
+    max-width: 330px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.42;
+    box-shadow: 0 6px 20px rgba(16, 21, 29, 0.3);
+    display: none;
+  }
+
+  #tooltip.open { display: block; animation: flash var(--fast) ease-out; }
+  #tooltip .tip-title { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  @keyframes flash {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 1239px) {
+    body { height: auto; overflow: auto; }
+    main { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; }
+    .stack { grid-template-rows: none !important; }
+    .panel-body { overflow: visible; }
+    .narration-body { overflow: visible; max-height: none; }
+    .strip { min-height: 300px; }
+  }
+
+  @media (max-width: 1000px) {
+    body { padding-bottom: calc(122px + env(safe-area-inset-bottom)); }
+    .narration-body.with-extras, .narration-body.with-extras.no-compare, .narration-body.with-extras.asking { grid-template-columns: 1fr; }
+    .compare.full { grid-column: auto; grid-row: auto; margin: 7px 0 0; }
+    .narration-extras { overflow: visible; }
+    .narration-head { flex-direction: column; align-items: flex-start; gap: 3px; }
+
+    .controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      background: var(--card);
+      border-top: 1px solid var(--line-strong);
+      box-shadow: 0 -2px 12px rgba(16, 21, 29, 0.08);
+      z-index: 10;
+    }
+
+    .controls .big, .controls .small { width: 100%; }
+    #playPause { display: none; }
+    #prevStep { order: 1; }
+    #nextStep { order: 2; }
+    #firstStep { order: 3; }
+    #lastStep { order: 4; }
+  }
+
+  @media (max-width: 700px) {
+    .ask-options { grid-template-columns: 1fr; }
+    .bitline { flex-direction: column; align-items: stretch; gap: 4px; }
+    .bitline .track { width: 100%; }
+    .bitline .caption { flex: 0 0 auto; padding-top: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1 id="pageTitle"></h1>
+  <div class="head-row">
+    <nav class="examples" id="exampleList" aria-label="Ejemplos"></nav>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  <section class="panel narration-panel">
+    <div class="narration-head">
+      <span class="title" id="exampleTitle"></span>
+      <span class="subtitle" id="exampleSubtitle"></span>
+      <span class="step-unit" id="stepUnit"></span>
+    </div>
+    <div class="narration-body" id="narrationPanel" aria-live="polite"></div>
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="controls">
+      <button type="button" class="small" id="firstStep"></button>
+      <button type="button" class="big" id="prevStep"></button>
+      <button type="button" class="big primary" id="nextStep"></button>
+      <button type="button" class="small" id="lastStep"></button>
+      <button type="button" class="small" id="playPause"></button>
+    </div>
+  </section>
+</footer>
+
+<div id="tooltip" role="tooltip"></div>
+<script id="data">
+const UI_TEXT = {
+  pageTitle: "Práctica avanzada de memoria",
+  progress: "paso {current} de {total}",
+  panels: {
+    address: "Dirección",
+    calc: "Cuentas",
+    log: "Resultados",
+    clues: "Pistas",
+    segmentTable: "Tabla de segmentos",
+    pageTable: "Tabla de páginas",
+    pageTables: "Tablas de páginas",
+    frames: "Marcos",
+    refs: "Referencias",
+    tlb: "TLB",
+    bitmap: "Bitmap de marcos libres",
+    memory: "Memoria física"
+  },
+  groups: { segmentacion: "Segmentación", sustitucion: "Sustitución", paginacion: "Paginación" },
+  firstStep: "Primero",
+  prevStep: "Anterior",
+  nextStep: "Siguiente",
+  lastStep: "Último",
+  play: "Reproducir",
+  pause: "Pausar",
+  takeawayTag: "Para llevarse",
+  captions: { logical: "Lógica", physical: "Física", first: "1ª", second: "2ª", third: "3ª" },
+  roles: { page: "página", offset: "desplazamiento", frame: "marco", segment: "segmento", outer: "1er nivel", whole: "dirección" },
+  bitsCount: "{n} bits",
+  oneBit: "1 bit",
+  unknownBits: "? bits",
+  unknownValue: "?",
+  valueIs: "= {value}",
+  pendingTotal: "= ?",
+  totalSub: "la dirección entera",
+  marks: { ok: "✓", fail: "✗" },
+  equations: {
+    limit: "Límite: {pagina} × {tam} + {desp} = {dentro} < {limite}",
+    limitFail: "Límite: {pagina} × {tam} + {desp} = {dentro} ≥ {limite}",
+    perm: "Permiso: {acceso} en un segmento {permiso}",
+    framePhysical: "Física: {marco} × {tam} + {desp} = {fisica}"
+  },
+  verdicts: {
+    segfault: "Segmentation fault: el byte {dentro} se sale del segmento {segmento}",
+    protection: "Error de protección: el segmento {segmento} no permite {acceso}"
+  },
+  access: { exec: "ejecución" },
+  perms: {
+    RW: { label: "RW-", allows: ["read", "write"] },
+    RWX: { label: "RWX", allows: ["read", "write", "exec"] },
+    RX: { label: "R-X", allows: ["read", "exec"] }
+  },
+  segmentCaption: "Segmento {n}",
+  columns: {
+    segment: "Seg.",
+    base: "Base",
+    limit: "Límite",
+    perms: "Permisos",
+    content: "Contenido",
+    page: "Pág.",
+    frame: "Marco",
+    use: "U",
+    mod: "M",
+    present: "P",
+    process: "Proceso",
+    holds: "Página",
+    before: "Antes",
+    after: "Después",
+    order: "Salió",
+    lastUse: "Último uso",
+    ref: "#",
+    address: "Dirección",
+    access: "Acceso",
+    result: "Resultado",
+    faults: "Fallos",
+    walks: "Tablas",
+    disk: "Disco",
+    entry: "Fila"
+  },
+  none: "—",
+  memory: { legendSeg: "segmento", legendUnknown: "no se sabe todavía" },
+  ask: { tag: "Antes de seguir", right: "Correcto.", wrong: "No es esa.", correctIs: "La que va: {text}.", retry: "Probar otra" },
+  clueUsed: "usada",
+  emptyLists: {
+    calc: "Las cuentas van apareciendo acá, una por paso.",
+    log: "Los resultados van apareciendo acá.",
+    address: "No hay ninguna dirección en curso."
+  }
+};
+
+const PANEL_TIPS = {
+  address: { title: "Dirección", body: "La dirección partida en sus campos, cada uno con su color: arriba la lógica, que es la que genera el proceso, y abajo la física, que es la que llega a la memoria. Debajo de cada campo, cuántos bits tiene y cuánto vale." },
+  calc: { title: "Cuentas", body: "Las cuentas que se van haciendo, en orden. La del paso actual está marcada." },
+  log: { title: "Resultados", body: "Lo que ya quedó resuelto, en orden: una línea por dirección o por algoritmo." },
+  clues: { title: "Pistas", body: "Lo que dice el enunciado. Cada pista se usa una vez, y queda marcada cuando ya se usó." },
+  segmentTable: { title: "Tabla de segmentos", body: "Una fila por segmento del proceso: dónde empieza o cuánto mide, y qué se puede hacer en él." },
+  pageTable: { title: "Tabla de páginas", body: "Una fila por página del proceso: en qué marco está y sus bits de control. Si P vale 0, el resto de la fila no significa nada." },
+  pageTables: { title: "Tablas de páginas", body: "Varias tablas lado a lado: una por proceso, por segmento o por nivel. La que se está consultando está marcada." },
+  frames: { title: "Marcos", body: "La memoria vista por marco: qué página tiene cada uno, con lo que el algoritmo de sustitución mira para elegir una víctima. Si el algoritmo tiene puntero, la flecha ◀ marca dónde está." },
+  refs: { title: "Referencias", body: "Las direcciones del enunciado, en el orden en que se usan, con lo que pasó en cada una." },
+  tlb: { title: "TLB", body: "Las traducciones que el procesador tiene guardadas: página, marco y de qué proceso es cada una. Valores en hexadecimal, como en el enunciado." },
+  bitmap: { title: "Bitmap de marcos libres", body: "Un bit por marco: 0 si está libre, 1 si está ocupado. Para asignar un marco se busca el primer 0." },
+  memory: { title: "Memoria física", body: "La memoria real como una tira de direcciones, de la 0000h arriba a la FFFFh abajo." }
+};
+
+const TOOLTIPS = {
+  segfault: { title: "Segmentation fault", body: "El error que genera el hardware cuando un proceso usa una dirección que no le pertenece. El sistema operativo normalmente finaliza al proceso." },
+  proteccion: { title: "Error de protección", body: "El acceso cae adentro del segmento, pero el segmento no permite esa operación: ejecutar datos, o escribir en código." },
+  fragExterna: { title: "Fragmentación externa", body: "Memoria libre que no le sirve a nadie porque está partida en huecos más chicos que lo que se pide." },
+  fragInterna: { title: "Fragmentación interna", body: "Memoria asignada a un proceso que el proceso no usa. En paginación es lo que sobra en la última página de cada segmento: como mucho, una página menos un byte." },
+  segPaginada: { title: "Segmentación paginada", body: "Cada segmento se parte en páginas, y cada segmento tiene su propia tabla de páginas. Primero se controla el segmento; después, la página." },
+  bitPresencia: { title: "Bit de presencia", body: "1 si la página está en un marco, 0 si está en disco. Si está en 0, el número de marco de esa fila no significa nada." },
+  bitUso: { title: "Bit de uso", body: "El hardware lo pone en 1 cada vez que se usa la página. Clock lo baja a 0 cuando el puntero pasa por encima." },
+  bitModificado: { title: "Bit de modificado", body: "El hardware lo pone en 1 cuando se escribe en la página. Si está en 1, antes de sacarla de memoria hay que escribirla en disco." },
+  fallo: { title: "Fallo de página", body: "Lo que pasa cuando el proceso usa una página válida que no está en memoria. El hardware interrumpe y el sistema operativo la trae del disco. En inglés, page fault." },
+  victima: { title: "Víctima", body: "La página que se saca de memoria para hacerle lugar a otra. La elige el algoritmo de sustitución." },
+  fifo: { title: "FIFO", body: "Saca la página que hace más tiempo que está cargada, aunque se use todo el tiempo." },
+  lru: { title: "LRU", body: "Saca la página que hace más tiempo que no se usa. Least Recently Used." },
+  optimo: { title: "Óptimo", body: "Saca la página que más va a tardar en volver a usarse. Necesita conocer el futuro: sirve para comparar, no para implementarlo." },
+  clock: { title: "Clock", body: "Un puntero recorre los marcos en ronda. Si el bit de uso está en 1, lo baja a 0 y sigue; si está en 0, ésa es la víctima." },
+  clockModificado: { title: "Clock modificado", body: "Mira el bit de uso y el de modificado. Primero busca (U = 0, M = 0) sin tocar nada; si no hay, busca (U = 0, M = 1) bajando a 0 los U por los que pasa; y si tampoco, vuelve a empezar." },
+  global: { title: "Sustitución global", body: "La víctima puede ser una página de cualquier proceso, no sólo del que tuvo el fallo." },
+  local: { title: "Sustitución local", body: "La víctima es siempre una página del mismo proceso que tuvo el fallo: el proceso no le quita marcos a nadie." },
+  belady: { title: "Anomalía de Belady", body: "Que con más marcos haya más fallos. Le puede pasar a FIFO; a LRU y al Óptimo, nunca." },
+  jerarquica: { title: "Paginación jerárquica", body: "La tabla de páginas partida en niveles: una tabla de 1er nivel cuyas filas apuntan a tablas de 2do nivel. Las de 2do nivel también son páginas: pueden no estar en memoria." },
+  tlb: { title: "TLB", body: "Una memoria chica y muy rápida dentro del procesador que guarda las últimas traducciones. Si la traducción está ahí, no hace falta recorrer las tablas." },
+  localidad: { title: "Localidad", body: "Espacial: si se usa una dirección, pronto se usan las que están cerca. Temporal: si se usa una dirección, pronto se vuelve a usar la misma." },
+  kib: { title: "KiB", body: "1 KiB son 1024 bytes, 2¹⁰. 1 MiB son 2²⁰ bytes y 1 GiB, 2³⁰. Con potencias de dos las cuentas cierran exactas." },
+  bajoDemanda: { title: "Paginación bajo demanda", body: "Una página se trae a memoria recién cuando se la usa. El proceso ejecuta con sólo algunas de sus páginas cargadas; las demás esperan en disco." }
+};
+
+const EXAMPLES = [
+  {
+    number: 1,
+    group: "segmentacion",
+    source: "Guía de ejercicios, ejercicio 11",
+    title: "La tabla al revés",
+    short: "La tabla al revés",
+    adds: "Reconstruir la tabla de segmentos a partir de traducciones conocidas.",
+    subtitle: "Guía de ejercicios, ejercicio 11. 64 KiB de memoria, segmentación pura, un proceso con tres segmentos. No se tiene la tabla: se tienen pistas.",
+    stepUnit: "Un paso = una pista",
+    canvas: { columns: "minmax(0, 0.72fr) minmax(0, 1.3fr) minmax(0, 0.68fr)", panels: ["clues", ["address", "segmentTable"], "memory"], stackRows: "auto minmax(0, 1fr)" },
+    clues: [
+      "200Ah es del segmento 1.",
+      "000Eh va a la física 0FAFh.",
+      "4077h va a la física FFF7h.",
+      "201Eh va a la física 0FFFh.",
+      "201Fh da segmentation fault.",
+      "Escribir en 200Ch da error de modo de acceso.",
+      "Los segmentos 0 y 1 están pegados; el 2, al final de la memoria."
+    ],
+    closing: "Cada traducción conocida es una cuenta al revés: base = física − desplazamiento. El segmentation fault marca dónde termina el segmento.",
+    steps: [
+      {
+        narration: "Con 64 KiB de memoria las direcciones son de 16 bits. Lo que no se sabe es cuántos de esos bits son el número de segmento. La primera pista lo dice: 200Ah es del segmento 1.",
+        views: {
+          address: { lines: [{ caption: "logical", hex: 4, value: 8202, fields: [{ role: "whole", bits: 16, value: 8202 }] }] },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], rows: [["0", "?", "?"], ["1", "?", "?"], ["2", "?", "?"]] }] },
+          memory: { kind: "strip", size: 65536, unit: "hex", digits: 4, blocks: [{ start: 0, size: 65536, label: "", kind: "unknown" }] }
+        },
+        ask: {
+          question: "200Ah es 0010 0000 0000 1010. ¿Cuántos bits de la izquierda son el número de segmento?",
+          correct: "three",
+          options: [
+            { id: "three", text: "3 bits", why: "Los tres primeros son 001: segmento 1, como dice la pista." },
+            { id: "two", text: "2 bits", why: "Los dos primeros son 00: sería el segmento 0, y la pista dice 1." },
+            { id: "four", text: "4 bits", why: "Los cuatro primeros son 0010: sería el segmento 2." }
+          ]
+        }
+      },
+      {
+        clue: 0,
+        narration: "3 bits de segmento y 13 de desplazamiento: 200Ah es segmento 1, desplazamiento 00Ah. Un segmento puede medir hasta 2¹³ bytes, 8 KiB.",
+        views: { address: { lines: [{ caption: "logical", hex: 4, value: 8202, fields: [{ role: "segment", bits: 3, value: 1 }, { role: "offset", bits: 13, value: 10 }] }] } }
+      },
+      {
+        clue: 1,
+        narration: "000Eh es segmento 0, desplazamiento 0Eh, y va a 0FAFh. Si física = base + desplazamiento, la base es la física menos el desplazamiento: 0FAFh − 0Eh = 0FA1h.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", hex: 4, value: 14, fields: [{ role: "segment", bits: 3, value: 0 }, { role: "offset", bits: 13, value: 14 }] },
+              { kind: "equation", status: "ok", text: "Base 0 = 0FAFh − 000Eh = 0FA1h" }
+            ]
+          },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], highlight: [0], rows: [["0", "0FA1h", "?"], ["1", "?", "?"], ["2", "?", "?"]] }] }
+        }
+      },
+      {
+        clue: 3,
+        narration: "201Eh es segmento 1, desplazamiento 1Eh, y va a 0FFFh. Base del 1: 0FFFh − 1Eh = 0FE1h.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", hex: 4, value: 8222, fields: [{ role: "segment", bits: 3, value: 1 }, { role: "offset", bits: 13, value: 30 }] },
+              { kind: "equation", status: "ok", text: "Base 1 = 0FFFh − 001Eh = 0FE1h" }
+            ]
+          },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], highlight: [1], rows: [["0", "0FA1h", "?"], ["1", "0FE1h", "?"], ["2", "?", "?"]] }] }
+        }
+      },
+      {
+        clue: 4,
+        narration: "201Fh es el desplazamiento siguiente, 1Fh, y da [[segfault:segmentation fault]]: 1Eh está adentro y 1Fh ya no. El segmento 1 mide 1Fh bytes, del 00h al 1Eh, y termina justo en 0FFFh.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", hex: 4, value: 8223, fields: [{ role: "segment", bits: 3, value: 1 }, { role: "offset", bits: 13, value: 31 }] },
+              { kind: "equation", status: "ok", text: "Largo 1 = 1Fh: el 1Eh vale y el 1Fh no" }
+            ]
+          },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], highlight: [1], rows: [["0", "0FA1h", "?"], ["1", "0FE1h", "1Fh"], ["2", "?", "?"]] }] },
+          memory: {
+            kind: "strip",
+            size: 65536,
+            unit: "hex",
+            digits: 4,
+            highlight: [1],
+            blocks: [{ start: 0, size: 4065, label: "", kind: "unknown" }, { start: 4065, size: 31, label: "Seg 1", kind: "seg" }, { start: 4096, size: 61440, label: "", kind: "unknown" }]
+          }
+        }
+      },
+      {
+        clue: 6,
+        narration: "El 0 empieza en 0FA1h, antes que el 1, y están pegados: el 0 termina donde empieza el 1. Su largo es 0FE1h − 0FA1h = 40h.",
+        views: {
+          address: { lines: [{ kind: "equation", status: "ok", text: "Largo 0 = 0FE1h − 0FA1h = 40h" }] },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], highlight: [0], rows: [["0", "0FA1h", "40h"], ["1", "0FE1h", "1Fh"], ["2", "?", "?"]] }] },
+          memory: {
+            kind: "strip",
+            size: 65536,
+            unit: "hex",
+            digits: 4,
+            highlight: [1],
+            blocks: [
+              { start: 0, size: 4001, label: "", kind: "unknown" },
+              { start: 4001, size: 64, label: "Seg 0", kind: "seg" },
+              { start: 4065, size: 31, label: "Seg 1", kind: "seg" },
+              { start: 4096, size: 61440, label: "", kind: "unknown" }
+            ]
+          }
+        }
+      },
+      {
+        clue: 2,
+        narration: "4077h empieza con 010: segmento 2, desplazamiento 077h, y va a FFF7h. Base: FFF7h − 77h = FF80h. Y como el 2 está al final de la memoria, termina en FFFFh: largo 10000h − FF80h = 80h.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", hex: 4, value: 16503, fields: [{ role: "segment", bits: 3, value: 2 }, { role: "offset", bits: 13, value: 119 }] },
+              { kind: "equation", status: "ok", text: "Base 2 = FFF7h − 0077h = FF80h" },
+              { kind: "equation", status: "ok", text: "Largo 2 = 10000h − FF80h = 80h" }
+            ]
+          },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], highlight: [2], rows: [["0", "0FA1h", "40h"], ["1", "0FE1h", "1Fh"], ["2", "FF80h", "80h"]] }] },
+          memory: {
+            kind: "strip",
+            size: 65536,
+            unit: "hex",
+            digits: 4,
+            highlight: [4],
+            blocks: [
+              { start: 0, size: 4001, label: "", kind: "unknown" },
+              { start: 4001, size: 64, label: "Seg 0", kind: "seg" },
+              { start: 4065, size: 31, label: "Seg 1", kind: "seg" },
+              { start: 4096, size: 61312, label: "", kind: "unknown" },
+              { start: 65408, size: 128, label: "Seg 2", kind: "seg" }
+            ]
+          }
+        }
+      },
+      {
+        narration: "La tabla está completa. Queda una pista: escribir en 200Ch da error de modo de acceso.",
+        views: {
+          address: { lines: [{ caption: "logical", hex: 4, value: 8204, fields: [{ role: "segment", bits: 3, value: 1 }, { role: "offset", bits: 13, value: 12 }] }] },
+          segmentTable: { tables: [{ columns: ["segment", "base", "limit"], roles: ["segment", null, null], rows: [["0", "0FA1h", "40h"], ["1", "0FE1h", "1Fh"], ["2", "FF80h", "80h"]] }] }
+        },
+        ask: {
+          question: "¿Cuál es, posiblemente, el segmento de código?",
+          correct: "one",
+          options: [
+            { id: "one", text: "El 1", why: "200Ch es del segmento 1, y escribir ahí no está permitido. La pila y los datos se escriben todo el tiempo; el código no." },
+            { id: "zero", text: "El 0", why: "La pista que lo decide es la de la escritura, y 200Ch es del segmento 1." },
+            { id: "two", text: "El 2", why: "4077h es del 2, pero la pista de la escritura habla de 200Ch, que es del 1." }
+          ]
+        }
+      },
+      {
+        clue: 5,
+        narration: "200Ch es del segmento 1, y escribir en él no está permitido: es un [[proteccion:error de protección]]. De los tres, el que no se escribe nunca es el código: el segmento 1 es el código. Y como todo esquema de segmentación pura, éste genera [[fragExterna:fragmentación externa]]: los segmentos miden lo que miden, y entre ellos quedan huecos.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", hex: 4, value: 8204, fields: [{ role: "segment", bits: 3, value: 1 }, { role: "offset", bits: 13, value: 12 }] },
+              { kind: "equation", status: "fail", text: "Escritura en el segmento 1: no permitida" }
+            ]
+          },
+          segmentTable: {
+            tables: [
+              {
+                columns: ["segment", "content", "base", "limit"],
+                roles: ["segment", null, null, null],
+                highlight: [1],
+                rows: [["0", "pila o datos", "0FA1h", "40h"], ["1", "código", "0FE1h", "1Fh"], ["2", "pila o datos", "FF80h", "80h"]]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    number: 2,
+    group: "segmentacion",
+    source: "1er recuperatorio 2C2025",
+    title: "Segmentación paginada, para ejecutar",
+    short: "Segmentación paginada",
+    adds: "Sacar los bits de las notas, y controlar límite y permiso antes de buscar la página.",
+    subtitle: "1er recuperatorio 2C2025. Segmentación paginada, direcciones lógicas de 20 bits, y cuatro referencias para ejecución.",
+    stepUnit: "Un paso = una parte de la traducción",
+    stepUnitNote: "La unidad cambia: un paso es una parte de la traducción —partir la dirección, controlar el límite, el permiso, buscar la página—.",
+    canvas: { columns: "minmax(0, 1fr) minmax(0, 0.55fr) minmax(0, 1.1fr)", panels: ["address", "segmentTable", "pageTables"] },
+    machine: {
+      type: "segPaging",
+      segBits: 3,
+      pageBits: 7,
+      offsetBits: 10,
+      access: "exec",
+      segments: [
+        { limit: 15483, perm: "RW", pages: { "3": 12, "4": 5, "5": 7, "6": 4, "7": 43, "8": 11 } },
+        { limit: 10295, perm: "RWX", pages: { "0": 22, "1": 21, "2": 42, "3": 10, "4": 9, "5": 33 } },
+        { limit: 20480, perm: "RX", pages: { "7": 31, "8": 35, "9": 2, "10": 0, "11": 6, "12": 23 } },
+        { limit: 12285, perm: "RX", pages: { "4": 45, "5": 41, "6": 39, "7": 18, "8": 19, "9": 24 } }
+      ]
+    },
+    closing: "En segmentación paginada se controla el segmento antes que la página: primero el límite, después el permiso, y recién si pasan los dos, la tabla de páginas del segmento da el marco.",
+    steps: [
+      {
+        phase: "table",
+        narration: "[[segPaginada:Segmentación paginada]]: cada segmento tiene su tabla de páginas. Para traducir hay que saber cuántos bits tiene cada parte de la dirección, y el enunciado lo da de forma indirecta. Primera nota: la [[fragInterna:fragmentación interna]] máxima es de 1023 bytes.",
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "segment" }, { role: "page" }, { role: "offset" }] }] } },
+        ask: {
+          question: "Si la fragmentación interna máxima es de 1023 bytes, ¿cuánto mide una página?",
+          correct: "kib",
+          options: [
+            { id: "kib", text: "1024 bytes", why: "En el peor caso la última página de un segmento usa un solo byte y desperdicia el resto: página − 1 = 1023." },
+            { id: "same", text: "1023 bytes", why: "1023 es lo que se puede desperdiciar como mucho, y la última página usa al menos un byte: la página mide uno más." },
+            { id: "double", text: "2048 bytes", why: "Con páginas de 2048 se podrían desperdiciar hasta 2047 bytes." }
+          ]
+        }
+      },
+      {
+        phase: "table",
+        narration: "Página de 1024 bytes: *10 bits* de desplazamiento. Un segmento tiene hasta 128 páginas: *7 bits* de página. De los 20 bits quedan *3* para el segmento.",
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "segment", bits: 3 }, { role: "page", bits: 7 }, { role: "offset", bits: 10 }] }] } }
+      },
+      {
+        address: 135145,
+        phase: "ask",
+        narration: "Las referencias son para *ejecución*: además del límite, cada una tiene que caer en un segmento que permita ejecutar. Las tablas de páginas no están enteras: el enunciado muestra sólo algunas filas. Primera dirección: 135145.",
+        ask: {
+          question: "¿De qué segmento es 135145?",
+          correct: "one",
+          options: [
+            { id: "one", text: "Del 1", why: "Cada segmento ocupa 2¹⁷ = 131072 direcciones lógicas: 135145 ÷ 131072 = 1, y sobran 4073." },
+            { id: "zero", text: "Del 0", why: "Para ser del segmento 0 tendría que ser menor que 131072." },
+            { id: "thirteen", text: "Del 13", why: "135145 ÷ 10295 da 13, pero el límite no parte la dirección: la parten los bits. Y con 3 bits hay segmentos del 0 al 7." }
+          ]
+        }
+      },
+      { phase: "split", narration: "135145 = 1 × 131072 + 4073: segmento {segmento}. Y 4073 = 3 × 1024 + 1001: página {pagina}, desplazamiento {desp}." },
+      { phase: "perm", narration: "El byte que se pide es el {dentro} del segmento, y el segmento {segmento} mide {limite}: está adentro. Además es {permiso}: se puede ejecutar." },
+      { phase: "compose", expect: 11241, narration: "La tabla del segmento {segmento} dice que la página {pagina} está en el marco {marco}. Física: {marco} × 1024 + {desp} = *{fisica}*." },
+      {
+        address: 405707,
+        phase: "ask",
+        narration: "Segunda: 405707.",
+        ask: {
+          question: "¿Qué pasa con 405707?",
+          correct: "segfault",
+          options: [
+            { id: "segfault", text: "Segmentation fault", why: "405707 = 3 × 131072 + 12491: segmento 3, byte 12491. El segmento 3 mide 12285: se sale." },
+            { id: "protection", text: "Error de protección", why: "El segmento 3 es R-X: ejecutar está permitido. El problema está antes, en el límite." },
+            {
+              id: "fault",
+              text: "Fallo de página",
+              why: "Un fallo de página es de una página válida que no está en memoria. Ésta ni siquiera es parte del segmento: el límite la frena antes."
+            }
+          ]
+        }
+      },
+      { phase: "split", narration: "405707 = 3 × 131072 + 12491: segmento {segmento}. 12491 = 12 × 1024 + 203: página {pagina}, desplazamiento {desp}." },
+      {
+        phase: "limit",
+        expect: "segfault",
+        narration: "El byte {dentro} no entra en un segmento de {limite}: [[segfault:segmentation fault]]. La traducción se corta acá: no se mira el permiso ni la tabla de páginas.",
+        note: "Por eso la página 12 no aparece en la tabla del segmento 3: con 12285 bytes, el segmento tiene páginas de la 0 a la 11."
+      },
+      { address: 270340, phase: "split", narration: "Tercera: 270340 = 2 × 131072 + 8196, segmento {segmento}. Y 8196 = 8 × 1024 + 4: página {pagina}, desplazamiento {desp}." },
+      { phase: "perm", narration: "{dentro} < {limite}: está adentro. El segmento {segmento} es {permiso}: se puede ejecutar." },
+      { phase: "compose", expect: 35844, narration: "Página {pagina} del segmento {segmento}: marco {marco}. Física: {marco} × 1024 + {desp} = *{fisica}*." },
+      {
+        address: 6032,
+        phase: "ask",
+        narration: "Última: 6032.",
+        ask: {
+          question: "¿Qué pasa con 6032?",
+          correct: "protection",
+          options: [
+            {
+              id: "protection",
+              text: "Error de protección",
+              why: "6032 es del segmento 0, página 5, desplazamiento 912. Está adentro del límite, pero el segmento 0 es RW-: no se puede ejecutar."
+            },
+            {
+              id: "physical",
+              text: "Va a la física 8080",
+              why: "Es lo que daría la tabla —página 5, marco 7: 7 × 1024 + 912—, pero antes hay que pasar los controles, y el de permiso falla."
+            },
+            { id: "segfault", text: "Segmentation fault", why: "6032 es menor que 15483: está adentro del segmento 0." }
+          ]
+        }
+      },
+      { phase: "split", narration: "6032 es menor que 131072: segmento {segmento}. 6032 = 5 × 1024 + 912: página {pagina}, desplazamiento {desp}." },
+      {
+        phase: "perm",
+        expect: "protection",
+        narration: "{dentro} < {limite}: el límite pasa. Pero el segmento {segmento} es {permiso}, sin X: [[proteccion:error de protección]]. Tampoco se llega a la tabla de páginas."
+      },
+      {
+        phase: "perm",
+        narration: "Dos direcciones llegan a la memoria: 135145 va a *11241* y 270340 a *35844*. Las otras dos se frenan en los controles del segmento, antes de la tabla de páginas: 405707 por el límite y 6032 por el permiso."
+      }
+    ]
+  },
+  {
+    number: 3,
+    group: "sustitucion",
+    source: "Guía de parciales, ejercicio 2",
+    title: "¿Qué algoritmo fue?",
+    short: "¿Qué algoritmo fue?",
+    adds: "Leer las víctimas en el estado final, y probar cada algoritmo contra ellas.",
+    subtitle: "Guía de parciales, ejercicio 2. Paginación bajo demanda, marcos de 2 KiB, direcciones de 16 bits y 3 marcos fijos. La página 2 es la que hace más tiempo que está cargada.",
+    stepUnit: "Un paso = una deducción",
+    stepUnitNote: "La unidad cambia: un paso es una deducción, o probar un algoritmo.",
+    canvas: { columns: "minmax(0, 1.22fr) minmax(0, 0.52fr) minmax(0, 0.93fr)", panels: ["address", "pageTable", ["frames", "log"]], stackRows: "auto minmax(0, 1fr)" },
+    facts: [
+      {
+        kind: "replacement",
+        algorithm: "fifo",
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expect: { pages: [1, 4, 0], victims: [2, 0, 3] }
+      },
+      {
+        kind: "replacement",
+        algorithm: "lru",
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expect: { pages: [1, 4, 0], victims: [2, 0, 3] }
+      },
+      {
+        kind: "replacement",
+        algorithm: "clock",
+        pointer: 0,
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expect: { pages: [1, 4, 0], victims: [2, 0, 3] }
+      },
+      {
+        kind: "replacement",
+        algorithm: "optimal",
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expectNot: { pages: [1, 4, 0] }
+      },
+      {
+        kind: "replacement",
+        algorithm: "clockModified",
+        pointer: 0,
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expectNot: { pages: [1, 4, 0] }
+      },
+      {
+        kind: "replacement",
+        algorithm: "clockModified",
+        pointer: 1,
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expectNot: { pages: [1, 4, 0] }
+      },
+      {
+        kind: "replacement",
+        algorithm: "clockModified",
+        pointer: 2,
+        slots: [{ page: 2, u: 1, m: 1, loaded: 1, used: 1 }, { page: 0, u: 1, m: 0, loaded: 2, used: 2 }, { page: 3, u: 1, m: 0, loaded: 3, used: 3 }],
+        refs: [{ page: 1 }, { page: 4 }, { page: 0, write: true }],
+        expectNot: { pages: [1, 4, 0] }
+      }
+    ],
+    closing: "Primero, las víctimas salen del estado final. Después, cada algoritmo se prueba contra esas víctimas.",
+    steps: [
+      {
+        narration: "Marcos de 2 KiB = 2¹¹ bytes: *11 bits* de desplazamiento. Las direcciones son de 16 bits: quedan *5 bits* de página. De la tabla sólo cuentan las filas con [[bitPresencia:P = 1]]: la página 0 está en el marco 4, la 2 en el 3 y la 3 en el 7.",
+        views: {
+          address: {
+            lines: [
+              { caption: "first", hex: 4, value: 2115, fields: [{ role: "page", bits: 5 }, { role: "offset", bits: 11 }] },
+              { caption: "second", hex: 4, value: 8482, fields: [{ role: "page", bits: 5 }, { role: "offset", bits: 11 }] },
+              { caption: "third", hex: 4, value: 634, fields: [{ role: "page", bits: 5 }, { role: "offset", bits: 11 }] }
+            ]
+          },
+          pageTable: {
+            tables: [
+              {
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [0, 2, 3],
+                rows: [["0", "4", "1", "0", "1"], ["1", "4", "1", "0", "0"], ["2", "3", "1", "1", "1"], ["3", "7", "1", "0", "1"], ["4", "7", "1", "0", "0"], ["5", "7", "1", "1", "0"]]
+              }
+            ]
+          },
+          frames: { tables: [{ columns: ["frame", "before", "after"], roles: ["frame", "page", "page"], rows: [["3", "2", "?"], ["4", "0", "?"], ["7", "3", "?"]] }] }
+        },
+        ask: {
+          question: "0843h es 0000 1000 0100 0011. ¿De qué página es?",
+          correct: "one",
+          options: [
+            { id: "one", text: "De la 1", why: "Los 5 bits de la izquierda son 00001: página 1." },
+            { id: "eight", text: "De la 8", why: "Eso es tomar la primera cifra hexa, 08h, como página. Pero la página son 5 bits, no 8." },
+            { id: "zero", text: "De la 0", why: "La primera cifra hexa es 0, pero la página son los 5 primeros bits: 00001." }
+          ]
+        }
+      },
+      {
+        narration: "0843h es la página 1, que no está: [[fallo:fallo de página]]. 2122h empieza con 00100: página 4, que tampoco está, otro fallo. 027Ah empieza con 00000: página 0, que hoy está; si sigue estando cuando llegue, depende del algoritmo.",
+        views: {
+          address: {
+            lines: [
+              { caption: "first", hex: 4, value: 2115, fields: [{ role: "page", bits: 5, value: 1 }, { role: "offset", bits: 11, value: 67 }] },
+              { caption: "second", hex: 4, value: 8482, fields: [{ role: "page", bits: 5, value: 4 }, { role: "offset", bits: 11, value: 290 }] },
+              { caption: "third", hex: 4, value: 634, fields: [{ role: "page", bits: 5, value: 0 }, { role: "offset", bits: 11, value: 634 }] }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Después de las tres referencias, el enunciado da cómo quedan los marcos: el 3 tiene la 1, el 4 tiene la 4 y el 7 tiene la 0.",
+        views: { frames: { tables: [{ columns: ["frame", "before", "after"], roles: ["frame", "page", "page"], rows: [["3", "2", "1"], ["4", "0", "4"], ["7", "3", "0"]] }] } },
+        ask: {
+          question: "La página 0 estaba en el marco 4 y terminó en el 7. ¿Qué dice eso?",
+          correct: "reload",
+          options: [
+            {
+              id: "reload",
+              text: "Que salió y volvió a entrar",
+              why: "Una página no se muda de marco: si ahora está en otro, es que fue víctima y se volvió a cargar. 027Ah también fue un fallo."
+            },
+            {
+              id: "moved",
+              text: "Que se movió de marco",
+              why: "El sistema operativo no muda páginas de un marco a otro: para cambiar de marco, una página tiene que salir y volver a entrar."
+            },
+            { id: "hit", text: "Que 027Ah no fue un fallo", why: "Si no hubiera sido un fallo, la 0 seguiría en el marco 4." }
+          ]
+        }
+      },
+      {
+        narration: "Tres fallos, y las [[victima:víctimas]] se leen en la tabla: la 1 entró al marco 3, que tenía la 2; la 4 entró al 4, que tenía la 0; y la 0 volvió al 7, que tenía la 3. Las víctimas fueron, en orden, *2, 0 y 3*. Ahora hay que ver qué algoritmo elige exactamente ésas.",
+        views: {
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "before", "after", "order"],
+                roles: ["frame", "page", "page", null],
+                highlight: [0, 1, 2],
+                rows: [["3", "2", "1", "1º"], ["4", "0", "4", "2º"], ["7", "3", "0", "3º"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "[[fifo:FIFO]] saca la que hace más tiempo que está cargada. La 2 es la más vieja: lo dice el enunciado. Después saca la 0 si se cargó antes que la 3 —no se sabe, así que puede ser—, y por último la 3, que ya es la más vieja de las que quedan.",
+        log: ["FIFO: *puede ser*, si la 0 se cargó antes que la 3"],
+        views: {
+          frames: {
+            tables: [{ columns: ["frame", "before", "after", "order"], roles: ["frame", "page", "page", null], rows: [["3", "2", "1", "1º"], ["4", "0", "4", "2º"], ["7", "3", "0", "3º"]] }]
+          }
+        }
+      },
+      {
+        narration: "[[lru:LRU]] saca la que hace más tiempo que no se usa. Los bits de uso están todos en 1 y no dicen el orden. Si el último uso fue la 2, después la 0 y después la 3, saca la 2; después, entre la 0, la 3 y la 1 recién usada, saca la 0; y al volver la 0, entre la 3, la 1 y la 4, saca la 3.",
+        log: ["LRU: *puede ser*, si se usaron 2, 0, 3 en ese orden"],
+        ask: {
+          question: "¿Pudo ser el Óptimo?",
+          correct: "no",
+          options: [
+            { id: "no", text: "No", why: "Cuando llega la 4, la referencia siguiente es justo a la 0. El Óptimo saca la que más tarda en volver a usarse: nunca sacaría la 0." },
+            { id: "yes", text: "Sí", why: "La primera víctima, la 2, sí es la que elegiría. Pero mirá la segunda: la 0 se usa en la referencia que viene." }
+          ]
+        }
+      },
+      {
+        narration: "El [[optimo:Óptimo]] no: cuando llega la 4, la 0 es la página que se usa enseguida, y la sacaría última. Elegiría la 1 o la 3, que no se vuelven a usar.",
+        log: ["Óptimo: *no*, no saca la 0 justo antes de usarla"]
+      },
+      {
+        narration: "[[clock:Clock]] avanza el puntero bajando [[bitUso:bits de uso]] hasta encontrar uno en 0. Con todos en 1, da la vuelta entera, los baja y saca aquel donde empezó. Si el puntero arrancó en el marco 3: saca la 2; avanza al 4, que ya tiene el bit en 0: saca la 0; avanza al 7: saca la 3.",
+        note: "Se supone que el puntero recorre los marcos en orden: 3, 4, 7.",
+        log: ["Clock: *puede ser*, con el puntero en el marco 3"],
+        ask: {
+          question: "¿Pudo ser Clock modificado?",
+          correct: "no",
+          options: [
+            { id: "no", text: "No", why: "La 2 es la única con M = 1. Clock modificado prefiere las que no hay que escribir: la 0 y la 3 salen antes que la 2." },
+            {
+              id: "yes",
+              text: "Sí, con el puntero en el 3",
+              why: "Arranca por la 2, pero busca (U = 0, M = 0) y la 2 es (1, 1). En la segunda vuelta la baja a (0, 1), y tampoco es lo que busca primero."
+            }
+          ]
+        }
+      },
+      {
+        narration: "[[clockModificado:Clock modificado]] no: busca primero (U = 0, M = 0). Todas tienen U = 1, así que la segunda vuelta baja los bits de uso; después la 0 y la 3 quedan en (0, 0) y la 2 en (0, 1). Arranque donde arranque el puntero, la primera víctima es la 0 o la 3, nunca la 2.",
+        log: ["Clock modificado: *no*, sólo la 2 tiene [[bitModificado:M = 1]]"]
+      },
+      { narration: "Pueden haber sido FIFO, LRU o Clock. El Óptimo y Clock modificado, no." }
+    ]
+  },
+  {
+    number: 4,
+    group: "sustitucion",
+    source: "2do parcial 1C2025, TM",
+    title: "Clock modificado, global",
+    short: "Clock modificado",
+    adds: "Las vueltas de Clock modificado, con víctimas de cualquier proceso.",
+    subtitle: "2do parcial 1C2025, TM. 16 KiB de memoria física, paginación bajo demanda, Clock modificado y sustitución global. Tres procesos se reparten todos los marcos.",
+    stepUnit: "Un paso = un acceso, o la búsqueda de una víctima",
+    stepUnitNote: "La unidad cambia: un paso es un acceso a memoria, o la búsqueda de una víctima.",
+    canvas: { columns: "minmax(0, 1fr) minmax(0, 195px) minmax(0, 626px)", panels: ["address", "frames", "pageTables"] },
+    facts: [
+      {
+        kind: "replacement",
+        algorithm: "clockModified",
+        pointer: 1,
+        slots: [{ page: "A3", u: 1, m: 1 }, { page: "B2", u: 1, m: 0 }, { page: "C0", u: 0, m: 1 }, { page: "C2", u: 0, m: 0 }],
+        refs: [{ page: "C2" }, { page: "A1", write: true }, { page: "B3" }, { page: "C1" }],
+        expect: { victims: [null, "C0", "B2", "C2"], pages: ["A3", "B3", "A1", "C1"], bits: [[0, 1], [0, 0], [0, 1], [1, 0]], pointer: 0, faults: 3, writes: 1 }
+      },
+      { kind: "physical", address: 8197, page: 2, pageSize: 4096, frame: 3, offset: 5, expect: 12293 },
+      { kind: "physical", address: 6195, page: 1, pageSize: 4096, frame: 2, offset: 2099, expect: 10291 },
+      { kind: "physical", address: 15419, page: 3, pageSize: 4096, frame: 1, offset: 3131, expect: 7227 },
+      { kind: "physical", address: 4399, page: 1, pageSize: 4096, frame: 3, offset: 303, expect: 12591 }
+    ],
+    closing: "Clock modificado da hasta tres vueltas: busca (0, 0) sin tocar nada, después (0, 1) bajando bits de uso, y vuelve a empezar. Con sustitución global, la víctima puede ser de cualquier proceso.",
+    steps: [
+      {
+        narration: "Todos los marcos están repartidos entre A, B y C. En las tres tablas hay cuatro filas con P = 1 —la A3, la B2, la C0 y la C2—, así que hay cuatro marcos, del 0 al 3. En las filas con P = 0, el marco, U y M no significan nada.",
+        views: {
+          address: { lines: [{ caption: "logical", fields: [{ role: "page" }, { role: "offset" }] }] },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                rows: [["0", "A3", "1", "1"], ["1 ◀", "B2", "1", "0"], ["2", "C0", "0", "1"], ["3", "C2", "0", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [3],
+                active: true,
+                rows: [["0", "2", "0", "1", "0"], ["1", "1", "0", "1", "0"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [2],
+                active: true,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [0, 2],
+                active: true,
+                rows: [["0", "2", "0", "1", "1"], ["1", "1", "0", "0", "0"], ["2", "3", "0", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "16 KiB de memoria y cuatro marcos. ¿Cuánto mide una página?",
+          correct: "four",
+          options: [
+            { id: "four", text: "4 KiB", why: "16 KiB repartidos en 4 marcos: 4 KiB cada uno, y una página mide lo mismo que un marco." },
+            { id: "third", text: "Algo más de 5 KiB", why: "Son 3 procesos, pero lo que se reparte en partes iguales son los marcos, y hay 4." },
+            { id: "whole", text: "16 KiB", why: "Ésa es la memoria entera: tiene que entrar en ella más de una página." }
+          ]
+        }
+      },
+      {
+        narration: "Página de 4 KiB = 2¹² bytes: *12 bits* de desplazamiento, y cada proceso tiene 4 páginas: *2 bits* de página. Los marcos se asignaron en orden, así que el puntero los recorre 0, 1, 2, 3, y arranca en el 1: la flecha ◀ marca dónde está.",
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "page", bits: 2 }, { role: "offset", bits: 12 }] }] } }
+      },
+      {
+        narration: "C lee 8197.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 8197, fields: [{ role: "page", bits: 2, value: 2 }, { role: "offset", bits: 12, value: 5 }] },
+              { caption: "physical", pending: true, fields: [{ role: "frame", bits: 2 }, { role: "offset", bits: 12 }] }
+            ]
+          }
+        },
+        ask: {
+          question: "¿A qué dirección física va 8197 de C?",
+          correct: "hit",
+          options: [
+            { id: "hit", text: "12293", why: "8197 = 2 × 4096 + 5: página 2 de C, que está en el marco 3. 3 × 4096 + 5 = 12293." },
+            { id: "raw", text: "8197", why: "Ésa es la lógica: falta reemplazar la página por el marco." },
+            { id: "fault", text: "Fallo de página", why: "La C2 tiene P = 1: está en memoria, en el marco 3." }
+          ]
+        }
+      },
+      {
+        narration: "Página 2 de C, en el marco 3: física 3 × 4096 + 5 = *12293*. No hay fallo, pero el hardware pone en 1 el [[bitUso:bit de uso]] del marco 3.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 8197, fields: [{ role: "page", bits: 2, value: 2 }, { role: "offset", bits: 12, value: 5 }] },
+              { caption: "physical", value: 12293, pending: true, fields: [{ role: "frame", bits: 2, value: 3 }, { role: "offset", bits: 12, value: 5 }] }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                marks: [[3, 2]],
+                rows: [["0", "A3", "1", "1"], ["1 ◀", "B2", "1", "0"], ["2", "C0", "0", "1"], ["3", "C2", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "1", "0", "1", "0"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                marks: [[2, 2]],
+                active: true,
+                rows: [["0", "2", "0", "1", "1"], ["1", "1", "0", "0", "0"], ["2", "3", "1", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "A escribe en 6195 = 1 × 4096 + 2099: página 1 de A, con P = 0. Fallo. La sustitución es [[global:global]]: la víctima puede ser una página de cualquier proceso.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 6195, fields: [{ role: "page", bits: 2, value: 1 }, { role: "offset", bits: 12, value: 2099 }] },
+              { kind: "verdict", text: "Fallo de página: la A1 no está en memoria" }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                rows: [["0", "A3", "1", "1"], ["1 ◀", "B2", "1", "0"], ["2", "C0", "0", "1"], ["3", "C2", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "1", "0", "1", "0"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "1"], ["1", "1", "0", "0", "0"], ["2", "3", "1", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "El puntero está en el marco 1. ¿Qué víctima elige Clock modificado?",
+          correct: "c0",
+          options: [
+            {
+              id: "c0",
+              text: "La C0, del marco 2",
+              why: "Primera vuelta, buscando (0, 0): no hay. Segunda, buscando (0, 1) y bajando U: el marco 1 queda en (0, 0), y el 2 ya es (0, 1). Sale la C0."
+            },
+            { id: "b2", text: "La B2, del marco 1", why: "El 1 queda en (0, 0) recién en la segunda vuelta, que busca (0, 1): la encuentra en el 2 antes de volver al 1." },
+            { id: "c2", text: "La C2, del marco 3", why: "La C2 se acaba de usar: tiene U = 1." }
+          ]
+        }
+      },
+      {
+        narration: "Primera vuelta, buscando (0, 0): no hay ninguno. Segunda vuelta, buscando (0, 1) y bajando el U de cada marco por el que pasa: el 1 queda en (0, 0), y el 2 es (0, 1). La víctima es la C0, y está [[bitModificado:modificada]]: antes de reusar el marco hay que escribirla en disco.",
+        views: {
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                faultRow: 2,
+                marks: [[1, 2]],
+                rows: [["0", "A3", "1", "1"], ["1", "B2", "0", "0"], ["2 ◀", "C0", "0", "1"], ["3", "C2", "1", "0"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "La A1 entra al marco 2 con U = 1 y M = 1, porque A escribe. La C0 queda con P = 0. El puntero avanza al 3. Física: 2 × 4096 + 2099 = *10291*.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 6195, fields: [{ role: "page", bits: 2, value: 1 }, { role: "offset", bits: 12, value: 2099 }] },
+              { caption: "physical", value: 10291, pending: true, fields: [{ role: "frame", bits: 2, value: 2 }, { role: "offset", bits: 12, value: 2099 }] }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                highlight: [2],
+                rows: [["0", "A3", "1", "1"], ["1", "B2", "0", "0"], ["2", "A1", "1", "1"], ["3 ◀", "C2", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [1],
+                active: true,
+                rows: [["0", "2", "0", "1", "0"], ["1", "2", "1", "1", "1"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [0],
+                active: true,
+                rows: [["0", "2", "0", "0", "0"], ["1", "1", "0", "0", "0"], ["2", "3", "1", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "B lee 15419 = 3 × 4096 + 3131: página 3 de B, con P = 0. Otro fallo.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 15419, fields: [{ role: "page", bits: 2, value: 3 }, { role: "offset", bits: 12, value: 3131 }] },
+              { kind: "verdict", text: "Fallo de página: la B3 no está en memoria" }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                rows: [["0", "A3", "1", "1"], ["1", "B2", "0", "0"], ["2", "A1", "1", "1"], ["3 ◀", "C2", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "2", "1", "1", "1"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "0", "0"], ["1", "1", "0", "0", "0"], ["2", "3", "1", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "El puntero está en el marco 3. ¿Qué víctima elige?",
+          correct: "b2",
+          options: [
+            { id: "b2", text: "La B2, del marco 1", why: "Primera vuelta, buscando (0, 0): el 3 es (1, 0), el 0 es (1, 1), y el 1 es (0, 0): le bajaron el bit en el fallo anterior." },
+            { id: "c2", text: "La C2, del marco 3", why: "El 3 es (1, 0). En la primera vuelta no se toca ningún bit, y (1, 0) no es lo que se busca." },
+            { id: "a3", text: "La A3, del marco 0", why: "La A3 es (1, 1): sería la última en salir." }
+          ]
+        }
+      },
+      {
+        narration: "La primera vuelta la encuentra: la B2, en el marco 1, es (0, 0). No está modificada, así que no hay que escribirla. La B3 entra al marco 1 y el puntero avanza al 2. Física: 1 × 4096 + 3131 = *7227*.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 15419, fields: [{ role: "page", bits: 2, value: 3 }, { role: "offset", bits: 12, value: 3131 }] },
+              { caption: "physical", value: 7227, pending: true, fields: [{ role: "frame", bits: 2, value: 1 }, { role: "offset", bits: 12, value: 3131 }] }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                highlight: [1],
+                rows: [["0", "A3", "1", "1"], ["1", "B3", "1", "0"], ["2 ◀", "A1", "1", "1"], ["3", "C2", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "2", "1", "1", "1"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [2, 3],
+                active: true,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "0"], ["3", "1", "1", "0", "1"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "0", "0"], ["1", "1", "0", "0", "0"], ["2", "3", "1", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "C lee 4399 = 1 × 4096 + 303: página 1 de C, con P = 0. Tercer fallo. Ahora los cuatro marcos tienen U = 1.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 4399, fields: [{ role: "page", bits: 2, value: 1 }, { role: "offset", bits: 12, value: 303 }] },
+              { kind: "verdict", text: "Fallo de página: la C1 no está en memoria" }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                rows: [["0", "A3", "1", "1"], ["1", "B3", "1", "0"], ["2 ◀", "A1", "1", "1"], ["3", "C2", "1", "0"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "El puntero está en el marco 2. ¿Qué víctima elige?",
+          correct: "c2",
+          options: [
+            {
+              id: "c2",
+              text: "La C2, del marco 3",
+              why: "Primera vuelta: ningún (0, 0). Segunda: ningún (0, 1), y quedan todos los U en 0. Tercera, otra vez (0, 0): el 2 es (0, 1) y el 3 es (0, 0)."
+            },
+            { id: "a1", text: "La A1, del marco 2", why: "La A1 queda en (0, 1) después de la segunda vuelta. La tercera busca (0, 0), y lo encuentra en el marco 3." },
+            { id: "b3", text: "La B3, del marco 1", why: "La B3 también queda en (0, 0), pero el puntero pasa antes por el 3." }
+          ]
+        }
+      },
+      {
+        narration: "Primera vuelta, (0, 0): no hay. Segunda, (0, 1) bajando U: tampoco, porque todos tenían U = 1; ahora el 2 y el 0 quedan en (0, 1) y el 1 y el 3 en (0, 0). Tercera vuelta, otra vez (0, 0): el 2 no, el 3 sí. Sale la C2, sin escribir.",
+        views: {
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                highlight: [0, 1, 2],
+                faultRow: 3,
+                rows: [["0", "A3", "0", "1"], ["1", "B3", "0", "0"], ["2", "A1", "0", "1"], ["3 ◀", "C2", "0", "0"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "La C1 entra al marco 3 y el puntero avanza al 0. Física: 3 × 4096 + 303 = *12591*.",
+        views: {
+          address: {
+            lines: [
+              { caption: "logical", value: 4399, fields: [{ role: "page", bits: 2, value: 1 }, { role: "offset", bits: 12, value: 303 }] },
+              { caption: "physical", value: 12591, pending: true, fields: [{ role: "frame", bits: 2, value: 3 }, { role: "offset", bits: 12, value: 303 }] }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                highlight: [3],
+                rows: [["0 ◀", "A3", "0", "1"], ["1", "B3", "0", "0"], ["2", "A1", "0", "1"], ["3", "C1", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "2", "0", "1", "1"], ["2", "2", "0", "0", "0"], ["3", "0", "0", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "0"], ["3", "1", "0", "0", "1"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [1, 2],
+                active: true,
+                rows: [["0", "2", "0", "0", "0"], ["1", "3", "1", "0", "1"], ["2", "3", "0", "0", "0"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Las físicas fueron *12293*, *10291*, *7227* y *12591*. Así quedan las tablas: A tiene la 1 y la 3; B, la 3; C, la 1. Tres fallos y una sola escritura a disco, la de la C0: era la única víctima modificada. Los bits de uso que bajó la última búsqueda quedan en 0.",
+        note: "En las filas que quedaron con P = 0, sólo importa la P: el marco, U y M que siguen escritos no significan nada.",
+        views: {
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "page", "use", "mod"],
+                roles: ["frame", "page", null, null, null],
+                rows: [["0 ◀", "A3", "0", "1"], ["1", "B3", "0", "0"], ["2", "A1", "0", "1"], ["3", "C1", "1", "0"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [1, 3],
+                active: true,
+                rows: [["0", "2", "0", "1", "0"], ["1", "2", "0", "1", "1"], ["2", "2", "0", "0", "0"], ["3", "0", "0", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [3],
+                active: true,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "0"], ["3", "1", "0", "0", "1"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["page", "frame", "use", "mod", "present"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [1],
+                active: true,
+                rows: [["0", "2", "0", "0", "0"], ["1", "3", "1", "0", "1"], ["2", "3", "0", "0", "0"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    number: 5,
+    group: "paginacion",
+    source: "Parcial 2C2022, TM, consigna a",
+    title: "El tamaño máximo de un proceso",
+    short: "Tamaño máximo",
+    adds: "Qué dato pone el techo al tamaño de un proceso, y cuáles no.",
+    subtitle: "Parcial 2C2022, TM, consigna a. Paginación bajo demanda, direcciones de 32 bits, páginas de 1 MiB y 3 frames fijos por proceso.",
+    stepUnit: "Un paso = una cuenta",
+    stepUnitNote: "La unidad cambia: un paso es una cuenta.",
+    canvas: { columns: "minmax(0, 1.3fr) minmax(0, 1fr)", panels: ["address", "calc"] },
+    closing: "El tamaño máximo de un proceso lo pone la dirección lógica. Los marcos asignados dicen cuánto del proceso está en memoria a la vez, no cuánto mide.",
+    steps: [
+      {
+        narration: "Direcciones de 32 bits, páginas de 1 MiB, y al proceso le dan 3 frames. El enunciado muestra además su tabla de páginas, con filas hasta la 20 y «…» abajo. ¿Cuál de todos esos datos pone el techo?",
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "page" }, { role: "offset" }] }] } },
+        ask: {
+          question: "¿Cuánto puede medir, como mucho, un proceso en este sistema?",
+          correct: "four",
+          options: [
+            { id: "four", text: "4 GiB", why: "La dirección lógica es de 32 bits: un proceso puede nombrar 2³² bytes, 4 GiB. Ése es el techo." },
+            { id: "three", text: "3 MiB", why: "3 frames es cuánto del proceso está en memoria a la vez. Con [[bajoDemanda:paginación bajo demanda]], el resto espera en disco." },
+            { id: "table", text: "21 MiB", why: "La tabla del enunciado muestra hasta la página 20, pero no está entera: los «…» dicen que sigue." }
+          ]
+        }
+      },
+      {
+        narration: "Página de 1 MiB = 2²⁰ bytes: *20 bits* de desplazamiento. Quedan *12 bits* de página: 4096 páginas de 1 MiB, *4 GiB*. Los 3 frames no limitan cuánto mide el proceso, sino cuánto de él está cargado.",
+        calc: ["1 [[kib:MiB]] = 2²⁰ → *20 bits* de desplazamiento", "32 − 20 = *12 bits* de página → 2¹² = 4096 páginas", "4096 × 1 MiB = 2³² bytes = *4 GiB*"],
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "page", bits: 12 }, { role: "offset", bits: 20 }] }] } }
+      }
+    ]
+  },
+  {
+    number: 6,
+    group: "paginacion",
+    source: "Parcial 1C2022, TM",
+    title: "LRU con tablas de dos niveles",
+    short: "LRU, dos niveles",
+    adds: "Contar fallos y accesos a disco, y cuánto cuesta un acceso sin fallo.",
+    subtitle: "Parcial 1C2022, TM. Paginación jerárquica de 2 niveles bajo demanda, direcciones de 32 bits, páginas de 8 KiB, 3 marcos fijos, sustitución local y LRU.",
+    stepUnit: "Un paso = una referencia",
+    stepUnitNote: "La unidad cambia: un paso es una referencia a memoria.",
+    canvas: { columns: "minmax(0, 1.15fr) minmax(0, 0.85fr)", panels: ["refs", ["frames", "calc"]], stackRows: "auto minmax(0, 1fr)" },
+    facts: [
+      {
+        kind: "replacement",
+        algorithm: "lru",
+        slots: [null, null, null],
+        refs: [
+          { page: 0, write: true },
+          { page: 6, write: true },
+          { page: 3, write: true },
+          { page: 0, write: false },
+          { page: 2, write: false },
+          { page: 2, write: false },
+          { page: 3, write: false },
+          { page: 1, write: false }
+        ],
+        expect: { faults: 5, writes: 2, victims: [null, null, null, null, 6, null, null, 0], pages: [1, 2, 3] }
+      },
+      { kind: "page", address: 625, pageSize: 8192, expect: 0 },
+      { kind: "page", address: 50852, pageSize: 8192, expect: 6 },
+      { kind: "page", address: 26542, pageSize: 8192, expect: 3 },
+      { kind: "page", address: 7854, pageSize: 8192, expect: 0 },
+      { kind: "page", address: 24500, pageSize: 8192, expect: 2 },
+      { kind: "page", address: 16542, pageSize: 8192, expect: 2 },
+      { kind: "page", address: 26551, pageSize: 8192, expect: 3 },
+      { kind: "page", address: 8529, pageSize: 8192, expect: 1 }
+    ],
+    closing: "Un fallo es una lectura de disco, y una víctima modificada suma una escritura. Los fallos de la primera vez que se usa una página no los evita ninguna cantidad de marcos.",
+    steps: [
+      {
+        narration: "Páginas de 8 KiB = 8192 bytes: la página de una dirección es el cociente de dividirla por 8192. Los tres marcos del proceso empiezan libres, la sustitución es [[local:local]] y el algoritmo, [[lru:LRU]]. Las tres primeras referencias escriben; las demás leen.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                rows: [
+                  ["1", "625", "?", "escritura", ""],
+                  ["2", "50.852", "?", "escritura", ""],
+                  ["3", "26.542", "?", "escritura", ""],
+                  ["4", "7854", "?", "lectura", ""],
+                  ["5", "24.500", "?", "lectura", ""],
+                  ["6", "16.542", "?", "lectura", ""],
+                  ["7", "26.551", "?", "lectura", ""],
+                  ["8", "8529", "?", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: { tables: [{ columns: ["frame", "holds", "mod", "lastUse"], roles: ["frame", "page", null, null], rows: [["1", "—", "—", "—"], ["2", "—", "—", "—"], ["3", "—", "—", "—"]] }] }
+        },
+        ask: {
+          question: "¿De qué página es 24500?",
+          correct: "two",
+          options: [
+            { id: "two", text: "De la 2", why: "3 × 8192 = 24576, y 24500 es un poco menor: todavía está en la página 2." },
+            { id: "three", text: "De la 3", why: "24500 se parece a 24576, pero es más chico: no llega a la página 3." },
+            { id: "one", text: "De la 1", why: "La página 1 va de 8192 a 16383." }
+          ]
+        }
+      },
+      {
+        narration: "Las ocho referencias van a las páginas 0, 6, 3, 0, 2, 2, 3 y 1. La que engaña es 24500: le faltan 76 bytes para llegar a la página 3.",
+        calc: ["24500 < 3 × 8192 = 24576 → página *2*"],
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                rows: [
+                  ["1", "625", "0", "escritura", ""],
+                  ["2", "50.852", "6", "escritura", ""],
+                  ["3", "26.542", "3", "escritura", ""],
+                  ["4", "7854", "0", "lectura", ""],
+                  ["5", "24.500", "2", "lectura", ""],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 0, escritura: [[fallo:fallo de página]], y hay marcos libres. Entra al marco 1 con M = 1.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [0],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", ""],
+                  ["3", "26.542", "3", "escritura", ""],
+                  ["4", "7854", "0", "lectura", ""],
+                  ["5", "24.500", "2", "lectura", ""],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [0],
+                rows: [["1", "0", "1", "1"], ["2", "—", "—", "—"], ["3", "—", "—", "—"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 6, escritura: fallo, y entra al marco 2.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [1],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", ""],
+                  ["4", "7854", "0", "lectura", ""],
+                  ["5", "24.500", "2", "lectura", ""],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [1],
+                rows: [["1", "0", "1", "1"], ["2", "6", "1", "2"], ["3", "—", "—", "—"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 3, escritura: fallo, y entra al marco 3. Ya no quedan marcos libres.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [2],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", ""],
+                  ["5", "24.500", "2", "lectura", ""],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [2],
+                rows: [["1", "0", "1", "1"], ["2", "6", "1", "2"], ["3", "3", "1", "3"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 0, lectura: está. Acierto; su último uso pasa a ser la referencia 4.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [3],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", "acierto"],
+                  ["5", "24.500", "2", "lectura", ""],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [0],
+                rows: [["1", "0", "1", "4"], ["2", "6", "1", "2"], ["3", "3", "1", "3"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 2, lectura: no está, y no hay marcos libres. Hay que elegir una víctima.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                faultRow: 4,
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", "acierto"],
+                  ["5", "24.500", "2", "lectura", ""],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: { tables: [{ columns: ["frame", "holds", "mod", "lastUse"], roles: ["frame", "page", null, null], rows: [["1", "0", "1", "4"], ["2", "6", "1", "2"], ["3", "3", "1", "3"]] }] }
+        },
+        ask: {
+          question: "¿Qué página saca LRU?",
+          correct: "six",
+          options: [
+            { id: "six", text: "La 6", why: "LRU saca la que hace más tiempo que no se usa: la 6 se usó en la referencia 2, la 3 en la 3 y la 0 en la 4." },
+            { id: "zero", text: "La 0", why: "La 0 es la que entró primero —eso sería FIFO—, pero se volvió a usar en la referencia 4." },
+            { id: "three", text: "La 3", why: "La 3 se usó en la referencia 3, después que la 6." }
+          ]
+        }
+      },
+      {
+        narration: "Sale la 6, la que hace más tiempo que no se usa. Tiene M = 1: antes de traer la 2 hay que escribirla en disco. Dos accesos a disco en este fallo.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [4],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", "acierto"],
+                  ["5", "24.500", "2", "lectura", "fallo, sale la 6"],
+                  ["6", "16.542", "2", "lectura", ""],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [1],
+                rows: [["1", "0", "1", "4"], ["2", "2", "0", "5"], ["3", "3", "1", "3"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 2, lectura: acierto.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [5],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", "acierto"],
+                  ["5", "24.500", "2", "lectura", "fallo, sale la 6"],
+                  ["6", "16.542", "2", "lectura", "acierto"],
+                  ["7", "26.551", "3", "lectura", ""],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [1],
+                rows: [["1", "0", "1", "4"], ["2", "2", "0", "6"], ["3", "3", "1", "3"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 3, lectura: acierto.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [6],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", "acierto"],
+                  ["5", "24.500", "2", "lectura", "fallo, sale la 6"],
+                  ["6", "16.542", "2", "lectura", "acierto"],
+                  ["7", "26.551", "3", "lectura", "acierto"],
+                  ["8", "8529", "1", "lectura", ""]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [2],
+                rows: [["1", "0", "1", "4"], ["2", "2", "0", "6"], ["3", "3", "1", "7"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Página 1, lectura: fallo. La que hace más tiempo que no se usa es la 0, usada por última vez en la referencia 4. Sale, y también tiene M = 1: otra escritura.",
+        views: {
+          refs: {
+            tables: [
+              {
+                columns: ["ref", "address", "page", "access", "result"],
+                roles: [null, null, "page", null, null],
+                highlight: [7],
+                rows: [
+                  ["1", "625", "0", "escritura", "fallo"],
+                  ["2", "50.852", "6", "escritura", "fallo"],
+                  ["3", "26.542", "3", "escritura", "fallo"],
+                  ["4", "7854", "0", "lectura", "acierto"],
+                  ["5", "24.500", "2", "lectura", "fallo, sale la 6"],
+                  ["6", "16.542", "2", "lectura", "acierto"],
+                  ["7", "26.551", "3", "lectura", "acierto"],
+                  ["8", "8529", "1", "lectura", "fallo, sale la 0"]
+                ]
+              }
+            ]
+          },
+          frames: {
+            tables: [
+              {
+                columns: ["frame", "holds", "mod", "lastUse"],
+                roles: ["frame", "page", null, null],
+                highlight: [0],
+                rows: [["1", "1", "0", "8"], ["2", "2", "0", "6"], ["3", "3", "1", "7"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "¿Cuántos accesos a disco hubo en total?",
+          correct: "seven",
+          options: [
+            { id: "seven", text: "7", why: "5 fallos, 5 lecturas. Y 2 víctimas modificadas, la 6 y la 0, que hubo que escribir antes de reusar su marco: 5 + 2 = 7." },
+            { id: "five", text: "5", why: "Cada fallo lee una página, pero las víctimas con M = 1 se escriben antes de liberar el marco: faltan esas 2." },
+            { id: "eight", text: "8", why: "La 3 también está modificada, pero nunca salió de memoria: no se escribió." }
+          ]
+        }
+      },
+      {
+        narration: "*5 fallos* y *7 accesos a disco*: 5 lecturas, una por fallo, y 2 escrituras, por la 6 y la 0. Las tablas de páginas están en memoria, así que no suman accesos a disco.",
+        calc: ["Disco: 5 lecturas + 2 escrituras = *7*"],
+        ask: {
+          question: "¿Habría menos fallos si el proceso tuviera más marcos?",
+          correct: "no",
+          options: [
+            { id: "no", text: "No", why: "Hay 5 páginas distintas y 5 fallos: cada fallo es la primera vez que se usa una página. Ésos pasan con cualquier cantidad de marcos." },
+            { id: "yes", text: "Sí", why: "Más marcos evitan que salga una página que después vuelve. Acá ninguna de las que salieron se vuelve a pedir." },
+            { id: "more", text: "Podría haber más", why: "Eso sería la [[belady:anomalía de Belady]], y LRU no la tiene. Además, 5 ya es el mínimo posible." }
+          ]
+        }
+      },
+      {
+        narration: "No. Los 5 fallos son la primera referencia a cada una de las 5 páginas distintas: con más marcos seguirían estando. Lo único que podría bajar son las escrituras, porque saldrían menos víctimas.",
+        calc: ["5 páginas distintas → al menos *5 fallos*"],
+        ask: {
+          question: "Si no hay fallo, ¿cuántos accesos a memoria hace una referencia?",
+          correct: "three",
+          options: [
+            { id: "three", text: "3", why: "Tabla de 1er nivel, tabla de 2do nivel y el dato: los tres están en memoria." },
+            { id: "one", text: "1", why: "Eso sería con una TLB que acierte. Sin TLB, antes del dato hay que pasar por las dos tablas." },
+            { id: "two", text: "2", why: "Son dos tablas, pero después todavía falta ir al dato." }
+          ]
+        }
+      },
+      {
+        narration: "Tres: la tabla de 1er nivel, la de 2do nivel y el dato. Con una [[tlb:TLB]], si la traducción está guardada, queda uno solo: el dato. Acá ayudaría, porque las páginas 0, 2 y 3 se vuelven a usar.",
+        calc: ["Sin fallo: *3 accesos*; con acierto en la TLB, *1*"]
+      }
+    ]
+  },
+  {
+    number: 7,
+    group: "paginacion",
+    source: "2do parcial 2C2022",
+    title: "Cuando la tabla tampoco está",
+    short: "La tabla tampoco está",
+    adds: "Una tabla de 2do nivel que no está en memoria es otro fallo de página.",
+    subtitle: "2do parcial 2C2022. Direcciones de 32 bits, jerárquica de 2 niveles sin TLB, páginas de 64 KiB y todas las tablas con la misma cantidad de filas. 16 marcos fijos, y sólo la tabla de 1er nivel en memoria.",
+    stepUnit: "Un paso = una referencia, o una parte de ella",
+    stepUnitNote: "La unidad cambia: un paso es una referencia, o una parte de ella cuando algo no está en memoria.",
+    canvas: { columns: "minmax(0, 1.4fr) minmax(0, 0.55fr) minmax(0, 0.75fr)", panels: [["address", "calc"], "pageTables", "refs"], stackRows: "auto minmax(0, 1fr)" },
+    facts: [{ kind: "page", address: 27983870, pageSize: 65536, expect: 426 }, { kind: "page", address: 27983872, pageSize: 65536, expect: 427 }],
+    closing: "En la jerárquica, cada nivel puede faltar. Si la tabla de 2do nivel no está, traerla es un fallo de página más, antes del de la página.",
+    steps: [
+      {
+        narration: "Páginas de 64 KiB = 2¹⁶ bytes: *16 bits* de desplazamiento. Quedan 16 bits para los dos niveles de la [[jerarquica:tabla jerárquica]].",
+        calc: ["64 KiB = 2¹⁶ → *16 bits* de desplazamiento"],
+        views: {
+          address: { lines: [{ caption: "logical", fields: [{ role: "outer" }, { role: "page", label: "2do nivel" }, { role: "offset", bits: 16 }] }] },
+          pageTables: { tables: [{ caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], gapRows: [2], rows: [["00h", "—"], ["01h", "0"], ["…", ""]] }] },
+          refs: {
+            tables: [
+              {
+                columns: ["address", "faults", "walks", "disk"],
+                roles: [null, null, null, null],
+                rows: [["01AAFFFEh", "", "", ""], ["01AAFFFFh", "", "", ""], ["01AB0000h", "", "", ""], ["01AB0001h", "", "", ""]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "Todas las tablas tienen la misma cantidad de filas. ¿Cómo se reparten los 16 bits?",
+          correct: "eight",
+          options: [
+            { id: "eight", text: "8 y 8", why: "Misma cantidad de filas es mismo número de bits: 2⁸ = 256 filas cada una." },
+            { id: "ten", text: "10 y 6", why: "Así la de 1er nivel tendría 2¹⁰ filas y las de 2do, 2⁶: no serían iguales." },
+            { id: "one", text: "16 en un solo nivel", why: "El enunciado dice dos niveles: los 16 bits se parten." }
+          ]
+        }
+      },
+      {
+        narration: "*8 bits* para la fila del 1er nivel y *8* para la del 2do. Sólo la tabla de 1er nivel está en memoria: ninguna de 2do nivel, y ninguna página del proceso.",
+        calc: ["16 = *8 + 8*: 256 filas por tabla"],
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "outer", bits: 8 }, { role: "page", bits: 8, label: "2do nivel" }, { role: "offset", bits: 16 }] }] } }
+      },
+      {
+        narration: "Primera referencia: 01AAFFFEh. Fila 01h del 1er nivel, fila AAh del 2do, desplazamiento FFFEh.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 27983870,
+                fields: [{ role: "outer", bits: 8, value: 1 }, { role: "page", bits: 8, value: 170, label: "2do nivel" }, { role: "offset", bits: 16, value: 65534 }]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "¿Cuántos fallos de página genera 01AAFFFEh?",
+          correct: "two",
+          options: [
+            {
+              id: "two",
+              text: "2",
+              why: "La fila 01h apunta a una tabla de 2do nivel que no está en memoria: primer fallo. Ya traída, su fila AAh dice que la página tampoco está: segundo fallo."
+            },
+            { id: "one", text: "1", why: "La página no está, pero antes de llegar a ella hay que leer su tabla de 2do nivel, y tampoco está en memoria." },
+            { id: "zero", text: "0", why: "Nada del proceso está en memoria, salvo la tabla de 1er nivel." }
+          ]
+        }
+      },
+      {
+        narration: "Se lee la tabla de 1er nivel —primera tabla consultada—: la fila 01h dice que su tabla de 2do nivel no está. [[fallo:Fallo de página]]: el sistema la trae de disco a un marco.",
+        views: {
+          pageTables: { tables: [{ caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], faultRow: 1, gapRows: [2], rows: [["00h", "—"], ["01h", "0"], ["…", ""]] }] }
+        }
+      },
+      {
+        narration: "Con la tabla de 2do nivel en memoria se lee su fila AAh —segunda tabla consultada—: la página tampoco está. Segundo fallo, y segunda lectura de disco. Hay 16 marcos y casi todos libres: no hay víctimas ni escrituras.",
+        views: {
+          pageTables: {
+            tables: [
+              { caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], highlight: [1], gapRows: [2], rows: [["00h", "—"], ["01h", "1"], ["…", ""]] },
+              {
+                caption: "2do nivel de la fila 01h",
+                columns: ["entry", "present"],
+                roles: ["page", null],
+                faultRow: 0,
+                gapRows: [2],
+                active: true,
+                rows: [["AAh", "0"], ["ABh", "0"], ["…", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Traída la página AAh, el acceso se completa. 01AAFFFEh: *2 fallos*, *2 tablas* consultadas y *2 accesos a disco*.",
+        views: {
+          pageTables: {
+            tables: [
+              { caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], gapRows: [2], rows: [["00h", "—"], ["01h", "1"], ["…", ""]] },
+              {
+                caption: "2do nivel de la fila 01h",
+                columns: ["entry", "present"],
+                roles: ["page", null],
+                highlight: [0],
+                gapRows: [2],
+                active: true,
+                rows: [["AAh", "1"], ["ABh", "0"], ["…", ""]]
+              }
+            ]
+          },
+          refs: {
+            tables: [
+              {
+                columns: ["address", "faults", "walks", "disk"],
+                roles: [null, null, null, null],
+                highlight: [0],
+                rows: [["01AAFFFEh", "2", "2", "2"], ["01AAFFFFh", "", "", ""], ["01AB0000h", "", "", ""], ["01AB0001h", "", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "01AAFFFFh es el byte siguiente, el último de la página AAh. Las dos tablas están y la página también: *0 fallos*, *2 tablas*, *0 disco*.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 27983871,
+                fields: [{ role: "outer", bits: 8, value: 1 }, { role: "page", bits: 8, value: 170, label: "2do nivel" }, { role: "offset", bits: 16, value: 65535 }]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              { caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], highlight: [1], gapRows: [2], rows: [["00h", "—"], ["01h", "1"], ["…", ""]] },
+              {
+                caption: "2do nivel de la fila 01h",
+                columns: ["entry", "present"],
+                roles: ["page", null],
+                highlight: [0],
+                gapRows: [2],
+                active: true,
+                rows: [["AAh", "1"], ["ABh", "0"], ["…", ""]]
+              }
+            ]
+          },
+          refs: {
+            tables: [
+              {
+                columns: ["address", "faults", "walks", "disk"],
+                roles: [null, null, null, null],
+                highlight: [1],
+                rows: [["01AAFFFEh", "2", "2", "2"], ["01AAFFFFh", "0", "2", "0"], ["01AB0000h", "", "", ""], ["01AB0001h", "", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "01AB0000h: el desplazamiento volvió a 0000h. Cruzó a la página siguiente.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 27983872,
+                fields: [{ role: "outer", bits: 8, value: 1 }, { role: "page", bits: 8, value: 171, label: "2do nivel" }, { role: "offset", bits: 16, value: 0 }]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              { caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], gapRows: [2], rows: [["00h", "—"], ["01h", "1"], ["…", ""]] },
+              { caption: "2do nivel de la fila 01h", columns: ["entry", "present"], roles: ["page", null], gapRows: [2], active: true, rows: [["AAh", "1"], ["ABh", "0"], ["…", ""]] }
+            ]
+          }
+        },
+        ask: {
+          question: "¿Cuántos fallos genera 01AB0000h?",
+          correct: "one",
+          options: [
+            { id: "one", text: "1", why: "Su tabla de 2do nivel es la de la fila 01h, que ya está. Pero la página ABh no: un fallo." },
+            { id: "two", text: "2", why: "La tabla de 2do nivel de la fila 01h se trajo en la primera referencia y sigue en memoria." },
+            { id: "zero", text: "0", why: "Es otra página, la ABh, y nunca se usó." }
+          ]
+        }
+      },
+      {
+        narration: "Misma fila 01h, así que misma tabla de 2do nivel, ya en memoria. La fila ABh dice que la página no está: *1 fallo*, *2 tablas*, *1 acceso a disco*.",
+        views: {
+          pageTables: {
+            tables: [
+              { caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], highlight: [1], gapRows: [2], rows: [["00h", "—"], ["01h", "1"], ["…", ""]] },
+              {
+                caption: "2do nivel de la fila 01h",
+                columns: ["entry", "present"],
+                roles: ["page", null],
+                highlight: [1],
+                gapRows: [2],
+                active: true,
+                rows: [["AAh", "1"], ["ABh", "1"], ["…", ""]]
+              }
+            ]
+          },
+          refs: {
+            tables: [
+              {
+                columns: ["address", "faults", "walks", "disk"],
+                roles: [null, null, null, null],
+                highlight: [2],
+                rows: [["01AAFFFEh", "2", "2", "2"], ["01AAFFFFh", "0", "2", "0"], ["01AB0000h", "1", "2", "1"], ["01AB0001h", "", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "01AB0001h, el byte siguiente: está todo. *0 fallos*, *2 tablas*, *0 disco*. En total, 3 fallos, 8 consultas a tablas y 3 accesos a disco.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 27983873,
+                fields: [{ role: "outer", bits: 8, value: 1 }, { role: "page", bits: 8, value: 171, label: "2do nivel" }, { role: "offset", bits: 16, value: 1 }]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              { caption: "1er nivel", columns: ["entry", "present"], roles: ["outer", null], highlight: [1], gapRows: [2], rows: [["00h", "—"], ["01h", "1"], ["…", ""]] },
+              {
+                caption: "2do nivel de la fila 01h",
+                columns: ["entry", "present"],
+                roles: ["page", null],
+                highlight: [1],
+                gapRows: [2],
+                active: true,
+                rows: [["AAh", "1"], ["ABh", "1"], ["…", ""]]
+              }
+            ]
+          },
+          refs: {
+            tables: [
+              {
+                columns: ["address", "faults", "walks", "disk"],
+                roles: [null, null, null, null],
+                highlight: [3],
+                rows: [["01AAFFFEh", "2", "2", "2"], ["01AAFFFFh", "0", "2", "0"], ["01AB0000h", "1", "2", "1"], ["01AB0001h", "0", "2", "0"], ["Total", "3", "8", "3"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "¿Qué cambiaría si el sistema tuviera TLB?",
+          correct: "half",
+          options: [
+            {
+              id: "half",
+              text: "La 2ª y la 4ª no consultan tablas",
+              why: "Repiten la página de la referencia anterior, así que la traducción ya está en la TLB: de 8 consultas a tablas quedan 4. Los fallos son los mismos."
+            },
+            { id: "fewer", text: "Habría menos fallos", why: "La TLB guarda traducciones de páginas que ya están en memoria. Una página que no está sigue dando fallo." },
+            { id: "none", text: "Ninguna consultaría tablas", why: "La 1ª y la 3ª usan páginas que nunca se tradujeron: la TLB no las tiene." }
+          ]
+        }
+      },
+      {
+        narration: "Con [[tlb:TLB]], la 2ª y la 4ª encuentran su traducción guardada y no consultan tablas: quedan 4 consultas en vez de 8. Los fallos y los accesos a disco son los mismos.",
+        calc: ["Con TLB: 8 − 2 × 2 = *4 consultas* a tablas"],
+        ask: {
+          question: "¿Qué tipo de localidad cumple el proceso A?",
+          correct: "spatial",
+          options: [
+            { id: "spatial", text: "Espacial", why: "Las cuatro direcciones son consecutivas: cada una está pegada a la anterior." },
+            { id: "temporal", text: "Temporal", why: "Para eso tendría que volver a usar una misma dirección, y ninguna se repite." },
+            { id: "none", text: "Ninguna", why: "Dos páginas para cuatro referencias: las direcciones están todas juntas." }
+          ]
+        }
+      },
+      { narration: "[[localidad:Localidad]] espacial: las cuatro direcciones son consecutivas, cada una pegada a la anterior. Ninguna se repite, así que temporal no se ve." }
+    ]
+  },
+  {
+    number: 8,
+    group: "paginacion",
+    source: "Parcial 2C2018, TT",
+    title: "TLB con procesos y bitmap",
+    short: "TLB y bitmap",
+    adds: "Una TLB que guarda el proceso, un 1er nivel con P = 0 y el primer marco libre del bitmap.",
+    subtitle: "Parcial 2C2018, TT. Jerárquica de 2 niveles con los mismos bits en cada uno, una TLB que guarda el proceso, y un bitmap de marcos libres. El planificador acaba de sacar a PB y pone a ejecutar a PA.",
+    stepUnit: "Un paso = una parte de la traducción",
+    stepUnitNote: "La unidad cambia: un paso es una parte de la traducción —la TLB, cada nivel, cada fallo—.",
+    canvas: { columns: "minmax(0, 1.65fr) minmax(0, 0.47fr) minmax(0, 0.78fr)", panels: [["address", "bitmap"], "tlb", "pageTables"], stackRows: "auto minmax(0, 1fr)" },
+    facts: [
+      { kind: "physical", address: 2701201681, pageSize: 65536, frame: 12, offset: 4369, expect: 790801 },
+      { kind: "physical", address: 50401451, pageSize: 65536, frame: 25, offset: 4267, expect: 1642667 },
+      { kind: "physical", address: 50528257, pageSize: 65536, frame: 11, offset: 1, expect: 720897 }
+    ],
+    closing: "Una TLB que guarda el proceso no se vacía en cada cambio, pero cada fila le sirve sólo a su proceso. Y un P = 0 en el 1er nivel es un fallo antes de llegar a la página: la tabla de 2do nivel también se trae de disco.",
+    steps: [
+      {
+        narration: "Direcciones de 32 bits y dos niveles con la misma cantidad de bits. El enunciado no da el tamaño de página, pero la TLB lo deja ver: sus números de página tienen 4 cifras hexa.",
+        views: {
+          address: { lines: [{ caption: "logical", fields: [{ role: "outer" }, { role: "page", label: "2do nivel" }, { role: "offset" }] }] },
+          bitmap: {
+            tables: [
+              {
+                columns: ["…", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "…"],
+                roles: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                rows: [["", "0", "1", "1", "1", "1", "0", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", ""]]
+              }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "10", "0"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "15", "0"], ["1", "12", "0"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "¿Cuántos bits tiene el desplazamiento?",
+          correct: "sixteen",
+          options: [
+            { id: "sixteen", text: "16", why: "4 cifras hexa son 16 bits de número de página. De 32 quedan 16 de desplazamiento, y la página se parte en 8 + 8." },
+            { id: "twelve", text: "12", why: "Sería con páginas de 4 KiB, que es lo más común, pero acá los números de página de la TLB tienen 16 bits." },
+            { id: "eight", text: "8", why: "8 bits es cada nivel: la página entera tiene 16." }
+          ]
+        }
+      },
+      {
+        narration: "*16 bits* de desplazamiento, y *8 + 8* de página: las dos primeras cifras hexa son la fila del 1er nivel, las dos siguientes la del 2do, y las cuatro últimas el desplazamiento.",
+        views: { address: { lines: [{ caption: "logical", fields: [{ role: "outer", bits: 8 }, { role: "page", bits: 8, label: "2do nivel" }, { role: "offset", bits: 16 }] }] } }
+      },
+      {
+        narration: "La TLB aclara «valores en hexa»; las tablas, no. La TLB dice que la A101h de A está en el marco Ch, que es 12. La tabla de 2do nivel sin número tiene en su fila 1 el marco 12, con P = 1: si es la de la fila A1h, cierra. *Las tablas están en decimal.*",
+        note: "La tabla sin número no se vuelve a usar: en lo que sigue, a su lugar vuelve la de 2do nivel de la página 3.",
+        views: {
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                highlight: [1],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "10", "0"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · sin número",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                highlight: [1],
+                gapRows: [5],
+                active: true,
+                rows: [["0", "12", "0"], ["1", "12", "1"], ["2", "2", "0"], ["3", "10", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "En el bitmap, 0 es libre: están libres el 20, el 25 y el 31. Cuando haga falta un marco, se usa el primer libre.",
+        views: {
+          bitmap: {
+            tables: [
+              {
+                columns: ["…", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "…"],
+                roles: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                marks: [[0, 1], [0, 6], [0, 12]],
+                rows: [["", "0", "1", "1", "1", "1", "0", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", ""]]
+              }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "10", "0"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "15", "0"], ["1", "12", "0"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "a. A1011111h: fila A1h del 1er nivel, fila 01h del 2do, desplazamiento 1111h. Antes de las tablas, la [[tlb:TLB]].",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 2701201681,
+                fields: [{ role: "outer", bits: 8, value: 161 }, { role: "page", bits: 8, value: 1, label: "2do nivel" }, { role: "offset", bits: 16, value: 4369 }]
+              }
+            ]
+          },
+          bitmap: {
+            tables: [
+              {
+                columns: ["…", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "…"],
+                roles: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                rows: [["", "0", "1", "1", "1", "1", "0", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", ""]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "¿La TLB tiene la traducción de A1011111h?",
+          correct: "yes",
+          options: [
+            { id: "yes", text: "Sí: la A101h de A", why: "La página es A101h, y la TLB tiene la A101h de A, el proceso que está ejecutando: marco Ch." },
+            { id: "stale", text: "No: es de cuando ejecutaba PB", why: "La TLB guarda el proceso de cada fila. No hace falta vaciarla en cada cambio, y las filas de A siguen sirviendo." },
+            { id: "offset", text: "Sí: la 1111h", why: "1111h es el desplazamiento, no la página. La 1111h de la TLB es otra página de A." }
+          ]
+        }
+      },
+      {
+        narration: "Acierto en la TLB: marco Ch. No se mira ninguna tabla. Física: *000C1111h*.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 2701201681,
+                fields: [{ role: "outer", bits: 8, value: 161 }, { role: "page", bits: 8, value: 1, label: "2do nivel" }, { role: "offset", bits: 16, value: 4369 }]
+              },
+              { caption: "physical", hex: 8, value: 790801, fields: [{ role: "frame", bits: null, value: "Ch" }, { role: "offset", bits: 16, value: 4369 }] }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                highlight: [1],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "b. 030110ABh: fila 03h del 1er nivel, fila 01h del 2do, desplazamiento 10ABh.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 50401451,
+                fields: [{ role: "outer", bits: 8, value: 3 }, { role: "page", bits: 8, value: 1, label: "2do nivel" }, { role: "offset", bits: 16, value: 4267 }]
+              }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "La TLB tiene una fila para la página 0301h. ¿Sirve?",
+          correct: "no",
+          options: [
+            { id: "no", text: "No: es de B", why: "Esa fila es la 0301h de B. A tiene su propia página 0301h, que puede estar en cualquier otro marco." },
+            { id: "yes", text: "Sí: marco AAh", why: "AAh es donde está la 0301h de B. Las páginas de procesos distintos no tienen nada que ver." }
+          ]
+        }
+      },
+      {
+        narration: "No sirve: es de B. Fallo de TLB, y hay que recorrer las tablas. La fila 3 del 1er nivel tiene P = 0: la tabla de 2do nivel de la página 3 no está en memoria. [[fallo:Fallo de página]], antes de llegar a la página.",
+        views: {
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                faultRow: 2,
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                faultRow: 3,
+                gapRows: [5],
+                active: true,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "10", "0"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "15", "0"], ["1", "12", "0"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Se trae la tabla de 2do nivel al primer marco libre, el 20. El bitmap marca el 20 ocupado, y la fila 3 del 1er nivel pasa a marco 20 con P = 1.",
+        views: {
+          bitmap: {
+            tables: [
+              {
+                columns: ["…", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "…"],
+                roles: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                marks: [[0, 1]],
+                rows: [["", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", ""]]
+              }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                highlight: [3],
+                gapRows: [5],
+                active: true,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "20", "1"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "15", "0"], ["1", "12", "0"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "Ahora se lee la tabla de 2do nivel de la página 3, fila 1: marco 12, pero con P = 0. La página tampoco está: segundo fallo.",
+        views: {
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                highlight: [3],
+                gapRows: [5],
+                active: true,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "20", "1"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                faultRow: 1,
+                gapRows: [5],
+                active: true,
+                rows: [["0", "15", "0"], ["1", "12", "0"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "La página va al siguiente marco libre, el 25. Fila 1: marco 25, P = 1. 25 es 19h: física *001910ABh*. Y la TLB guarda la 0301h de A en el marco 19h.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 50401451,
+                fields: [{ role: "outer", bits: 8, value: 3 }, { role: "page", bits: 8, value: 1, label: "2do nivel" }, { role: "offset", bits: 16, value: 4267 }]
+              },
+              { caption: "physical", hex: 8, value: 1642667, fields: [{ role: "frame", bits: null, value: "19h" }, { role: "offset", bits: 16, value: 4267 }] }
+            ]
+          },
+          bitmap: {
+            tables: [
+              {
+                columns: ["…", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "…"],
+                roles: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                marks: [[0, 6]],
+                rows: [["", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", ""]]
+              }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                highlight: [5],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"], ["0301", "19", "A"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "20", "1"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                highlight: [1],
+                gapRows: [5],
+                active: true,
+                rows: [["0", "15", "0"], ["1", "25", "1"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      },
+      {
+        narration: "c. 03030001h: fila 03h del 1er nivel, fila 03h del 2do, desplazamiento 0001h. En la TLB no hay ninguna 0303h de A.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 50528257,
+                fields: [{ role: "outer", bits: 8, value: 3 }, { role: "page", bits: 8, value: 3, label: "2do nivel" }, { role: "offset", bits: 16, value: 1 }]
+              }
+            ]
+          },
+          bitmap: {
+            tables: [
+              {
+                columns: ["…", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "…"],
+                roles: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                rows: [["", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", ""]]
+              }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"], ["0301", "19", "A"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "20", "1"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                gapRows: [5],
+                active: false,
+                rows: [["0", "15", "0"], ["1", "25", "1"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        },
+        ask: {
+          question: "¿Cuántos fallos de página genera 03030001h?",
+          correct: "zero",
+          options: [
+            { id: "zero", text: "0", why: "La tabla de 2do nivel de la página 3 se trajo en la b, y su fila 3 dice marco 11 con P = 1." },
+            { id: "one", text: "1", why: "La fila 3 del 1er nivel tenía P = 0 al principio, pero la b ya trajo esa tabla al marco 20." },
+            { id: "two", text: "2", why: "Ni la tabla ni la página faltan: la tabla llegó en la b, y la página 3 ya estaba." }
+          ]
+        }
+      },
+      {
+        narration: "Fila 3 del 1er nivel: marco 20, P = 1. Fila 3 del 2do: marco 11, P = 1. 11 es Bh: física *000B0001h*, y la TLB la guarda. El marco 31 queda libre.",
+        views: {
+          address: {
+            lines: [
+              {
+                caption: "logical",
+                hex: 8,
+                value: 50528257,
+                fields: [{ role: "outer", bits: 8, value: 3 }, { role: "page", bits: 8, value: 3, label: "2do nivel" }, { role: "offset", bits: 16, value: 1 }]
+              },
+              { caption: "physical", hex: 8, value: 720897, fields: [{ role: "frame", bits: null, value: "Bh" }, { role: "offset", bits: 16, value: 1 }] }
+            ]
+          },
+          tlb: {
+            tables: [
+              {
+                columns: ["page", "frame", "process"],
+                roles: ["page", "frame", null],
+                highlight: [6],
+                rows: [["1020", "11", "A"], ["A101", "C", "A"], ["0301", "AA", "B"], ["1111", "10", "A"], ["0022", "4", "C"], ["0301", "19", "A"], ["0303", "B", "A"]]
+              }
+            ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "1er nivel",
+                columns: ["page", "frame", "present"],
+                roles: ["outer", "frame", null],
+                highlight: [3],
+                gapRows: [5],
+                active: true,
+                rows: [["0", "40", "1"], ["1", "2", "0"], ["2", "2", "0"], ["3", "20", "1"], ["4", "30", "0"], ["…", "", ""]]
+              },
+              {
+                caption: "2do · pág. 3",
+                columns: ["page", "frame", "present"],
+                roles: ["page", "frame", null],
+                highlight: [3],
+                gapRows: [5],
+                active: true,
+                rows: [["0", "15", "0"], ["1", "25", "1"], ["2", "2", "1"], ["3", "11", "1"], ["4", "1", "0"], ["…", "", ""]]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+];
+</script>
+<script id="engine">
+const USED_TIPS = {};
+const ACCUMULATING = ["calc", "log"];
+const PHASES = {
+  segPaging: ["table", "ask", "split", "limit", "perm", "page", "compose"]
+};
+
+function fill(template, values) {
+  return String(template).replace(/\{(\w+)\}/g, function (whole, key) {
+    return values[key] === undefined || values[key] === null ? whole : String(values[key]);
+  });
+}
+
+function unresolved(text) {
+  return /\{\w+\}/.test(String(text));
+}
+
+function unbalanced(text) {
+  const stars = String(text).split("*").length - 1;
+  const opens = String(text).split("[[").length - 1;
+  const closes = String(text).split("]]").length - 1;
+  return stars % 2 !== 0 || opens !== closes;
+}
+
+function power(bits) {
+  return Math.pow(2, bits);
+}
+
+function slice(value, lowBits, bits) {
+  return Math.floor(value / power(lowBits)) % power(bits);
+}
+
+function groupThousands(value) {
+  const text = String(value);
+  if (text.length < 5) return text;
+  return text.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function formatNumber(value, hexDigits) {
+  if (value === null || value === undefined) return UI_TEXT.unknownValue;
+  if (typeof value === "string") return value;
+  if (hexDigits) {
+    let text = value.toString(16).toUpperCase();
+    while (text.length < hexDigits) text = "0" + text;
+    return text + "h";
+  }
+  return groupThousands(value);
+}
+
+function binary(value, bits) {
+  let text = value.toString(2);
+  while (text.length < bits) text = "0" + text;
+  return text;
+}
+
+function phaseRank(type, phase) {
+  return PHASES[type].indexOf(phase);
+}
+
+function tableBlock(columns, roles, rows, extra) {
+  return Object.assign({ columns: columns, roles: roles, rows: rows }, extra || {});
+}
+
+function segPagingMachine(example, address, phase) {
+  const machine = example.machine;
+  const pageSize = power(machine.offsetBits);
+  const span = power(machine.pageBits + machine.offsetBits);
+  const rank = phaseRank("segPaging", phase);
+  const has = address !== null && address !== undefined;
+  const segment = has ? slice(address, machine.pageBits + machine.offsetBits, machine.segBits) : null;
+  const page = has ? slice(address, machine.offsetBits, machine.pageBits) : null;
+  const offset = has ? address % pageSize : null;
+  const inside = has ? address % span : null;
+  const entry = has ? machine.segments[segment] : null;
+  const within = Boolean(entry) && inside < entry.limit;
+  const perm = entry ? UI_TEXT.perms[entry.perm] : null;
+  const permitted = Boolean(perm) && perm.allows.indexOf(machine.access) !== -1;
+  const frame = entry && entry.pages[page] !== undefined ? entry.pages[page] : null;
+  const limitChecked = has && rank >= 3;
+  const permChecked = has && rank >= 4 && within;
+  let failure = null;
+  if (limitChecked && !within) failure = "segfault";
+  else if (permChecked && !permitted) failure = "protection";
+  const pageLooked = has && rank >= 5 && !failure;
+  const composed = has && rank >= 6 && !failure && frame !== null;
+  const physical = frame === null ? null : frame * pageSize + offset;
+  const context = {
+    direccion: has ? formatNumber(address) : null,
+    segmento: segment,
+    pagina: page,
+    desp: has ? formatNumber(offset) : null,
+    dentro: has ? formatNumber(inside) : null,
+    tam: formatNumber(pageSize),
+    limite: entry ? formatNumber(entry.limit) : null,
+    acceso: UI_TEXT.access[machine.access],
+    permiso: perm ? perm.label : null,
+    marco: frame,
+    fisica: physical === null ? null : formatNumber(physical)
+  };
+  const views = {};
+  if (has) {
+    const lines = [{
+      caption: "logical",
+      value: address,
+      fields: [
+        { role: "segment", bits: machine.segBits, value: rank >= 2 ? segment : null },
+        { role: "page", bits: machine.pageBits, value: rank >= 2 ? page : null },
+        { role: "offset", bits: machine.offsetBits, value: rank >= 2 ? offset : null }
+      ]
+    }];
+    if (limitChecked) {
+      lines.push({ kind: "equation", status: within ? "ok" : "fail", text: fill(within ? UI_TEXT.equations.limit : UI_TEXT.equations.limitFail, context) });
+    }
+    if (permChecked) {
+      lines.push({ kind: "equation", status: permitted ? "ok" : "fail", text: fill(UI_TEXT.equations.perm, context) });
+    }
+    if (failure === "segfault") lines.push({ kind: "verdict", text: fill(UI_TEXT.verdicts.segfault, context) });
+    if (failure === "protection") lines.push({ kind: "verdict", text: fill(UI_TEXT.verdicts.protection, context) });
+    if (!failure) {
+      lines.push({
+        caption: "physical",
+        value: composed ? physical : null,
+        pending: true,
+        fields: [
+          { role: "frame", bits: null, value: pageLooked ? frame : null },
+          { role: "offset", bits: null, value: pageLooked ? offset : null }
+        ]
+      });
+    }
+    if (composed) lines.push({ kind: "equation", status: "ok", text: fill(UI_TEXT.equations.framePhysical, context) });
+    views.address = { lines: lines };
+  }
+  const segmentRows = machine.segments.map(function (item, index) {
+    return [String(index), formatNumber(item.limit), UI_TEXT.perms[item.perm].label];
+  });
+  views.segmentTable = { tables: [tableBlock(["segment", "limit", "perms"], ["segment", null, null], segmentRows, {
+    highlight: limitChecked && !failure ? [segment] : [],
+    faultRow: failure ? segment : null
+  })] };
+  views.pageTables = { tables: machine.segments.map(function (item, index) {
+    const pages = Object.keys(item.pages).map(Number).sort(function (one, other) { return one - other; });
+    return tableBlock(["page", "frame"], ["page", "frame"], pages.map(function (number) { return [String(number), String(item.pages[number])]; }), {
+      caption: fill(UI_TEXT.segmentCaption, { n: index }),
+      active: pageLooked && index === segment,
+      highlight: pageLooked && index === segment ? [pages.indexOf(page)] : []
+    });
+  }) };
+  let outcome = null;
+  if (failure) outcome = failure;
+  else if (composed) outcome = physical;
+  return { views: views, context: context, outcome: outcome };
+}
+
+const MACHINES = {
+  segPaging: segPagingMachine
+};
+
+function nextUse(refs, from, page) {
+  for (let index = from; index < refs.length; index += 1) {
+    if (refs[index].page === page) return index;
+  }
+  return Infinity;
+}
+
+function pickVictim(algorithm, slots, state, refs, position) {
+  const count = slots.length;
+  if (algorithm === "fifo" || algorithm === "lru") {
+    const key = algorithm === "fifo" ? "loaded" : "used";
+    let chosen = 0;
+    slots.forEach(function (slot, index) { if (slot[key] < slots[chosen][key]) chosen = index; });
+    return chosen;
+  }
+  if (algorithm === "optimal") {
+    let chosen = 0;
+    let farthest = -1;
+    slots.forEach(function (slot, index) {
+      const when = nextUse(refs, position + 1, slot.page);
+      if (when > farthest) { farthest = when; chosen = index; }
+    });
+    return chosen;
+  }
+  if (algorithm === "clock") {
+    for (let guard = 0; guard < count * 2 + 1; guard += 1) {
+      const slot = slots[state.pointer];
+      if (slot.u === 0) return state.pointer;
+      slot.u = 0;
+      state.pointer = (state.pointer + 1) % count;
+    }
+    return null;
+  }
+  for (let round = 0; round < 2; round += 1) {
+    for (let step = 0; step < count; step += 1) {
+      const index = (state.pointer + step) % count;
+      if (slots[index].u === 0 && slots[index].m === 0) return index;
+    }
+    for (let step = 0; step < count; step += 1) {
+      const index = (state.pointer + step) % count;
+      if (slots[index].u === 0 && slots[index].m === 1) return index;
+      slots[index].u = 0;
+    }
+  }
+  return null;
+}
+
+function runReplacement(fact) {
+  const slots = fact.slots.map(function (slot) { return slot ? Object.assign({}, slot) : null; });
+  const state = { pointer: fact.pointer || 0 };
+  let time = 0;
+  slots.forEach(function (slot) { if (slot) time = Math.max(time, slot.loaded || 0, slot.used || 0); });
+  const victims = [];
+  let faults = 0;
+  let writes = 0;
+  fact.refs.forEach(function (ref, position) {
+    time += 1;
+    const found = slots.findIndex(function (slot) { return slot && slot.page === ref.page; });
+    if (found !== -1) {
+      slots[found].u = 1;
+      slots[found].used = time;
+      if (ref.write) slots[found].m = 1;
+      victims.push(null);
+      return;
+    }
+    faults += 1;
+    let target = slots.indexOf(null);
+    if (target === -1) {
+      target = pickVictim(fact.algorithm, slots, state, fact.refs, position);
+      victims.push(slots[target].page);
+      if (slots[target].m === 1) writes += 1;
+      state.pointer = (target + 1) % slots.length;
+    } else {
+      victims.push(null);
+    }
+    slots[target] = { page: ref.page, u: 1, m: ref.write ? 1 : 0, loaded: time, used: time };
+  });
+  return {
+    victims: victims,
+    faults: faults,
+    writes: writes,
+    pages: slots.map(function (slot) { return slot ? slot.page : null; }),
+    bits: slots.map(function (slot) { return slot ? [slot.u, slot.m] : null; }),
+    pointer: state.pointer
+  };
+}
+
+function sameValue(one, other) {
+  return JSON.stringify(one) === JSON.stringify(other);
+}
+
+function verifyFact(fact, problems) {
+  if (fact.kind === "physical") {
+    const physical = fact.frame * fact.pageSize + fact.offset;
+    if (physical !== fact.expect) problems.push("la física del marco " + fact.frame + " con desplazamiento " + fact.offset + " da " + physical + ", no " + fact.expect);
+    if (fact.address !== undefined && fact.address % fact.pageSize !== fact.offset) problems.push("el desplazamiento de " + fact.address + " no es " + fact.offset);
+    if (fact.address !== undefined && fact.page !== undefined && Math.floor(fact.address / fact.pageSize) % power(fact.pageBits || 32) !== fact.page) problems.push("la dirección " + fact.address + " no es de la página " + fact.page);
+    return;
+  }
+  if (fact.kind === "page") {
+    const page = Math.floor(fact.address / fact.pageSize);
+    if (page !== fact.expect) problems.push("la dirección " + fact.address + " es de la página " + page + ", no de la " + fact.expect);
+    return;
+  }
+  if (fact.kind === "replacement") {
+    const result = runReplacement(fact);
+    if (fact.expect) {
+      Object.keys(fact.expect).forEach(function (key) {
+        if (!sameValue(result[key], fact.expect[key])) problems.push(fact.algorithm + " da " + key + " = " + JSON.stringify(result[key]) + ", y el ejemplo dice " + JSON.stringify(fact.expect[key]));
+      });
+    }
+    if (fact.expectNot && sameValue(result.pages, fact.expectNot.pages)) problems.push(fact.algorithm + " llega al estado final, y el ejemplo dice que no puede");
+    return;
+  }
+  problems.push("hay un hecho de tipo " + fact.kind + ", que el recurso no sabe comprobar");
+}
+
+function verifyFacts(example, problems) {
+  (example.facts || []).forEach(function (fact) { verifyFact(fact, problems); });
+}
+
+function mergeViews(previous, declared) {
+  const merged = Object.assign({}, previous || {});
+  Object.keys(declared || {}).forEach(function (key) { merged[key] = declared[key]; });
+  return merged;
+}
+
+function snapshotsOf(example, steps) {
+  const snapshots = [];
+  let address;
+  let previous = null;
+  const lists = {};
+  ACCUMULATING.forEach(function (id) { lists[id] = []; });
+  let clueHistory = [];
+  steps.forEach(function (step, index) {
+    if (step.address !== undefined) address = step.address;
+    let views = mergeViews(previous ? previous.views : null, step.views);
+    let context = {};
+    let outcome = null;
+    if (example.machine && step.phase) {
+      const result = MACHINES[example.machine.type](example, address, step.phase);
+      views = mergeViews(views, result.views);
+      context = result.context;
+      outcome = result.outcome;
+    }
+    ACCUMULATING.forEach(function (id) {
+      const added = step[id] || [];
+      lists[id] = lists[id].concat(added);
+      views[id] = { lines: lists[id].slice(), fresh: added.length };
+    });
+    if (example.clues) {
+      if (step.clue !== undefined) clueHistory = clueHistory.concat([step.clue]);
+      views.clues = { items: example.clues, used: clueHistory.slice(0, step.clue === undefined ? clueHistory.length : clueHistory.length - 1), current: step.clue === undefined ? null : step.clue };
+    }
+    const snapshot = {
+      step: step,
+      index: index,
+      last: index === steps.length - 1,
+      views: views,
+      previousViews: previous ? previous.views : {},
+      context: context,
+      outcome: outcome,
+      narration: fill(step.narration, context),
+      note: step.note ? fill(step.note, context) : null
+    };
+    snapshots.push(snapshot);
+    previous = snapshot;
+  });
+  return snapshots;
+}
+
+function collectTipKeys(text, into) {
+  const pattern = /\[\[(\w+):/g;
+  let match = pattern.exec(text);
+  while (match) {
+    into[match[1]] = true;
+    match = pattern.exec(text);
+  }
+}
+
+function verifyText(where, text, problems) {
+  if (unresolved(text)) problems.push("quedó un dato sin completar en " + where);
+  if (unbalanced(text)) problems.push("quedó una marca sin cerrar en " + where);
+  const keys = {};
+  collectTipKeys(text, keys);
+  Object.keys(keys).forEach(function (key) {
+    if (!TOOLTIPS[key]) problems.push(where + " pide el globito " + key + ", que no existe");
+    USED_TIPS[key] = true;
+  });
+}
+
+function verifyTexts(example, snapshots, problems) {
+  snapshots.forEach(function (snapshot, index) {
+    verifyText("la narración del paso " + (index + 1), snapshot.narration, problems);
+    if (snapshot.note) verifyText("la nota del paso " + (index + 1), snapshot.note, problems);
+    Object.keys(snapshot.views).forEach(function (id) {
+      const view = snapshot.views[id];
+      if (view && view.lines) {
+        view.lines.forEach(function (line) {
+          const text = typeof line === "string" ? line : line.text;
+          if (text) verifyText("una línea del panel " + id + " en el paso " + (index + 1), text, problems);
+        });
+      }
+    });
+  });
+  verifyText("la frase de cierre", example.closing, problems);
+  if (example.stepUnitNote) verifyText("la nota de unidad", example.stepUnitNote, problems);
+  if (example.compare) {
+    example.compare.rows.reduce(function (all, row) { return all.concat(row); }, example.compare.headers.slice()).forEach(function (text) {
+      verifyText("la tabla comparativa", text, problems);
+    });
+  }
+}
+
+function verifyFieldLines(snapshots, problems) {
+  snapshots.forEach(function (snapshot, index) {
+    const view = snapshot.views.address;
+    if (!view) return;
+    view.lines.forEach(function (line) {
+      if (line.kind || line.value === undefined || line.value === null) return;
+      const complete = line.fields.every(function (field) { return typeof field.bits === "number" && typeof field.value === "number"; });
+      if (!complete) return;
+      let rebuilt = 0;
+      line.fields.forEach(function (field) { rebuilt = rebuilt * power(field.bits) + field.value; });
+      if (rebuilt !== line.value) problems.push("en el paso " + (index + 1) + ", los campos de la dirección no forman " + line.value);
+      line.fields.forEach(function (field) {
+        if (field.value >= power(field.bits)) problems.push("en el paso " + (index + 1) + ", un campo no entra en sus bits");
+      });
+    });
+  });
+}
+
+function verifyTables(snapshots, problems) {
+  snapshots.forEach(function (snapshot, index) {
+    Object.keys(snapshot.views).forEach(function (id) {
+      const view = snapshot.views[id];
+      if (!view || !view.tables) return;
+      view.tables.forEach(function (block) {
+        block.rows.forEach(function (row) {
+          if (row.length !== block.columns.length) problems.push("en el paso " + (index + 1) + ", una fila del panel " + id + " no tiene tantas celdas como columnas");
+        });
+        (block.marks || []).forEach(function (mark) {
+          const touching = (block.marks || []).some(function (other) { return other[0] === mark[0] && Math.abs(other[1] - mark[1]) === 1; });
+          if (touching) problems.push("en el paso " + (index + 1) + ", dos celdas marcadas del panel " + id + " se tocan: marcá la fila entera");
+        });
+      });
+    });
+  });
+}
+
+function verifyMachine(example, snapshots, problems) {
+  snapshots.forEach(function (snapshot, index) {
+    const step = snapshot.step;
+    if (step.phase && !example.machine) problems.push("el paso " + (index + 1) + " declara una fase y el ejemplo no tiene máquina");
+    if (step.phase && example.machine && PHASES[example.machine.type].indexOf(step.phase) === -1) {
+      problems.push("el paso " + (index + 1) + " declara la fase " + step.phase + ", que la máquina no conoce");
+    }
+    if (step.expect === undefined) return;
+    if (snapshot.outcome !== step.expect) {
+      problems.push("el paso " + (index + 1) + " espera " + step.expect + " y la traducción da " + snapshot.outcome);
+    }
+  });
+}
+
+function verifyAsks(example, steps, problems) {
+  steps.forEach(function (step, index) {
+    if (!step.ask) return;
+    const ids = step.ask.options.map(function (option) { return option.id; });
+    if (ids.indexOf(step.ask.correct) === -1) problems.push("la pregunta del paso " + (index + 1) + " no tiene entre las opciones a la correcta");
+    if (new Set(ids).size !== ids.length) problems.push("la pregunta del paso " + (index + 1) + " repite una opción");
+    if (step.ask.options.length < 2) problems.push("la pregunta del paso " + (index + 1) + " tiene menos de dos opciones");
+    step.ask.options.forEach(function (option) {
+      if (!option.why) problems.push("una opción del paso " + (index + 1) + " no explica por qué");
+      verifyText("una opción del paso " + (index + 1), option.text + " " + option.why, problems);
+    });
+    verifyText("la pregunta del paso " + (index + 1), step.ask.question, problems);
+    if (index === steps.length - 1) problems.push("el último paso tiene una pregunta, y ahí va la frase de cierre");
+  });
+}
+
+function canvasPanels(canvas) {
+  const flat = [];
+  canvas.panels.forEach(function (entry) {
+    if (Array.isArray(entry)) entry.forEach(function (id) { flat.push(id); });
+    else flat.push(entry);
+  });
+  return flat;
+}
+
+function verifyStructure(example, steps, snapshots, problems) {
+  if (!example.closing) problems.push("no tiene frase de cierre");
+  if (!example.stepUnit) problems.push("no declara la unidad del paso");
+  if (!example.source) problems.push("no dice de qué parcial o guía viene");
+  if (steps.length === 0) problems.push("no tiene pasos");
+  const panels = canvasPanels(example.canvas);
+  panels.forEach(function (id) {
+    if (!UI_TEXT.panels[id]) problems.push("usa el panel " + id + ", que no tiene nombre");
+    if (!PANEL_TIPS[id]) problems.push("usa el panel " + id + ", que no tiene globito");
+  });
+  snapshots.forEach(function (snapshot, index) {
+    if (!snapshot.step.narration) problems.push("el paso " + (index + 1) + " no tiene narración");
+    panels.forEach(function (id) {
+      if (!snapshot.views[id]) problems.push("en el paso " + (index + 1) + " el panel " + id + " no tiene nada que mostrar");
+    });
+  });
+  if (example.clues) {
+    const used = steps.filter(function (step) { return step.clue !== undefined; }).map(function (step) { return step.clue; });
+    if (new Set(used).size !== example.clues.length) problems.push("no se usan todas las pistas, o alguna se usa dos veces");
+  }
+}
+
+function buildExample(example) {
+  const problems = [];
+  const snapshots = snapshotsOf(example, example.steps);
+  verifyStructure(example, example.steps, snapshots, problems);
+  verifyTexts(example, snapshots, problems);
+  verifyFieldLines(snapshots, problems);
+  verifyTables(snapshots, problems);
+  verifyMachine(example, snapshots, problems);
+  verifyAsks(example, example.steps, problems);
+  verifyFacts(example, problems);
+  return { example: example, snapshots: snapshots, problems: problems };
+}
+
+const BUILT_EXAMPLES = EXAMPLES.map(buildExample);
+
+(function verifyGroupsAreContiguous() {
+  const seen = [];
+  EXAMPLES.forEach(function (example) {
+    if (seen[seen.length - 1] === example.group) return;
+    if (seen.indexOf(example.group) !== -1) console.error("El grupo " + example.group + " aparece cortado en dos tramos de la escalera");
+    seen.push(example.group);
+  });
+  EXAMPLES.forEach(function (example, index) {
+    if (!UI_TEXT.groups[example.group]) console.error("El grupo " + example.group + " no tiene nombre");
+    if (example.number !== index + 1) console.error("El ejemplo en la posición " + (index + 1) + " dice ser el " + example.number);
+  });
+})();
+
+BUILT_EXAMPLES.forEach(function (built) {
+  built.problems.forEach(function (problem) {
+    console.error("Ejemplo " + built.example.number + ": " + problem);
+  });
+});
+
+Object.keys(TOOLTIPS).forEach(function (key) {
+  if (!USED_TIPS[key]) console.error("El globito " + key + " está escrito y ninguna narración lo invoca");
+});
+</script>
+
+<script id="ui">
+const dom = {
+  pageTitle: document.getElementById("pageTitle"),
+  exampleList: document.getElementById("exampleList"),
+  narration: document.getElementById("narrationPanel"),
+  main: document.getElementById("main"),
+  title: document.getElementById("exampleTitle"),
+  subtitle: document.getElementById("exampleSubtitle"),
+  stepUnit: document.getElementById("stepUnit"),
+  progress: document.getElementById("progress"),
+  progressFill: document.getElementById("progressFill"),
+  first: document.getElementById("firstStep"),
+  prev: document.getElementById("prevStep"),
+  next: document.getElementById("nextStep"),
+  last: document.getElementById("lastStep"),
+  play: document.getElementById("playPause"),
+  tooltip: document.getElementById("tooltip")
+};
+
+const AUTOPLAY_DELAY = 2800;
+const STORE_KEY = "ssoo-recursos:memory-practice:v1";
+
+const PANELS = {
+  address: renderBits,
+  calc: renderList,
+  log: renderList,
+  clues: renderClues,
+  segmentTable: renderTables,
+  pageTable: renderTables,
+  pageTables: renderTables,
+  frames: renderTables,
+  refs: renderTables,
+  tlb: renderTables,
+  bitmap: renderTables,
+  memory: renderMemory
+};
+
+const panelRefs = {};
+let canvasKey = "";
+
+const view = { exampleIndex: 0, stepIndex: 0, playing: false, timer: null, answers: readStore() };
+
+function readStore() {
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function writeStore() {
+  try {
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(view.answers));
+  } catch (error) {
+    return;
+  }
+}
+
+function currentBuilt() { return BUILT_EXAMPLES[view.exampleIndex]; }
+function currentExample() { return currentBuilt().example; }
+function totalSteps() { return currentBuilt().snapshots.length; }
+function currentSnapshot() { return currentBuilt().snapshots[view.stepIndex]; }
+
+function answerKey() { return currentExample().number + ":" + view.stepIndex; }
+
+function currentAnswer() {
+  const ask = currentSnapshot().step.ask;
+  const stored = view.answers[answerKey()];
+  if (!ask || typeof stored !== "string") return null;
+  return ask.options.some(function (option) { return option.id === stored; }) ? stored : null;
+}
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function renderRich(target, text) {
+  target.textContent = "";
+  const pattern = /\[\[(\w+):([^\]]+)\]\]|\*([^*]+)\*/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) target.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+    if (match[1]) {
+      const button = element("button", "tip", match[2]);
+      button.type = "button";
+      button.dataset.tip = match[1];
+      target.appendChild(button);
+    } else {
+      target.appendChild(element("strong", null, match[3]));
+    }
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) target.appendChild(document.createTextNode(text.slice(cursor)));
+  return target;
+}
+
+function buildPanel(id) {
+  const refs = { body: element("div", "panel-body") };
+  const section = element("section", "panel " + id);
+  const heading = element("h2");
+  const title = element("button", "tip", UI_TEXT.panels[id]);
+  title.type = "button";
+  title.dataset.tip = "panel:" + id;
+  heading.appendChild(title);
+  section.appendChild(heading);
+  section.appendChild(refs.body);
+  refs.section = section;
+  return refs;
+}
+
+function buildCanvas() {
+  const example = currentExample();
+  const canvas = example.canvas;
+  const key = example.number + "|" + JSON.stringify(canvas);
+  if (key === canvasKey) return;
+  canvasKey = key;
+  Object.keys(panelRefs).forEach(function (id) { delete panelRefs[id]; });
+  const fresh = element("main");
+  fresh.id = "main";
+  fresh.style.gridTemplateColumns = canvas.columns;
+  canvas.panels.forEach(function (entry) {
+    if (Array.isArray(entry)) {
+      const stack = element("div", "stack");
+      stack.style.gridTemplateRows = canvas.stackRows || "auto minmax(0, 1fr)";
+      entry.forEach(function (id) {
+        const refs = buildPanel(id);
+        panelRefs[id] = refs;
+        stack.appendChild(refs.section);
+      });
+      fresh.appendChild(stack);
+      return;
+    }
+    const refs = buildPanel(entry);
+    panelRefs[entry] = refs;
+    fresh.appendChild(refs.section);
+  });
+  dom.main.replaceWith(fresh);
+  dom.main = fresh;
+}
+
+function renderExampleList() {
+  dom.exampleList.textContent = "";
+  let lastGroup = null;
+  let section = null;
+  BUILT_EXAMPLES.forEach(function (built, index) {
+    if (built.example.group !== lastGroup) {
+      section = element("span", "group");
+      section.appendChild(element("span", "group-cap", UI_TEXT.groups[built.example.group]));
+      dom.exampleList.appendChild(section);
+      lastGroup = built.example.group;
+    }
+    const button = element("button");
+    button.type = "button";
+    button.appendChild(element("span", "num", built.example.number));
+    button.title = built.example.short + " · " + built.example.adds;
+    button.setAttribute("aria-label", built.example.number + ". " + built.example.title);
+    button.setAttribute("aria-current", index === view.exampleIndex ? "true" : "false");
+    button.addEventListener("click", function () { selectExample(index); });
+    section.appendChild(button);
+  });
+}
+
+function bitWidth(totalBits) {
+  if (totalBits <= 13) return "19px";
+  if (totalBits <= 18) return "17px";
+  if (totalBits <= 20) return "15px";
+  return "12px";
+}
+
+function fieldText(field, line) {
+  if (field.value === null || field.value === undefined) return null;
+  if (typeof field.value === "string") return field.value;
+  const digits = line.hex && field.bits >= 4 ? Math.ceil(field.bits / 4) : null;
+  return formatNumber(field.value, digits);
+}
+
+function fieldSignature(field, line) {
+  return [field.role, field.bits, field.label, fieldText(field, line)].join("|");
+}
+
+function renderField(field, line, fresh) {
+  const known = field.value !== null && field.value !== undefined;
+  const box = element("div", "field role-" + field.role + (known ? "" : " unknown") + (fresh ? " fresh" : ""));
+  if (typeof field.bits === "number") {
+    const cells = element("div", "cells");
+    const digits = known && typeof field.value === "number" ? binary(field.value, field.bits) : null;
+    for (let bit = 0; bit < field.bits; bit += 1) {
+      const fromRight = field.bits - bit;
+      const cell = element("span", "bit", digits ? digits[bit] : "");
+      if (line.hex && bit > 0 && fromRight % 4 === 0) cell.classList.add("nibble");
+      cells.appendChild(cell);
+    }
+    box.appendChild(cells);
+  } else {
+    box.appendChild(element("span", "valuebox", known ? fieldText(field, line) : UI_TEXT.unknownValue));
+  }
+  const meta = element("span", "meta");
+  meta.appendChild(element("span", null, field.label || UI_TEXT.roles[field.role] || ""));
+  if (typeof field.bits === "number" && field.bits > 1) meta.appendChild(element("span", "sub", fill(UI_TEXT.bitsCount, { n: field.bits })));
+  else if (field.bits === 1) meta.appendChild(element("span", "sub", UI_TEXT.oneBit));
+  else if (field.bits === undefined && field.role !== "flag") meta.appendChild(element("span", "sub", UI_TEXT.unknownBits));
+  if (known && typeof field.bits === "number" && field.bits > 1) meta.appendChild(element("span", "sub", fill(UI_TEXT.valueIs, { value: fieldText(field, line) })));
+  box.appendChild(meta);
+  return box;
+}
+
+function renderBits(snapshot, id) {
+  const body = panelRefs[id].body;
+  body.textContent = "";
+  const data = snapshot.views[id];
+  const before = snapshot.previousViews[id];
+  if (data.lines.length === 0) {
+    body.appendChild(element("p", "empty-list", UI_TEXT.emptyLists.address));
+    return;
+  }
+  const wrap = element("div", "bitlines");
+  data.lines.forEach(function (line, lineIndex) {
+    const previousLine = before && before.lines ? before.lines[lineIndex] : null;
+    if (line.kind === "equation") {
+      const changed = !previousLine || previousLine.text !== line.text;
+      const row = element("div", "equation " + (line.status || "") + (changed && snapshot.index > 0 ? " fresh" : ""));
+      if (line.status) row.appendChild(element("span", "mark", line.status === "ok" ? UI_TEXT.marks.ok : UI_TEXT.marks.fail));
+      renderRich(row.appendChild(element("span")), line.text);
+      wrap.appendChild(row);
+      return;
+    }
+    if (line.kind === "verdict") {
+      const row = element("div", "verdict-line");
+      row.appendChild(element("span", "mark", UI_TEXT.marks.fail));
+      row.appendChild(element("span", null, line.text));
+      const holder = element("div");
+      holder.appendChild(row);
+      wrap.appendChild(holder);
+      return;
+    }
+    const row = element("div", "bitline");
+    row.appendChild(element("span", "caption", UI_TEXT.captions[line.caption] || line.caption));
+    const track = element("div", "track");
+    const totalBits = line.fields.reduce(function (sum, field) { return sum + (typeof field.bits === "number" ? field.bits : 0); }, 0);
+    const scroll = element("div", "fields-scroll");
+    const fields = element("div", "fields");
+    fields.style.setProperty("--bit-w", bitWidth(totalBits));
+    line.fields.forEach(function (field, fieldIndex) {
+      const previousField = previousLine && previousLine.fields ? previousLine.fields[fieldIndex] : null;
+      const known = field.value !== null && field.value !== undefined;
+      const changed = snapshot.index > 0 && known && (!previousField || fieldSignature(previousField, previousLine) !== fieldSignature(field, line));
+      fields.appendChild(renderField(field, line, changed));
+    });
+    scroll.appendChild(fields);
+    track.appendChild(scroll);
+    if (line.value !== undefined && (line.value !== null || line.pending)) {
+      const total = element("div", "total");
+      const text = line.value === null ? UI_TEXT.pendingTotal : fill(UI_TEXT.valueIs, { value: formatNumber(line.value, line.hex) });
+      const changed = snapshot.index > 0 && (!previousLine || previousLine.value !== line.value) && line.value !== null;
+      if (changed) total.classList.add("fresh");
+      total.appendChild(element("span", "equals" + (line.value === null ? " pending" : ""), text));
+      total.appendChild(element("span", "sub", UI_TEXT.totalSub));
+      track.appendChild(total);
+    }
+    row.appendChild(track);
+    wrap.appendChild(row);
+  });
+  body.appendChild(wrap);
+}
+
+function renderList(snapshot, id) {
+  const body = panelRefs[id].body;
+  body.textContent = "";
+  const data = snapshot.views[id];
+  if (data.lines.length === 0) {
+    body.appendChild(element("p", "empty-list", UI_TEXT.emptyLists[id]));
+    return;
+  }
+  const list = element("ol", "list");
+  const firstFresh = data.lines.length - (data.fresh || 0);
+  data.lines.forEach(function (text, index) {
+    const item = element("li", index >= firstFresh && snapshot.step[id] ? "fresh" : null);
+    item.appendChild(element("span", "n", String(index + 1)));
+    renderRich(item.appendChild(element("span")), text);
+    list.appendChild(item);
+  });
+  body.appendChild(list);
+}
+
+function renderClues(snapshot) {
+  const body = panelRefs.clues.body;
+  body.textContent = "";
+  const data = snapshot.views.clues;
+  const list = element("ol", "list");
+  data.items.forEach(function (text, index) {
+    const used = data.used.indexOf(index) !== -1;
+    const item = element("li", index === data.current ? "fresh" : (used ? "used" : null));
+    item.appendChild(element("span", "n", String(index + 1)));
+    renderRich(item.appendChild(element("span")), text);
+    if (used) item.appendChild(element("span", "state", UI_TEXT.clueUsed));
+    list.appendChild(item);
+  });
+  body.appendChild(list);
+}
+
+function renderTables(snapshot, id) {
+  const body = panelRefs[id].body;
+  body.textContent = "";
+  const data = snapshot.views[id];
+  if (data.tables.length === 0) {
+    body.appendChild(element("p", "empty-list", data.empty || ""));
+    return;
+  }
+  const group = element("div", "table-group");
+  data.tables.forEach(function (block) {
+    const holder = element("div", "table-block" + (block.active ? " active" : ""));
+    if (block.caption) holder.appendChild(element("h3", null, block.caption));
+    const scroll = element("div", "table-scroll");
+    const table = element("table", "grid-table");
+    const head = element("tr");
+    block.columns.forEach(function (key, column) {
+      const role = block.roles && block.roles[column];
+      head.appendChild(element("th", role ? "role-" + role : null, UI_TEXT.columns[key] || key));
+    });
+    table.appendChild(head);
+    block.rows.forEach(function (cells, rowIndex) {
+      const row = element("tr");
+      if ((block.highlight || []).indexOf(rowIndex) !== -1) row.classList.add("focus");
+      if (block.faultRow === rowIndex) row.classList.add("fault");
+      if ((block.visited || []).indexOf(rowIndex) !== -1) row.classList.add("visited");
+      if ((block.gapRows || []).indexOf(rowIndex) !== -1) row.classList.add("gap");
+      cells.forEach(function (text, column) {
+        const role = block.roles && block.roles[column];
+        const empty = text === UI_TEXT.none || text === UI_TEXT.unknownValue;
+        const cell = element("td", empty ? "empty" : (role ? "role-" + role : null), text);
+        const marked = (block.marks || []).some(function (mark) { return mark[0] === rowIndex && mark[1] === column; });
+        if (marked) cell.classList.add("mark");
+        row.appendChild(cell);
+      });
+      table.appendChild(row);
+    });
+    scroll.appendChild(table);
+    holder.appendChild(scroll);
+    group.appendChild(holder);
+  });
+  body.appendChild(group);
+}
+
+function memoryLegend(kinds) {
+  const legend = element("div", "legend");
+  kinds.forEach(function (kind) {
+    const item = element("span", "item");
+    item.appendChild(element("span", "swatch " + kind));
+    item.appendChild(document.createTextNode(UI_TEXT.memory[LEGEND_KEYS[kind]]));
+    legend.appendChild(item);
+  });
+  return legend;
+}
+
+const LEGEND_KEYS = { seg: "legendSeg", unknown: "legendUnknown" };
+
+function stripText(value, data) {
+  return formatNumber(value, data.digits);
+}
+
+function renderStrip(body, data) {
+  const wrap = element("div", "strip-wrap");
+  const strip = element("div", "strip");
+  const kinds = {};
+  data.blocks.forEach(function (block, index) {
+    kinds[block.kind] = true;
+    const node = element("div", "block " + block.kind);
+    node.style.flex = block.size + " 1 0px";
+    if ((data.highlight || []).indexOf(index) !== -1) node.classList.add("focus");
+    if (block.label) node.appendChild(element("span", "name", block.label));
+    const last = block.start + block.size - 1;
+    node.appendChild(element("span", "range", stripText(block.start, data) + " – " + stripText(last, data)));
+    node.title = (block.label ? block.label + ": " : "") + stripText(block.start, data) + " – " + stripText(last, data);
+    if (data.marker && data.marker.address >= block.start && data.marker.address < block.start + block.size) {
+      const marker = element("span", "marker" + (data.marker.fail ? " fail" : ""));
+      marker.style.top = Math.min(92, Math.max(8, (data.marker.address - block.start) / block.size * 100)) + "%";
+      marker.appendChild(element("span", "pin", data.marker.label));
+      node.appendChild(marker);
+    }
+    strip.appendChild(node);
+  });
+  wrap.appendChild(strip);
+  wrap.appendChild(memoryLegend(["seg", "unknown"].filter(function (kind) { return kinds[kind]; })));
+  body.appendChild(wrap);
+}
+
+function renderMemory(snapshot) {
+  const body = panelRefs.memory.body;
+  body.textContent = "";
+  const data = snapshot.views.memory;
+  renderStrip(body, data);
+}
+
+function takeawayBlock(text) {
+  const box = element("div", "takeaway");
+  box.appendChild(element("span", "tag", UI_TEXT.takeawayTag));
+  renderRich(box.appendChild(element("span", "line")), text);
+  return box;
+}
+
+function compareBlock(compare) {
+  const wrapper = element("div", "compare");
+  const table = element("table");
+  const head = element("tr");
+  compare.headers.forEach(function (text) { renderRich(head.appendChild(element("th")), text); });
+  table.appendChild(head);
+  compare.rows.forEach(function (cells) {
+    const row = element("tr");
+    cells.forEach(function (text, column) { renderRich(row.appendChild(element("td", column === 0 ? "label" : null)), text); });
+    table.appendChild(row);
+  });
+  wrapper.appendChild(table);
+  return wrapper;
+}
+
+function askBlock(ask) {
+  const box = element("div", "ask-box");
+  box.appendChild(element("span", "tag", UI_TEXT.ask.tag));
+  renderRich(box.appendChild(element("p", "question")), ask.question);
+  const chosen = currentAnswer();
+  if (!chosen) {
+    const options = element("div", "ask-options");
+    ask.options.forEach(function (option) {
+      const button = element("button", null, option.text);
+      button.type = "button";
+      button.addEventListener("click", function () { answerWith(option.id); });
+      options.appendChild(button);
+    });
+    box.appendChild(options);
+    return box;
+  }
+  const picked = ask.options.find(function (option) { return option.id === chosen; });
+  const right = ask.options.find(function (option) { return option.id === ask.correct; });
+  const result = element("div", "ask-result");
+  const mine = element("p", "answer " + (chosen === ask.correct ? "right" : "wrong"));
+  mine.appendChild(element("span", "head", (chosen === ask.correct ? UI_TEXT.ask.right : UI_TEXT.ask.wrong) + " " + picked.text));
+  renderRich(mine.appendChild(element("span")), picked.why);
+  result.appendChild(mine);
+  if (chosen !== ask.correct) {
+    const good = element("p", "answer right");
+    good.appendChild(element("span", "head", fill(UI_TEXT.ask.correctIs, { text: right.text })));
+    renderRich(good.appendChild(element("span")), right.why);
+    result.appendChild(good);
+  }
+  const retry = element("button", "retry", UI_TEXT.ask.retry);
+  retry.type = "button";
+  retry.addEventListener("click", clearAnswer);
+  result.appendChild(retry);
+  box.appendChild(result);
+  return box;
+}
+
+function renderNarration(snapshot) {
+  const example = currentExample();
+  const ask = snapshot.step.ask;
+  dom.narration.textContent = "";
+  dom.narration.classList.toggle("with-extras", snapshot.last === true || Boolean(ask));
+  dom.narration.classList.toggle("no-compare", snapshot.last === true && !example.compare);
+  dom.narration.classList.toggle("asking", Boolean(ask) && !snapshot.last);
+  const main = element("div", "narration-main");
+  renderRich(main.appendChild(element("p", "narration-text")), snapshot.narration);
+  if (snapshot.note) renderRich(main.appendChild(element("p", "narration-note")), snapshot.note);
+  if (view.stepIndex === 0 && example.stepUnitNote) renderRich(main.appendChild(element("p", "narration-note")), example.stepUnitNote);
+  dom.narration.appendChild(main);
+  if (ask) {
+    const extras = element("div", "narration-extras");
+    extras.appendChild(askBlock(ask));
+    dom.narration.appendChild(extras);
+    return;
+  }
+  if (!snapshot.last) return;
+  if (example.compare) {
+    const table = compareBlock(example.compare);
+    table.classList.add("full");
+    dom.narration.appendChild(table);
+  }
+  const extras = element("div", "narration-extras");
+  extras.appendChild(takeawayBlock(example.closing));
+  dom.narration.appendChild(extras);
+}
+
+function render() {
+  const example = currentExample();
+  const snapshot = currentSnapshot();
+  const total = totalSteps();
+  buildCanvas();
+  dom.title.textContent = example.number + ". " + example.title;
+  dom.subtitle.textContent = example.subtitle;
+  dom.stepUnit.textContent = example.stepUnit;
+  Object.keys(panelRefs).forEach(function (id) { PANELS[id](snapshot, id); });
+  renderNarration(snapshot);
+  dom.progress.textContent = fill(UI_TEXT.progress, { current: view.stepIndex + 1, total: total });
+  dom.progressFill.style.transform = "scaleX(" + ((view.stepIndex + 1) / total) + ")";
+  dom.first.disabled = view.stepIndex === 0;
+  dom.prev.disabled = view.stepIndex === 0;
+  dom.next.disabled = view.stepIndex === total - 1;
+  dom.last.disabled = view.stepIndex === total - 1;
+  dom.play.textContent = view.playing ? UI_TEXT.pause : UI_TEXT.play;
+  Array.prototype.forEach.call(dom.exampleList.querySelectorAll("button"), function (button, position) {
+    button.setAttribute("aria-current", position === view.exampleIndex ? "true" : "false");
+  });
+}
+
+function goTo(index) {
+  const total = totalSteps();
+  view.stepIndex = Math.max(0, Math.min(index, total - 1));
+  render();
+  if (view.playing && view.stepIndex === total - 1) stopPlaying();
+}
+
+function answerWith(id) {
+  view.answers[answerKey()] = id;
+  writeStore();
+  render();
+  const retry = dom.narration.querySelector(".retry");
+  if (retry) retry.focus();
+}
+
+function clearAnswer() {
+  delete view.answers[answerKey()];
+  writeStore();
+  render();
+  const first = dom.narration.querySelector(".ask-options button");
+  if (first) first.focus();
+}
+
+function selectExample(index) {
+  stopPlaying();
+  view.exampleIndex = index;
+  view.stepIndex = 0;
+  render();
+}
+
+function stopPlaying() {
+  view.playing = false;
+  if (view.timer) { clearTimeout(view.timer); view.timer = null; }
+  dom.play.textContent = UI_TEXT.play;
+}
+
+function scheduleTick() {
+  if (view.timer) clearTimeout(view.timer);
+  view.timer = setTimeout(function () {
+    if (!view.playing) return;
+    if (view.stepIndex >= totalSteps() - 1) { stopPlaying(); render(); return; }
+    goTo(view.stepIndex + 1);
+    if (view.playing) scheduleTick();
+  }, AUTOPLAY_DELAY);
+}
+
+function startPlaying() {
+  view.playing = true;
+  scheduleTick();
+  render();
+}
+
+function togglePlaying() {
+  if (view.playing) { stopPlaying(); render(); return; }
+  startPlaying();
+}
+
+function lookupTooltip(key) {
+  if (key.indexOf("panel:") === 0) return PANEL_TIPS[key.slice(6)];
+  return TOOLTIPS[key];
+}
+
+function showTooltip(trigger, tip) {
+  dom.tooltip.textContent = "";
+  dom.tooltip.appendChild(element("strong", "tip-title", tip.title));
+  dom.tooltip.appendChild(document.createTextNode(tip.body));
+  dom.tooltip.classList.add("open");
+  const box = trigger.getBoundingClientRect();
+  const width = dom.tooltip.offsetWidth;
+  const height = dom.tooltip.offsetHeight;
+  let left = box.left + box.width / 2 - width / 2;
+  left = Math.min(left, window.innerWidth - width - 8);
+  let top = box.top - height - 8;
+  if (top < 8) top = box.bottom + 8;
+  dom.tooltip.style.left = Math.max(8, left) + "px";
+  dom.tooltip.style.top = top + "px";
+}
+
+function hideTooltip() { dom.tooltip.classList.remove("open"); }
+
+function closestElement(target, selector) {
+  return target && typeof target.closest === "function" ? target.closest(selector) : null;
+}
+
+["mouseover", "focusin"].forEach(function (name) {
+  document.addEventListener(name, function (event) {
+    const trigger = closestElement(event.target, "[data-tip]");
+    const tip = trigger ? lookupTooltip(trigger.dataset.tip) : null;
+    if (tip) showTooltip(trigger, tip);
+    else hideTooltip();
+  });
+});
+
+["mouseout", "focusout", "scroll"].forEach(function (name) {
+  document.addEventListener(name, hideTooltip, true);
+});
+
+dom.first.addEventListener("click", function () { stopPlaying(); goTo(0); });
+dom.prev.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex - 1); });
+dom.next.addEventListener("click", function () { stopPlaying(); goTo(view.stepIndex + 1); });
+dom.last.addEventListener("click", function () { stopPlaying(); goTo(totalSteps() - 1); });
+dom.play.addEventListener("click", togglePlaying);
+
+document.addEventListener("keydown", function (event) {
+  if (event.target && event.target.tagName === "BUTTON" && (event.key === " " || event.key === "Enter")) return;
+  if (event.key === "ArrowRight") { stopPlaying(); goTo(view.stepIndex + 1); event.preventDefault(); }
+  if (event.key === "ArrowLeft") { stopPlaying(); goTo(view.stepIndex - 1); event.preventDefault(); }
+  if (event.key === "Home") { stopPlaying(); goTo(0); event.preventDefault(); }
+  if (event.key === "End") { stopPlaying(); goTo(totalSteps() - 1); event.preventDefault(); }
+  if (event.key === "Escape") hideTooltip();
+});
+
+dom.pageTitle.textContent = UI_TEXT.pageTitle;
+dom.first.textContent = UI_TEXT.firstStep;
+dom.prev.textContent = UI_TEXT.prevStep;
+dom.next.textContent = UI_TEXT.nextStep;
+dom.last.textContent = UI_TEXT.lastStep;
+dom.play.textContent = UI_TEXT.play;
+
+Object.keys(UI_TEXT.panels).forEach(function (id) {
+  if (!PANELS[id]) console.error("El panel " + id + " tiene nombre pero no tiene dibujo");
+});
+
+Object.keys(PANELS).forEach(function (id) {
+  if (!UI_TEXT.panels[id]) console.error("El panel " + id + " tiene dibujo pero no tiene nombre");
+});
+
+renderExampleList();
+render();
+</script>
+</body>
+</html>
