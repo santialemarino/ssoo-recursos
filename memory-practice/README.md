@@ -98,6 +98,15 @@ siguiente.
   pantalla.» (ej. 20, pasos 3 y 11), «El bitmap sale de la pantalla.» (ej. 21, paso
   13), «Las direcciones salen de la pantalla.» (ej. 22, paso 3) y «La dirección sale
   de la pantalla.» (ej. 23, paso 13).
+- **Tres errores de los recursos de origen, corregidos**: el ejemplo 2 decía 35
+  marcos libres y son 38; en el 23, la tabla de B seguía con U = 1 para la B2
+  después de que la segunda vuelta de Clock modificado lo bajara, y las dos búsquedas
+  de víctima (pasos 6 y 11) dejaban las tablas un paso atrás de los marcos; ahora las
+  tablas acompañan a los marcos en cada paso. Y en Resolver las teclas elegían el
+  marco por posición: en el 14 y el 15, cuyos marcos son 1, 3, 5 y 8, el `3` respondía
+  «marco 5». Ahora cada tecla elige el marco con ese número.
+- **Los números de cinco cifras o más llevan punto** en la narración de los ejemplos
+  18, 19 y 23, como ya lo llevaban sus paneles.
 
 ---
 
@@ -108,7 +117,7 @@ del título, a la derecha. En los demás ejemplos el selector no aparece, y su l
 queda reservado: **nada se mueve** cuando aparece o desaparece.
 
 - **Resolver**: el estudiante llena la tabla de marcos referencia por referencia,
-  tocando el marco donde queda la página (o con las teclas `1` a `4`). En el 14 y el
+  tocando el marco donde queda la página, o escribiendo su número. En el 14 y el
   15 está además el botón «Dirección inválida»; en el 16 se elige entre acierto en la
   TLB, fallo de TLB con la página en memoria, y fallo de página. La columna se revela
   con la respuesta correcta se haya acertado o no, y la narración explica por qué.
