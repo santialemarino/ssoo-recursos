@@ -856,7 +856,7 @@
   .mark-cell { height: 15px; }
   .grid tr.split > * { padding-top: 3px; }
 
-  .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1.34fr); max-height: 160px; }
+  .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1.34fr); max-height: 176px; }
 
   .strip { min-height: 40px; }
 
@@ -901,6 +901,19 @@
   .grid-table tr.focus td:first-child, .grid-table tr.fault td:first-child { border-radius: 2px 0 0 2px; }
   .actor { grid-template-columns: 100px minmax(0, 1fr); }
   .strip-wrap .legend { margin-top: 6px; }
+
+  @media (max-width: 1000px) {
+    .step-unit { white-space: normal; max-width: 100%; }
+  }
+  .counter { flex-wrap: wrap; max-width: 100%; row-gap: 2px; }
+  @media (max-width: 420px) {
+    .block { flex-wrap: wrap; row-gap: 0; }
+  }
+  .panel.refs .grid-table td { padding-top: 1px; padding-bottom: 1px; }
+  .ask-result { gap: 3px; margin-top: 3px; }
+  .ask-result .answer { line-height: 1.3; }
+  .ask-box { padding-bottom: 6px; }
+  .ask-box .question { line-height: 1.3; }
   @media (max-width: 1239px) {
     body { height: auto; overflow: auto; }
     main { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; }
@@ -1275,8 +1288,8 @@ const UI_TEXT = {
     wrongInvalid: "No es una dirección inválida.",
     wrongFrameOnInvalid: "No va a ningún marco.",
     wrongTlb: "No era «{given}», sino «{correct}».",
-    prompt: "Referencia {n}: la página {page}. Tocá el marco donde queda —el que ya la tiene si es un acierto, o el que la recibe si es un fallo—, o usá las teclas 1 a {count}.",
-    promptAddress: "Referencia {n}: {address}, una {modeName}. Tocá el marco donde queda su página, o «{invalid}» arriba del tablero si la dirección no es del proceso. También sirven las teclas 1 a {count}.",
+    prompt: "Referencia {n}: la página {page}. Tocá el marco donde queda —el que ya la tiene si es un acierto, o el que la recibe si es un fallo—, o escribí su número.",
+    promptAddress: "Referencia {n}: {address}, una {modeName}. Tocá el marco donde queda su página, o «{invalid}» arriba del tablero si la dirección no es del proceso. También sirve escribir el número del marco.",
     promptTlb: "Referencia {n}: la página {page}. ¿Qué pasa al buscarla? Elegí arriba del tablero, o usá las teclas 1 a 3."
   }
 };
@@ -1531,7 +1544,7 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "Ninguna. Hay 35 marcos libres salteados, y los 35 sirven: cualquier página entra en cualquier marco. La fragmentación externa es la que va a aparecer con la segmentación.",
+        narration: "Ninguna. Hay 38 marcos libres salteados, y los 38 sirven: cualquier página entra en cualquier marco. La fragmentación externa es la que va a aparecer con la segmentación.",
         calc: ["Externa: *0 bytes*: cualquier marco libre sirve"]
       }
     ]
@@ -2610,29 +2623,29 @@ const EXAMPLES = [
       {
         address: 135145,
         phase: "ask",
-        narration: "Las referencias son para *ejecución*: además del límite, cada una tiene que caer en un segmento que permita ejecutar. Las tablas de páginas no están enteras: el enunciado muestra sólo algunas filas. Primera dirección: 135145.",
+        narration: "Las referencias son para *ejecución*: además del límite, cada una tiene que caer en un segmento que permita ejecutar. Las tablas de páginas no están enteras: el enunciado muestra sólo algunas filas. Primera dirección: 135.145.",
         ask: {
-          question: "¿De qué segmento es 135145?",
+          question: "¿De qué segmento es 135.145?",
           correct: "one",
           options: [
-            { id: "one", text: "Del 1", why: "Cada segmento ocupa 2¹⁷ = 131072 direcciones lógicas: 135145 ÷ 131072 = 1, y sobran 4073." },
-            { id: "zero", text: "Del 0", why: "Para ser del segmento 0 tendría que ser menor que 131072." },
-            { id: "thirteen", text: "Del 13", why: "135145 ÷ 10295 da 13, pero el límite no parte la dirección: la parten los bits. Y con 3 bits hay segmentos del 0 al 7." }
+            { id: "one", text: "Del 1", why: "Cada segmento ocupa 2¹⁷ = 131.072 direcciones lógicas: 135.145 ÷ 131.072 = 1, y sobran 4073." },
+            { id: "zero", text: "Del 0", why: "Para ser del segmento 0 tendría que ser menor que 131.072." },
+            { id: "thirteen", text: "Del 13", why: "135.145 ÷ 10.295 da 13, pero el límite no parte la dirección: la parten los bits. Y con 3 bits hay segmentos del 0 al 7." }
           ]
         }
       },
-      { phase: "split", narration: "135145 = 1 × 131072 + 4073: segmento {segmento}. Y 4073 = 3 × 1024 + 1001: página {pagina}, desplazamiento {desp}." },
+      { phase: "split", narration: "135.145 = 1 × 131.072 + 4073: segmento {segmento}. Y 4073 = 3 × 1024 + 1001: página {pagina}, desplazamiento {desp}." },
       { phase: "perm", narration: "El byte que se pide es el {dentro} del segmento, y el segmento {segmento} mide {limite}: está adentro. Además es {permiso}: se puede ejecutar." },
       { phase: "compose", expect: 11241, narration: "La tabla del segmento {segmento} dice que la página {pagina} está en el marco {marco}. Física: {marco} × 1024 + {desp} = *{fisica}*." },
       {
         address: 405707,
         phase: "ask",
-        narration: "Segunda: 405707.",
+        narration: "Segunda: 405.707.",
         ask: {
-          question: "¿Qué pasa con 405707?",
+          question: "¿Qué pasa con 405.707?",
           correct: "segfault",
           options: [
-            { id: "segfault", text: "Segmentation fault", why: "405707 = 3 × 131072 + 12491: segmento 3, byte 12491. El segmento 3 mide 12285: se sale." },
+            { id: "segfault", text: "Segmentation fault", why: "405.707 = 3 × 131.072 + 12.491: segmento 3, byte 12.491. El segmento 3 mide 12.285: se sale." },
             { id: "protection", text: "Error de protección", why: "El segmento 3 es R-X: ejecutar está permitido. El problema está antes, en el límite." },
             {
               id: "fault",
@@ -2642,14 +2655,14 @@ const EXAMPLES = [
           ]
         }
       },
-      { phase: "split", narration: "405707 = 3 × 131072 + 12491: segmento {segmento}. 12491 = 12 × 1024 + 203: página {pagina}, desplazamiento {desp}." },
+      { phase: "split", narration: "405.707 = 3 × 131.072 + 12.491: segmento {segmento}. 12.491 = 12 × 1024 + 203: página {pagina}, desplazamiento {desp}." },
       {
         phase: "limit",
         expect: "segfault",
         narration: "El byte {dentro} no entra en un segmento de {limite}: [[segfault:segmentation fault]]. La traducción se corta acá: no se mira el permiso ni la tabla de páginas.",
-        note: "Por eso la página 12 no aparece en la tabla del segmento 3: con 12285 bytes, el segmento tiene páginas de la 0 a la 11."
+        note: "Por eso la página 12 no aparece en la tabla del segmento 3: con 12.285 bytes, el segmento tiene páginas de la 0 a la 11."
       },
-      { address: 270340, phase: "split", narration: "Tercera: 270340 = 2 × 131072 + 8196, segmento {segmento}. Y 8196 = 8 × 1024 + 4: página {pagina}, desplazamiento {desp}." },
+      { address: 270340, phase: "split", narration: "Tercera: 270.340 = 2 × 131.072 + 8196, segmento {segmento}. Y 8196 = 8 × 1024 + 4: página {pagina}, desplazamiento {desp}." },
       { phase: "perm", narration: "{dentro} < {limite}: está adentro. El segmento {segmento} es {permiso}: se puede ejecutar." },
       { phase: "compose", expect: 35844, narration: "Página {pagina} del segmento {segmento}: marco {marco}. Física: {marco} × 1024 + {desp} = *{fisica}*." },
       {
@@ -2670,11 +2683,11 @@ const EXAMPLES = [
               text: "Va a la física 8080",
               why: "Es lo que daría la tabla —página 5, marco 7: 7 × 1024 + 912—, pero antes hay que pasar los controles, y el de permiso falla."
             },
-            { id: "segfault", text: "Segmentation fault", why: "6032 es menor que 15483: está adentro del segmento 0." }
+            { id: "segfault", text: "Segmentation fault", why: "6032 es menor que 15.483: está adentro del segmento 0." }
           ]
         }
       },
-      { phase: "split", narration: "6032 es menor que 131072: segmento {segmento}. 6032 = 5 × 1024 + 912: página {pagina}, desplazamiento {desp}." },
+      { phase: "split", narration: "6032 es menor que 131.072: segmento {segmento}. 6032 = 5 × 1024 + 912: página {pagina}, desplazamiento {desp}." },
       {
         phase: "perm",
         expect: "protection",
@@ -2682,7 +2695,7 @@ const EXAMPLES = [
       },
       {
         phase: "perm",
-        narration: "Dos direcciones llegan a la memoria: 135145 va a *11241* y 270340 a *35844*. Las otras dos se frenan en los controles del segmento, antes de la tabla de páginas: 405707 por el límite y 6032 por el permiso."
+        narration: "Dos direcciones llegan a la memoria: 135.145 va a *11.241* y 270.340 a *35.844*. Las otras dos se frenan en los controles del segmento, antes de la tabla de páginas: 405.707 por el límite y 6032 por el permiso."
       }
     ]
   },
@@ -2749,18 +2762,18 @@ const EXAMPLES = [
           frames: { tables: [{ columns: ["frame", "holds", "mod", "lastUse"], roles: ["frame", "page", null, null], rows: [["1", "—", "—", "—"], ["2", "—", "—", "—"], ["3", "—", "—", "—"]] }] }
         },
         ask: {
-          question: "¿De qué página es 24500?",
+          question: "¿De qué página es 24.500?",
           correct: "two",
           options: [
-            { id: "two", text: "De la 2", why: "3 × 8192 = 24576, y 24500 es un poco menor: todavía está en la página 2." },
-            { id: "three", text: "De la 3", why: "24500 se parece a 24576, pero es más chico: no llega a la página 3." },
-            { id: "one", text: "De la 1", why: "La página 1 va de 8192 a 16383." }
+            { id: "two", text: "De la 2", why: "3 × 8192 = 24.576, y 24.500 es un poco menor: todavía está en la página 2." },
+            { id: "three", text: "De la 3", why: "24.500 se parece a 24.576, pero es más chico: no llega a la página 3." },
+            { id: "one", text: "De la 1", why: "La página 1 va de 8192 a 16.383." }
           ]
         }
       },
       {
-        narration: "Las ocho referencias van a las páginas 0, 6, 3, 0, 2, 2, 3 y 1. La que engaña es 24500: le faltan 76 bytes para llegar a la página 3.",
-        calc: ["24500 < 3 × 8192 = 24576 → página *2*"],
+        narration: "Las ocho referencias van a las páginas 0, 6, 3, 0, 2, 2, 3 y 1. La que engaña es 24.500: le faltan 76 bytes para llegar a la página 3.",
+        calc: ["24.500 < 3 × 8192 = 24.576 → página *2*"],
         views: {
           refs: {
             tables: [
@@ -4244,14 +4257,14 @@ const EXAMPLES = [
           question: "¿A qué dirección física va 8197 de C?",
           correct: "hit",
           options: [
-            { id: "hit", text: "12293", why: "8197 = 2 × 4096 + 5: página 2 de C, que está en el marco 3. 3 × 4096 + 5 = 12293." },
+            { id: "hit", text: "12.293", why: "8197 = 2 × 4096 + 5: página 2 de C, que está en el marco 3. 3 × 4096 + 5 = 12.293." },
             { id: "raw", text: "8197", why: "Ésa es la lógica: falta reemplazar la página por el marco." },
             { id: "fault", text: "Fallo de página", why: "La C2 tiene P = 1: está en memoria, en el marco 3." }
           ]
         }
       },
       {
-        narration: "Página 2 de C, en el marco 3: física 3 × 4096 + 5 = *12293*. No hay fallo, pero el hardware pone en 1 el [[bitUso:bit de uso]] del marco 3.",
+        narration: "Página 2 de C, en el marco 3: física 3 × 4096 + 5 = *12.293*. No hay fallo, pero el hardware pone en 1 el [[bitUso:bit de uso]] del marco 3.",
         views: {
           address: {
             lines: [
@@ -4368,11 +4381,37 @@ const EXAMPLES = [
                 rows: [["0", "A3", "1", "1"], ["1", "B2", "0", "0"], ["2 ◀", "C0", "0", "1"], ["3", "C2", "1", "0"]]
               }
             ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["pageShort", "frame", "use", "mod", "presentShort"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "1", "0", "1", "0"], ["2", "2", "0", "0", "0"], ["3", "0", "1", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["pageShort", "frame", "use", "mod", "presentShort"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [2],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "1"], ["3", "3", "0", "1", "0"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["pageShort", "frame", "use", "mod", "presentShort"],
+                roles: ["page", "frame", null, null, null],
+                active: false,
+                rows: [["0", "2", "0", "1", "1"], ["1", "1", "0", "0", "0"], ["2", "3", "1", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
           }
         }
       },
       {
-        narration: "La A1 entra al marco 2 con U = 1 y M = 1, porque A escribe. La C0 queda con P = 0. El puntero avanza al 3. Física: 2 × 4096 + 2099 = *10291*.",
+        narration: "La A1 entra al marco 2 con U = 1 y M = 1, porque A escribe. La C0 queda con P = 0. El puntero avanza al 3. Física: 2 × 4096 + 2099 = *10.291*.",
         views: {
           address: {
             lines: [
@@ -4405,7 +4444,7 @@ const EXAMPLES = [
                 columns: ["pageShort", "frame", "use", "mod", "presentShort"],
                 roles: ["page", "frame", null, null, null],
                 active: false,
-                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "1"], ["3", "3", "0", "1", "0"]]
               },
               {
                 caption: "Proceso C",
@@ -4420,7 +4459,7 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "B lee 15419 = 3 × 4096 + 3131: página 3 de B, con P = 0. Otro fallo.",
+        narration: "B lee 15.419 = 3 × 4096 + 3131: página 3 de B, con P = 0. Otro fallo.",
         views: {
           address: {
             lines: [
@@ -4451,7 +4490,7 @@ const EXAMPLES = [
                 columns: ["pageShort", "frame", "use", "mod", "presentShort"],
                 roles: ["page", "frame", null, null, null],
                 active: false,
-                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "1", "0", "1"], ["3", "3", "0", "1", "0"]]
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "1"], ["3", "3", "0", "1", "0"]]
               },
               {
                 caption: "Proceso C",
@@ -4566,11 +4605,39 @@ const EXAMPLES = [
                 rows: [["0", "A3", "0", "1"], ["1", "B3", "0", "0"], ["2", "A1", "0", "1"], ["3 ◀", "C2", "0", "0"]]
               }
             ]
+          },
+          pageTables: {
+            tables: [
+              {
+                caption: "Proceso A",
+                columns: ["pageShort", "frame", "use", "mod", "presentShort"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [1, 3],
+                active: false,
+                rows: [["0", "2", "0", "1", "0"], ["1", "2", "0", "1", "1"], ["2", "2", "0", "0", "0"], ["3", "0", "0", "1", "1"]]
+              },
+              {
+                caption: "Proceso B",
+                columns: ["pageShort", "frame", "use", "mod", "presentShort"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [3],
+                active: false,
+                rows: [["0", "0", "0", "0", "0"], ["1", "0", "0", "1", "0"], ["2", "1", "0", "0", "0"], ["3", "1", "0", "0", "1"]]
+              },
+              {
+                caption: "Proceso C",
+                columns: ["pageShort", "frame", "use", "mod", "presentShort"],
+                roles: ["page", "frame", null, null, null],
+                highlight: [2],
+                active: false,
+                rows: [["0", "2", "0", "0", "0"], ["1", "1", "0", "0", "0"], ["2", "3", "0", "0", "1"], ["3", "0", "0", "1", "0"]]
+              }
+            ]
           }
         }
       },
       {
-        narration: "La C1 entra al marco 3 y el puntero avanza al 0. Física: 3 × 4096 + 303 = *12591*.",
+        narration: "La C1 entra al marco 3 y el puntero avanza al 0. Física: 3 × 4096 + 303 = *12.591*.",
         views: {
           address: {
             lines: [
@@ -4618,7 +4685,7 @@ const EXAMPLES = [
       },
       {
         canvas: { columns: "minmax(0, 195px) minmax(0, 1fr)", panels: ["frames", "pageTables"] },
-        narration: "La dirección sale de la pantalla. Las físicas fueron *12293*, *10291*, *7227* y *12591*. Así quedan las tablas: A tiene la 1 y la 3; B, la 3; C, la 1. Tres fallos y una sola escritura a disco, la de la C0: era la única víctima modificada. Los bits de uso que bajó la última búsqueda quedan en 0.",
+        narration: "La dirección sale de la pantalla. Las físicas fueron *12.293*, *10.291*, *7227* y *12.591*. Así quedan las tablas: A tiene la 1 y la 3; B, la 3; C, la 1. Tres fallos y una sola escritura a disco, la de la C0: era la única víctima modificada. Los bits de uso que bajó la última búsqueda quedan en 0.",
         note: "En las filas que quedaron con P = 0, sólo importa la P: el marco, U y M que siguen escritos no significan nada.",
         views: {
           frames: {
@@ -7101,15 +7168,15 @@ dom.restart.addEventListener("click", restartExample);
 function answerByKey(key) {
   if (!liveReference()) return false;
   const example = currentExample();
-  const digit = Number(key);
-  if (!(digit >= 1)) return false;
   if (example.algorithm === "tlb") {
-    if (digit > TLB_OPTIONS.length) return false;
+    const digit = Number(key);
+    if (!(digit >= 1) || digit > TLB_OPTIONS.length) return false;
     answer(TLB_OPTIONS[digit - 1]);
     return true;
   }
-  if (digit > example.frames.length) return false;
-  answer(String(digit - 1));
+  const position = example.frames.indexOf(key);
+  if (position === -1) return false;
+  answer(String(position));
   return true;
 }
 
@@ -7121,7 +7188,7 @@ document.addEventListener("keydown", function (event) {
   if (event.key === "Home") { stopPlaying(); goTo(0); event.preventDefault(); }
   if (event.key === "End") { stopPlaying(); goTo(maxIndex()); event.preventDefault(); }
   if (event.key === "Escape") hideTooltip();
-  if (/^[1-9]$/.test(event.key) && answerByKey(event.key)) event.preventDefault();
+  if (/^[0-9]$/.test(event.key) && answerByKey(event.key)) event.preventDefault();
 });
 
 dom.pageTitle.textContent = UI_TEXT.pageTitle;

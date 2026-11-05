@@ -331,15 +331,13 @@ Lo medido al armar esta versión, con un Chromium automatizado:
 - **250 pasos** de ida y de vuelta, todos idénticos; consola limpia y ningún pedido
   de red; lo mismo con el almacenamiento bloqueado.
 - **492 tableros** (todos los pasos, los dos modos, las 92 referencias de Resolver y
-  cada opción de cada pregunta contestada) a 390 px y a seis anchos entre 1001 y
-  1239: nada se va para el costado.
-- **A 1280×720, ningún panel desborda** en ninguno de los 492 tableros, y la página no
-  scrollea.
-- **Con una pregunta contestada, la caja de la pregunta puede scrollear por dentro**:
-  entre 10 y 14 px en 20 tableros, y 31 px en uno (ejemplo 1, paso 6). Mientras hay una pregunta
-  abierta la narración no pasa de 160 px, para que los paneles de arriba no se
-  achiquen. En los recursos de origen la caja scrolleaba más: entre 16 y 52 px, en
-  57 tableros de la Práctica avanzada y en 54 de Paginación y segmentación.
+  cada opción de cada pregunta contestada) a 320, 390, 768, 1001, 1100, 1239, 1440 y
+  1920 px: nada se va para el costado ni desborda.
+- **A 1280×720, ningún panel desborda** en ninguno de los 492 tableros, la página no
+  scrollea, y la caja de la pregunta tampoco scrollea por dentro: mientras hay una
+  pregunta abierta la narración llega hasta 176 px. En los recursos de origen la caja
+  scrolleaba entre 16 y 52 px, en 57 tableros de la Práctica avanzada y en 54 de
+  Paginación y segmentación.
 
 ---
 

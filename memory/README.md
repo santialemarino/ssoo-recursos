@@ -238,16 +238,14 @@ La curva del ejemplo 11 va en tinta: no nombra nada que tenga color.
 1. Abrirlo con doble clic, sin servidor y sin internet.
 2. La consola limpia, en los doce ejemplos y todas las variantes.
 3. Recorrer cada ejemplo para adelante y para atrás.
-4. A 1280×720, nada scrollea; a 390 px, una columna y nada se va para el costado;
-   entre 1001 y 1239 px, nada se va para el costado.
+4. A 1280×720, nada scrollea; a 320 y 390 px, una columna y nada se va para el
+   costado; entre 1001 y 1239 px, nada se va para el costado.
 5. Con el almacenamiento bloqueado, las preguntas funcionan igual.
 
 Lo medido al armarlo, con un Chromium automatizado: **255 tableros** (los 229 pasos,
 y cada opción de cada pregunta contestada) a 1280×720 sin un solo panel desbordado ni
-scroll de página, y a 390 px y seis anchos entre 1001 y 1239 sin nada hacia el
-costado. Con una pregunta contestada, la caja de la pregunta puede scrollear 13 px
-por dentro en 4 tableros: mientras hay una pregunta abierta la narración no pasa de
-160 px, igual que en la práctica;
+scroll de página, y sin que la caja de la pregunta scrollee por dentro; a 320, 390,
+768, 1001, 1100, 1239, 1440 y 1920 px, nada hacia el costado ni desbordado;
 **229 pasos** de ida y de vuelta, todos idénticos; consola limpia, ningún pedido de
 red, y lo mismo con el almacenamiento bloqueado.
 

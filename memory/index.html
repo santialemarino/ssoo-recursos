@@ -760,7 +760,7 @@
   .mark-cell { height: 15px; }
   .grid tr.split > * { padding-top: 3px; }
 
-  .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1.34fr); max-height: 160px; }
+  .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1.34fr); max-height: 176px; }
 
   .strip { min-height: 40px; }
 
@@ -803,6 +803,19 @@
   .grid-table tr.focus td:first-child, .grid-table tr.fault td:first-child { border-radius: 2px 0 0 2px; }
   .actor { grid-template-columns: 100px minmax(0, 1fr); }
   .strip-wrap .legend { margin-top: 6px; }
+
+  @media (max-width: 1000px) {
+    .step-unit { white-space: normal; max-width: 100%; }
+  }
+  .counter { flex-wrap: wrap; max-width: 100%; row-gap: 2px; }
+  @media (max-width: 420px) {
+    .block { flex-wrap: wrap; row-gap: 0; }
+  }
+  .panel.refs .grid-table td { padding-top: 1px; padding-bottom: 1px; }
+  .ask-result { gap: 3px; margin-top: 3px; }
+  .ask-result .answer { line-height: 1.3; }
+  .ask-box { padding-bottom: 6px; }
+  .ask-box .question { line-height: 1.3; }
   .pointer-chip { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border: 1.5px solid var(--ink-soft); border-radius: 5px; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink-soft); background: var(--card); cursor: help; }
   .pointer-chip:hover { border-color: var(--ink); }
 
@@ -1048,10 +1061,10 @@ const UI_TEXT = {
     tableLookup: "Tabla de páginas: fila {pagina} → marco {marco}"
   },
   verdicts: {
-    segfault: "Segmentation Fault: el desplazamiento no es menor que el límite",
-    relocationFault: "Segmentation Fault",
+    segfault: "Segmentation fault: el desplazamiento no es menor que el límite",
+    relocationFault: "Segmentation fault",
     protection: "Error de protección: el segmento no permite {acceso}",
-    segPageOut: "Segmentation Fault: el segmento no tiene la página {pagina}",
+    segPageOut: "Segmentation fault: el segmento no tiene la página {pagina}",
     invalid: "Error: la página {pagina} tiene V = 0, no es del proceso",
     notFound: "Ninguna fila tiene esa página"
   },
@@ -1278,7 +1291,7 @@ const TOOLTIPS = {
   ligadura: { title: "Ligadura de direcciones", body: "El momento en que una dirección del programa queda atada a una dirección de la memoria física." },
   base: { title: "Registro base", body: "Dónde empieza el proceso en la memoria física. La MMU se lo suma a cada dirección lógica." },
   limite: { title: "Registro límite", body: "Cuánto mide el proceso. Una dirección lógica vale sólo si es menor que el límite." },
-  segfault: { title: "Segmentation Fault", body: "El error que genera el hardware cuando un proceso usa una dirección que no le pertenece." },
+  segfault: { title: "Segmentation fault", body: "El error que genera el hardware cuando un proceso usa una dirección que no le pertenece." },
   fragInterna: { title: "Fragmentación interna", body: "Memoria asignada a un proceso que el proceso no usa. Queda adentro de lo que se le dio, y nadie más la puede usar." },
   fragExterna: { title: "Fragmentación externa", body: "Memoria libre que no le sirve a nadie porque está partida en huecos más chicos que lo que se pide." },
   consolidacion: { title: "Consolidación", body: "Juntar dos huecos libres vecinos en uno solo, cuando se libera la memoria que los separaba." },
@@ -1505,7 +1518,7 @@ const EXAMPLES = [
           question: "¿Adónde va la dirección lógica 1200?",
           correct: "fault",
           options: [
-            { id: "fault", text: "Segmentation Fault", why: "La comparación es DL < LÍMITE, estricta: 1200 no es menor que 1200. El proceso mide 1200 bytes, del 0 al 1199." },
+            { id: "fault", text: "Segmentation fault", why: "La comparación es DL < LÍMITE, estricta: 1200 no es menor que 1200. El proceso mide 1200 bytes, del 0 al 1199." },
             { id: "sum", text: "4200", why: "Eso es sumar sin comparar. La MMU compara primero, y 1200 no pasa." },
             { id: "last", text: "4199", why: "4199 es la física de la 1199, la última que vale. La 1200 ya queda afuera." }
           ]
@@ -1514,7 +1527,7 @@ const EXAMPLES = [
       {
         phase: "compose",
         expect: "segfault",
-        narration: "{dl} no es menor que {limite}: la MMU no suma y genera [[segfault:Segmentation Fault]]. El límite es el tamaño del proceso, así que la última dirección válida es la {ultima}."
+        narration: "{dl} no es menor que {limite}: la MMU no suma y genera [[segfault:segmentation fault]]. El límite es el tamaño del proceso, así que la última dirección válida es la {ultima}."
       },
       {
         address: 500,
@@ -1545,7 +1558,7 @@ const EXAMPLES = [
         facts: [{ kind: "fixedPartitions", partition: 16, count: 4, arrivals: [8, 10, 6, 5], expectWaste: 35 }],
         steps: [
           {
-            narration: "Con particiones fijas la memoria se divide en particiones de tamaño fijo antes de que llegue nadie: acá, cuatro de 16 KiB. Cada proceso va a una partición, y tiene que ser de menor tamaño que ella.",
+            narration: "Con particiones fijas la memoria se divide en particiones de tamaño fijo antes de que llegue nadie: acá, cuatro de 16 KiB. Cada proceso va a una partición, y no puede ser más grande que ella.",
             views: {
               memory: { kind: "strip", size: 64, unit: "kib", caption: "El SO está aparte y no se cuenta.", blocks: [{ start: 0, size: 16, label: "Partición 1", kind: "free" }, { start: 16, size: 16, label: "Partición 2", kind: "free" }, { start: 32, size: 16, label: "Partición 3", kind: "free" }, { start: 48, size: 16, label: "Partición 4", kind: "free" }] },
               queue: { tables: [{ columns: ["process", "size", "status"], rows: [["A", "8 KiB", "llega"], ["B", "10 KiB", "llega"], ["C", "6 KiB", "llega"], ["D", "5 KiB", "llega"], ["E", "9 KiB", "llega"], ["F", "16 KiB", "llega"], ["G", "4 KiB", "llega"]] }] }
@@ -2031,7 +2044,7 @@ const EXAMPLES = [
         address: [0, 450, "read"],
         phase: "compose",
         expect: "segfault",
-        narration: "(0, 450), una lectura en {nombre}. {desp} no es menor que {limite}: [[segfault:Segmentation Fault]], sin llegar a sumar."
+        narration: "(0, 450), una lectura en {nombre}. {desp} no es menor que {limite}: [[segfault:segmentation fault]], sin llegar a sumar."
       },
       {
         address: [0, 100, "write"],
@@ -2107,7 +2120,7 @@ const EXAMPLES = [
           question: "¿Adónde va la dirección 3092?",
           correct: "fault",
           options: [
-            { id: "fault", text: "Segmentation Fault", why: "Es segmento 0, página 3, desplazamiento 20. El código tiene 3 páginas, de la 0 a la 2: la 3 no existe." },
+            { id: "fault", text: "Segmentation fault", why: "Es segmento 0, página 3, desplazamiento 20. El código tiene 3 páginas, de la 0 a la 2: la 3 no existe." },
             { id: "frame", text: "2068", why: "Eso sería la página 2 del código, en el marco 2. Pero 3092 es la página 3." },
             { id: "same", text: "3092", why: "La dirección lógica no llega tal cual a la memoria: primero se controla el segmento y después se traduce la página." }
           ]
@@ -2116,7 +2129,7 @@ const EXAMPLES = [
       {
         phase: "segment",
         expect: "segfault",
-        narration: "Segmento {segmento}, página {pagina}, desplazamiento {desp}. El segmento de {contenido} tiene {paginas} páginas, de la 0 a la 2: la página {pagina} no existe. Segmentation Fault, sin llegar a ninguna tabla de páginas."
+        narration: "Segmento {segmento}, página {pagina}, desplazamiento {desp}. El segmento de {contenido} tiene {paginas} páginas, de la 0 a la 2: la página {pagina} no existe. Segmentation fault, sin llegar a ninguna tabla de páginas."
       },
       {
         address: null,
@@ -2263,6 +2276,7 @@ const EXAMPLES = [
       },
       {
         variantLabel: "Dirección inválida",
+        closing: "Una página que no es del proceso no es un page fault: es un error, y no hay nada que traer ni que repetir.",
         steps: [
           PF_DEMAND,
           {
@@ -2279,7 +2293,8 @@ const EXAMPLES = [
             views: { actors: { processes: [{ name: "A", state: "RUNNING" }], cpu: "SO", disk: null } }
           },
           {
-            narration: "SO: ¿la página 7 está dentro del espacio de direcciones de A? No: A tiene las páginas 0 a 5. No hay nada que traer del disco. «Fin proceso / Devuelve error»: el proceso termina o recibe un error. Acá termina, y sus marcos quedan libres. No hubo ninguna I/O.",
+            narration: "SO: ¿la página 7 está dentro del espacio de direcciones de A? No: A tiene las páginas 0 a 5. No hay nada que traer del disco. «Fin proceso / Devuelve error»: el proceso termina o recibe un error. Acá termina, y sus marcos quedan libres. No hubo ninguna I/O. La tabla de páginas y la TLB de A salen de la pantalla.",
+            canvas: { columns: "minmax(0, 0.9fr) minmax(0, 1.1fr)", panels: [["actors", "memory"], "routine"], stackRows: "auto minmax(0, 1fr)" },
             routine: ["SO: la página 7 no es de A", "SO: Fin proceso / Devuelve error"],
             views: {
               actors: { processes: [{ name: "A", state: "TERMINATED" }], cpu: "SO", disk: null },
