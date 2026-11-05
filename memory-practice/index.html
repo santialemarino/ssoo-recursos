@@ -417,7 +417,7 @@
 
   .block {
     position: relative;
-    min-height: 26px;
+    min-height: 22px;
     border: 1.5px solid var(--line-strong);
     border-top-width: 0.75px;
     border-bottom-width: 0.75px;
@@ -848,6 +848,17 @@
   .verdict-wrong { font-weight: 750; color: var(--fault); }
   .controls .spacer { flex: 1; }
   .score { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .ask-box { position: relative; }
+  .ask-result .retry { position: absolute; top: 5px; right: 9px; padding: 2px 9px; }
+  .grid { border-spacing: 4px 2px; margin: -2px -4px; }
+  .cell, .pick { height: 28px; }
+  .mark-cell { height: 15px; }
+  .grid tr.split > * { padding-top: 3px; }
+
+  .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1.34fr); max-height: 160px; }
+
+  .strip { min-height: 40px; }
 
   @media (max-width: 1239px) {
     body { height: auto; overflow: auto; }
@@ -1676,7 +1687,7 @@ const EXAMPLES = [
     subtitle: "64 KiB de memoria, segmentación pura, un proceso con tres segmentos: código, pila y datos. No se tiene la tabla: se tienen pistas.",
     stepUnit: "Un paso = una pista",
     stepUnitNote: "La unidad cambia: un paso es usar una pista del enunciado.",
-    canvas: { columns: "minmax(0, 0.72fr) minmax(0, 1.3fr) minmax(0, 0.68fr)", panels: ["clues", ["address", "segmentTable"], "memory"], stackRows: "auto minmax(0, 1fr)" },
+    canvas: { columns: "minmax(0, 0.62fr) minmax(0, 1fr) minmax(0, 0.95fr)", panels: ["clues", "address", ["segmentTable", "memory"]], stackRows: "auto minmax(0, 1fr)" },
     clues: [
       "200Ah es del segmento 1.",
       "000Eh va a la física 0FAFh.",
@@ -1804,7 +1815,8 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "La tabla está completa. Queda una pista: escribir en 200Ch da error de modo de acceso.",
+        canvas: { columns: "minmax(0, 0.62fr) minmax(0, 1fr) minmax(0, 0.95fr)", panels: ["clues", "address", "segmentTable"] },
+        narration: "La memoria sale de la pantalla. La tabla está completa. Queda una pista: escribir en 200Ch da error de modo de acceso.",
         views: {
           address: { lines: [{ caption: "logical", hex: 4, value: 8204, fields: [{ role: "segment", bits: 3, value: 1 }, { role: "offset", bits: 13, value: 12 }] }] },
           segmentTable: { tables: [{ columns: ["segment", "base", "size"], roles: ["segment", null, null], rows: [["0", "0FA1h", "40h"], ["1", "0FE1h", "1Fh"], ["2", "FF80h", "80h"]] }] }
@@ -2518,7 +2530,7 @@ const EXAMPLES = [
     subtitle: "1er recuperatorio 2C2025. Segmentación paginada, direcciones lógicas de 20 bits, y cuatro referencias para ejecución.",
     stepUnit: "Un paso = una parte de la traducción",
     stepUnitNote: "La unidad cambia: un paso es una parte de la traducción —partir la dirección, controlar el límite, el permiso, buscar la página—.",
-    canvas: { columns: "minmax(0, 1fr) minmax(0, 0.55fr) minmax(0, 1.1fr)", panels: ["address", "segmentTable", "pageTables"] },
+    canvas: { columns: "minmax(0, 1fr) minmax(0, 214px) minmax(0, 504px)", panels: ["address", "segmentTable", "pageTables"] },
     machine: {
       type: "segPaging",
       segBits: 3,
@@ -2642,7 +2654,7 @@ const EXAMPLES = [
     subtitle: "Parcial 1C2022, TM. Paginación jerárquica de 2 niveles bajo demanda, direcciones de 32 bits, páginas de 8 KiB, 3 marcos fijos, sustitución local y LRU.",
     stepUnit: "Un paso = una referencia",
     stepUnitNote: "La unidad cambia: un paso es una referencia a memoria.",
-    canvas: { columns: "minmax(0, 1.15fr) minmax(0, 0.85fr)", panels: ["refs", ["frames", "calc"]], stackRows: "auto minmax(0, 1fr)" },
+    canvas: { columns: "minmax(0, 1fr) minmax(0, 0.62fr) minmax(0, 0.78fr)", panels: ["refs", "frames", "calc"] },
     facts: [
       {
         kind: "replacement",
@@ -3121,7 +3133,8 @@ const EXAMPLES = [
         views: { address: { lines: [{ caption: "logical", fields: [{ role: "outer", bits: 8 }, { role: "page", bits: 8, label: "2do nivel" }, { role: "offset", bits: 16 }] }] } }
       },
       {
-        narration: "Primera referencia: 01AAFFFEh. Fila 01h del 1er nivel, fila AAh del 2do, desplazamiento FFFEh.",
+        canvas: { columns: "minmax(0, 1fr) minmax(0, 280px) minmax(0, 310px)", panels: ["address", "pageTables", "refs"] },
+        narration: "Las cuentas salen de la pantalla. Primera referencia: 01AAFFFEh. Fila 01h del 1er nivel, fila AAh del 2do, desplazamiento FFFEh.",
         views: {
           address: {
             lines: [
@@ -3353,7 +3366,8 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "Con [[tlb:TLB]], la 2ª y la 4ª encuentran su traducción guardada y no consultan tablas: quedan 4 consultas en vez de 8. Los fallos y los accesos a disco son los mismos.",
+        canvas: { columns: "minmax(0, 1fr) minmax(0, 0.8fr)", panels: [["address", "calc"], "refs"], stackRows: "auto minmax(0, 1fr)" },
+        narration: "Las tablas salen de la pantalla. Con [[tlb:TLB]], la 2ª y la 4ª encuentran su traducción guardada y no consultan tablas: quedan 4 consultas en vez de 8. Los fallos y los accesos a disco son los mismos.",
         calc: ["Con TLB: 8 − 2 × 2 = *4 consultas* a tablas"],
         ask: {
           question: "¿Qué tipo de localidad cumple el proceso A?",
@@ -3843,7 +3857,8 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "Fila 3 del 1er nivel: marco 20, P = 1. Fila 3 del 2do: marco 11, P = 1. 11 es Bh: física *000B0001h*, y la TLB la guarda. El marco 31 queda libre.",
+        canvas: { columns: "minmax(0, 1.65fr) minmax(0, 0.47fr) minmax(0, 0.78fr)", panels: ["address", "tlb", "pageTables"] },
+        narration: "El bitmap sale de la pantalla. Fila 3 del 1er nivel: marco 20, P = 1. Fila 3 del 2do: marco 11, P = 1. 11 es Bh: física *000B0001h*, y la TLB la guarda. El marco 31 queda libre.",
         views: {
           address: {
             lines: [
@@ -4005,7 +4020,8 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "Después de las tres referencias, el enunciado da cómo quedan los marcos: el 3 tiene la 1, el 4 tiene la 4 y el 7 tiene la 0.",
+        canvas: { columns: "minmax(0, 0.6fr) minmax(0, 0.85fr) minmax(0, 1.2fr)", panels: ["pageTable", "frames", "log"] },
+        narration: "Las direcciones salen de la pantalla. Después de las tres referencias, el enunciado da cómo quedan los marcos: el 3 tiene la 1, el 4 tiene la 4 y el 7 tiene la 0.",
         views: { frames: { tables: [{ columns: ["frame", "before", "after"], roles: ["frame", "page", "page"], rows: [["3", "2", "1"], ["4", "0", "4"], ["7", "3", "0"]] }] } },
         ask: {
           question: "La página 0 estaba en el marco 4 y terminó en el 7. ¿Qué dice eso?",
@@ -4559,7 +4575,8 @@ const EXAMPLES = [
         }
       },
       {
-        narration: "Las físicas fueron *12293*, *10291*, *7227* y *12591*. Así quedan las tablas: A tiene la 1 y la 3; B, la 3; C, la 1. Tres fallos y una sola escritura a disco, la de la C0: era la única víctima modificada. Los bits de uso que bajó la última búsqueda quedan en 0.",
+        canvas: { columns: "minmax(0, 195px) minmax(0, 1fr)", panels: ["frames", "pageTables"] },
+        narration: "La dirección sale de la pantalla. Las físicas fueron *12293*, *10291*, *7227* y *12591*. Así quedan las tablas: A tiene la 1 y la 3; B, la 3; C, la 1. Tres fallos y una sola escritura a disco, la de la C0: era la única víctima modificada. Los bits de uso que bajó la última búsqueda quedan en 0.",
         note: "En las filas que quedaron con P = 0, sólo importa la P: el marco, U y M que siguen escritos no significan nada.",
         views: {
           frames: {
@@ -5395,8 +5412,10 @@ function snapshotsOf(example, steps) {
   const lists = {};
   ACCUMULATING.forEach(function (id) { lists[id] = []; });
   let clueHistory = [];
+  let canvas = example.canvas;
   steps.forEach(function (step, index) {
     if (step.address !== undefined) address = step.address;
+    if (step.canvas) canvas = step.canvas;
     let views = mergeViews(previous ? previous.views : null, step.views);
     let context = {};
     let outcome = null;
@@ -5422,6 +5441,7 @@ function snapshotsOf(example, steps) {
       step: step,
       index: index,
       last: index === steps.length - 1,
+      canvas: canvas,
       views: views,
       previousViews: previous ? previous.views : {},
       context: context,
@@ -5559,14 +5579,15 @@ function verifyStructure(example, steps, snapshots, problems) {
   if (!example.closing) problems.push("no tiene frase de cierre");
   if (!example.stepUnit) problems.push("no declara la unidad del paso");
   if (steps.length === 0) problems.push("no tiene pasos");
-  const panels = canvasPanels(example.canvas);
+  const panels = [];
+  snapshots.forEach(function (snapshot) { canvasPanels(snapshot.canvas).forEach(function (id) { if (panels.indexOf(id) === -1) panels.push(id); }); });
   panels.forEach(function (id) {
     if (!UI_TEXT.panels[id]) problems.push("usa el panel " + id + ", que no tiene nombre");
     if (!PANEL_TIPS[id]) problems.push("usa el panel " + id + ", que no tiene globito");
   });
   snapshots.forEach(function (snapshot, index) {
     if (!snapshot.step.narration) problems.push("el paso " + (index + 1) + " no tiene narración");
-    panels.forEach(function (id) {
+    canvasPanels(snapshot.canvas).forEach(function (id) {
       if (!snapshot.views[id]) problems.push("en el paso " + (index + 1) + " el panel " + id + " no tiene nada que mostrar");
     });
   });
@@ -5935,9 +5956,8 @@ function buildPanel(id) {
 }
 
 function buildCanvas() {
-  const example = currentExample();
-  const canvas = example.canvas;
-  const key = example.number + "|" + view.variantIndex + "|" + JSON.stringify(canvas);
+  const canvas = isBoard() ? currentExample().canvas : currentSnapshot().canvas;
+  const key = currentExample().number + "|" + view.variantIndex + "|" + JSON.stringify(canvas);
   if (key === canvasKey) return;
   canvasKey = key;
   Object.keys(panelRefs).forEach(function (id) { delete panelRefs[id]; });
@@ -6033,7 +6053,7 @@ function renderHeaderChoices() {
 function bitWidth(totalBits) {
   if (totalBits <= 13) return "19px";
   if (totalBits <= 18) return "17px";
-  if (totalBits <= 20) return "15px";
+  if (totalBits <= 20) return "12px";
   return "12px";
 }
 
@@ -6265,6 +6285,7 @@ function stripText(value, data) {
 function renderStrip(body, data) {
   const wrap = element("div", "strip-wrap");
   const strip = element("div", "strip");
+  strip.style.minHeight = data.blocks.length * 22 + "px";
   const kinds = {};
   data.blocks.forEach(function (block, index) {
     kinds[block.kind] = true;

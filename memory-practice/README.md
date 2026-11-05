@@ -92,6 +92,12 @@ siguiente.
 - **Se sacaron todas las menciones** a «Paginación y segmentación» y a
   «Sustitución de páginas», y las referencias a ejemplos que ya no están acá.
 - La frase de Clock modificado decía «el bit de uso de el marco»; ahora dice «del».
+- **Cinco frases ganaron una cláusula** porque en ese paso un panel sale de la
+  pantalla, y la regla del repositorio pide decirlo: «La memoria sale de la pantalla.»
+  (ej. 5, paso 8), «Las cuentas salen de la pantalla.» y «Las tablas salen de la
+  pantalla.» (ej. 20, pasos 3 y 11), «El bitmap sale de la pantalla.» (ej. 21, paso
+  13), «Las direcciones salen de la pantalla.» (ej. 22, paso 3) y «La dirección sale
+  de la pantalla.» (ej. 23, paso 13).
 
 ---
 
@@ -160,8 +166,27 @@ parten, los controles y las teclas, el globito en cada título de panel, la plac
 cierre en cada ejemplo, un solo renglón para las elecciones y el favicon de todo el
 repositorio. Se comparó con Deadlock propiedad por propiedad y no hay diferencias.
 
-El canvas de cada ejemplo es el de su recurso de origen, con su derivación; está en
-los README de esos recursos y no se repite acá.
+El canvas de cada ejemplo es el de su recurso de origen, con su derivación, **salvo
+en siete ejemplos que hubo que reacomodar** para que entren a 1280×720 con la escalera
+en dos renglones (los recursos de origen la tenían en uno):
+
+| # | Qué cambió |
+|---|---|
+| 5 | la tabla de segmentos va arriba de la memoria, en la tercera columna; desde el paso 8, la memoria —que ya no cambia— sale |
+| 18 | columnas de ancho fijo para las dos tablas, para que la dirección entre en un renglón |
+| 19 | tres columnas: referencias, marcos y cuentas, en lugar de marcos y cuentas apilados |
+| 20 | desde el paso 3 salen las cuentas, y vuelven en el 11, cuando salen las tablas |
+| 21 | en el paso 13 sale el bitmap, que ya no cambia |
+| 22 | desde el paso 3 salen las direcciones: lo que sigue es probar algoritmos |
+| 23 | en el último paso sale la dirección |
+
+Cada vez que un panel sale, la narración lo dice una vez. El motor de pasos acepta
+ahora un `canvas` por paso, que sigue valiendo hasta el próximo que declare otro.
+
+Tres ajustes de dibujo valen para los dos recursos de memoria: la tira de la memoria
+toma el alto que necesitan sus bloques (22 px cada uno) en lugar de un mínimo fijo;
+las tablas de sustitución tienen los casilleros un poco más bajos; y en la caja de la
+pregunta, «Probar otra» va arriba a la derecha y no en un renglón propio.
 
 **El renglón de elecciones comparte línea con el título.** Con veintitrés ejemplos
 la escalera ocupa dos renglones; un renglón más abajo, reservado para que nada se
@@ -308,12 +333,13 @@ Lo medido al armar esta versión, con un Chromium automatizado:
 - **492 tableros** (todos los pasos, los dos modos, las 92 referencias de Resolver y
   cada opción de cada pregunta contestada) a 390 px y a seis anchos entre 1001 y
   1239: nada se va para el costado.
-- **A 1280×720, 42 de esos 492 tableros desbordan un panel** por dentro, entre 2 y
-  43 px, en los ejemplos 5, 15, 18, 19, 20, 21, 22 y 23. Pasa casi siempre con una
-  pregunta contestada o con la placa de cierre a la vista, que agrandan la narración.
-  Los canvas vienen de los recursos de origen, que tenían la escalera en un solo
-  renglón; con veintitrés ejemplos tiene dos. **Está abierto**: o se rehace el canvas
-  de esos ocho ejemplos, o se decide otra cosa para la altura de la escalera.
+- **A 1280×720, ningún panel desborda** en ninguno de los 492 tableros, y la página no
+  scrollea.
+- **Con una pregunta contestada, la caja de la pregunta puede scrollear por dentro**:
+  entre 10 y 14 px en 20 tableros, y 31 px en uno (ejemplo 1, paso 6). Mientras hay una pregunta
+  abierta la narración no pasa de 160 px, para que los paneles de arriba no se
+  achiquen. En los recursos de origen la caja scrolleaba más: entre 16 y 52 px, en
+  57 tableros de la Práctica avanzada y en 54 de Paginación y segmentación.
 
 ---
 
