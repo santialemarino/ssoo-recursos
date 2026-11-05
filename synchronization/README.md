@@ -37,7 +37,7 @@ se puede tocar. Si vas a modificar `index.html`, leelo antes.
 | 9 | Test & Set | Una instrucción que lee y escribe en un solo paso indivisible |
 | 10 | El semáforo, por dentro | `wait` y `signal`, y qué le pasa al proceso que no puede entrar |
 | 11 | El valor negativo | Qué cuenta el valor de un semáforo arriba y abajo de cero |
-| 12 | Busy-wait o bloqueo | Cuánta CPU cuesta cada una de las dos esperas |
+| 12 | Espera activa o bloqueo | Cuánta CPU cuesta cada una de las dos esperas |
 | 13 | Cinco impresoras | Un semáforo contador: arranca en la cantidad de instancias |
 | 14 | MILANESA | Que los semáforos se cruzan, y que los valores iniciales fijan quién arranca |
 | 15 | Sacar de una lista vacía | Que un mutex protege y no avisa |
@@ -639,25 +639,26 @@ tiene, porque un proceso que ya ejecutó sus tres instrucciones no ofrece ningun
   | Grafito | Lo que cambió en este paso: el anillo, el borde y el texto de lo marcado |
   | Neutros | La sección crítica dibujada, los semáforos, el modo y el `IF`, las colas |
 
-- **El busy-wait es una trama, no un color.** Un proceso que ocupa la CPU en un
+- **La espera activa es una trama, no un color.** Un proceso que ocupa la CPU en un
   `while` está ejecutando, así que no puede ser rojo, y el rojo ya está tomado dos
   veces. Es azul con un rayado diagonal. Se lee en un proyector mediocre, que es
   donde se muestran estos recursos, y no ocupa un rol de color. Además el bloque
-  dice «en busy-wait» y la chapita al lado del nombre dice lo mismo: la trama no es
+  dice «en espera activa» y la chapita al lado del nombre dice lo mismo: la trama no es
   lo único que lo cuenta.
-- **El término es `busy-wait`, en inglés, y no se traduce.** Una primera versión
-  inventó el verbo «girar» —girando, gira en el while, CPU gastada girando— y era
-  una españolización forzada: el apunte dice `busy-wait` y `spinlock`, y la regla
-  del repositorio es que los términos que la materia dice en inglés se quedan en
-  inglés. Lo que sí es español natural y se usa: *bloquear*, *bloqueado*,
-  *esperar*. En la narración, en vez de un verbo inventado, se describe lo que
-  pasa: «se queda en el while», «vuelve a preguntar». Y por el mismo motivo el
-  ejemplo 12 se llama **Busy-wait o bloqueo** y no «Girar o bloquearse». La otra
+- **El término es «espera activa», porque así lo dice el apunte.** El apunte de
+  sincronización dice «espera activa» y nunca `busy-wait`, y la regla del
+  repositorio es que el término lo fija el apunte, no el inglés. Una primera versión inventó el verbo
+  «girar» —girando, gira en el while, CPU gastada girando—, que era una
+  españolización forzada, y la siguiente usó `busy-wait`, que el apunte no usa. Lo
+  que sí es español natural y se usa: *bloquear*, *bloqueado*, *esperar*. En la
+  narración, en vez de un verbo inventado, se describe lo que pasa: «se queda en el
+  while», «vuelve a preguntar». Y por el mismo motivo el ejemplo 12 se llama
+  **Espera activa o bloqueo** y no «Girar o bloquearse». La otra
   opción, si la cátedra la prefiere, es *Spinlock o mutex*, que es como el apunte
   titula esa comparación; se eligió la primera porque lo que la traza muestra es la
   espera, no dos APIs de lock.
 - **Nada de «gastar» en un rótulo.** El contador decía «CPU gastada girando» y
-  ahora dice «CPU en busy-wait». Los rótulos van en registro técnico y neutro; la
+  ahora dice «CPU en espera activa». Los rótulos van en registro técnico y neutro; la
   narración puede ser más llana, pero tampoco coloquial.
 - **El panel de Semáforos no estrena color, y el de Modo y IF tampoco.** En el
   recurso de procesos el ámbar quiere decir PCB y el violeta, hilo, y los roles de
