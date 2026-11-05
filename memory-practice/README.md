@@ -1,227 +1,324 @@
-# Práctica avanzada de memoria
+# Práctica de memoria
 
-Ocho ejercicios de memoria **de parcial**, resueltos paso a paso: la tabla de
-segmentos reconstruida desde pistas, la segmentación paginada con límite y
-permisos, adivinar el algoritmo de sustitución mirando el estado final, Clock
-modificado con sustitución global, el tamaño máximo de un proceso, LRU con
-tablas de dos niveles, la tabla de 2do nivel que tampoco está en memoria, y una
-TLB que guarda el proceso junto con un bitmap de marcos libres.
+Los ejercicios de memoria **de la guía y de parciales**, resueltos paso a paso: la
+dirección partida en bits, la segmentación con su límite y sus permisos, la tabla de
+segmentos reconstruida desde pistas, la memoria virtual y el bit de presencia, los
+algoritmos de sustitución, la TLB, y siete ejercicios de parcial.
 
-Es la lista del documento «Práctica avanzada de Memoria» de la cátedra. Cada
-ejemplo dice de qué parcial o guía viene, y las preguntas paran antes de cada
-resultado para que el estudiante lo calcule primero.
+Es el recurso de **práctica**: hace las cuentas. Los mecanismos —qué es una página,
+un marco, la TLB, el bit de presencia, cómo elige cada algoritmo— se explican en el
+recurso de teoría, **Memoria**, que va antes. Acá se usan; cuando hace falta
+nombrarlos, la narración lo dice en una frase y remite a **Memoria**.
 
 Se abre haciendo doble clic en `index.html`. No necesita internet ni instalar
 nada.
 
-Da por sabido lo de **Paginación y segmentación** y **Sustitución de páginas**:
-qué es una página, un marco, la tabla, el bit de presencia y los algoritmos. Acá
-no se explican desde cero; se usan.
+Este archivo es la documentación del recurso: qué enseña, de dónde salió cada
+ejemplo, cómo editarlo y qué no se puede tocar. Si vas a modificar `index.html`,
+leelo antes.
 
-Este archivo es la documentación del recurso: qué enseña, cómo editarlo y qué no
-se puede tocar. Si vas a modificar `index.html`, leelo antes.
-
-**Todavía no está enlazado desde la portada**: se llega con el link directo.
+**Todavía no está enlazado desde la portada**: figura como «próximamente», y se
+publica junto con **Memoria**, después de la clase de memoria virtual.
 
 ---
 
-## Los ocho ejemplos
+## Los veintitrés ejemplos
 
-Son **89 pasos** y **30 preguntas**. La escalera va agrupada en tres tramos.
+Son **250 pasos** en modo Ver, **92 referencias** para contestar en modo Resolver y
+**47 preguntas**. La escalera va agrupada en seis tramos.
 
-| # | Tramo | Ejemplo | De dónde viene | Qué se resuelve | Pasos |
-|---|---|---|---|---|---|
-| 1 | Segmentación | La tabla al revés | Guía de ejercicios, ej. 11 | Bases y límites desde traducciones conocidas, el segmento de código y la fragmentación | 9 |
-| 2 | Segmentación | Segmentación paginada, para ejecutar | 1er recuperatorio 2C2025 | Los bits salen de las notas; cuatro direcciones para ejecución: dos físicas, un segmentation fault y un error de protección | 16 |
-| 3 | Sustitución | ¿Qué algoritmo fue? | Guía de parciales, ej. 2 | Las víctimas salen del estado final; FIFO, LRU y Clock pueden ser, Óptimo y Clock modificado no | 10 |
-| 4 | Sustitución | Clock modificado, global | 2do parcial 1C2025, TM | Cuatro físicas, las vueltas del puntero y las tablas finales | 13 |
-| 5 | Paginación | El tamaño máximo de un proceso | Parcial 2C2022, TM, consigna a | 4 GiB: lo pone la dirección lógica, no los marcos | 2 |
-| 6 | Paginación | LRU con tablas de dos niveles | Parcial 1C2022, TM | 5 fallos y 7 accesos a disco; más marcos no ayudan; 3 accesos sin fallo y 1 con TLB | 14 |
-| 7 | Paginación | Cuando la tabla tampoco está | 2do parcial 2C2022 | Fallos, tablas consultadas y disco por referencia; qué cambia con TLB; localidad espacial | 12 |
-| 8 | Paginación | TLB con procesos y bitmap | Parcial 2C2018, TT | Acierto en TLB, fila de otro proceso, un 1er nivel con P = 0 y el primer marco libre | 13 |
+| # | Tramo | Ejemplo | De dónde viene | Antes estaba en |
+|---|---|---|---|---|
+| 1 | Guía · paginación | La dirección partida en dos | Guía, ej. 1 | Paginación y segmentación, ej. 1 |
+| 2 | Guía · paginación | Lo que entra y lo que sobra | Guía, ej. 2 | Paginación y segmentación, ej. 3 |
+| 3 | Guía · segmentación | Base y límite | Guía, ej. 3 | Paginación y segmentación, ej. 4 |
+| 4 | Guía · segmentación | Permisos | Guía, ej. 4 | Paginación y segmentación, ej. 5 |
+| 5 | Guía · segmentación | La tabla al revés | Guía, ej. 11 | Paginación y segmentación, ej. 7 |
+| 6 | Guía · segmentación | Los huecos | Guía, ej. 11 c | Paginación y segmentación, ej. 6 |
+| 7 | Guía · memoria virtual | Más grande que la memoria | Guía, ej. 5 y 6 a | Paginación y segmentación, ej. 9 |
+| 8 | Guía · memoria virtual | Una tabla por proceso | Guía, ej. 6 b, 6 c y 8 b | Paginación y segmentación, ej. 10 |
+| 9 | Guía · memoria virtual | La página que no está | Guía, ej. 7 | Paginación y segmentación, ej. 11 |
+| 10 | Guía · sustitución | FIFO | Guía, ej. 8 | Sustitución de páginas, ej. 1 |
+| 11 | Guía · sustitución | Óptimo | Guía, ej. 8 | Sustitución de páginas, ej. 2 |
+| 12 | Guía · sustitución | LRU | Guía, ej. 8 | Sustitución de páginas, ej. 3 |
+| 13 | Guía · sustitución | Clock | Guía, ej. 8 | Sustitución de páginas, ej. 4 |
+| 14 | Guía · sustitución | LRU con páginas modificadas | Guía, ej. 9 | Sustitución de páginas, ej. 6 |
+| 15 | Guía · sustitución | Clock modificado | Guía, ej. 9 | Sustitución de páginas, ej. 7 |
+| 16 | Guía · TLB | Cuándo sirve la TLB | Guía, ej. 10 | Sustitución de páginas, ej. 8 |
+| 17 | De parcial | El tamaño máximo de un proceso | Parcial 2C2022, TM | Práctica avanzada, ej. 5 |
+| 18 | De parcial | Segmentación paginada, para ejecutar | 1er recuperatorio 2C2025 | Práctica avanzada, ej. 2 |
+| 19 | De parcial | LRU con tablas de dos niveles | Parcial 1C2022, TM | Práctica avanzada, ej. 6 |
+| 20 | De parcial | Cuando la tabla tampoco está | 2do parcial 2C2022 | Práctica avanzada, ej. 7 |
+| 21 | De parcial | TLB con procesos y bitmap | Parcial 2C2018, TT | Práctica avanzada, ej. 8 |
+| 22 | De parcial | ¿Qué algoritmo fue? | Guía de parciales, ej. 2 | Práctica avanzada, ej. 3 |
+| 23 | De parcial | Clock modificado, global | 2do parcial 1C2025, TM | Práctica avanzada, ej. 4 |
 
-Cada ejemplo termina con una **placa de cierre** (`closing`), y cada título de
-panel tiene su globito (`PANEL_TIPS`). Los controles y las teclas son los de toda
-la familia: **Primero · Anterior · Siguiente · Último · Reproducir**, las flechas,
-`Inicio` y `Fin`.
+Cada ejemplo dice de dónde viene en el campo `source`, que el recurso exige.
 
-### Las preguntas
+### De dónde salió el recurso
 
-Treinta pasos traen una pregunta antes de mostrar la respuesta: el paso
-pregunta, y el siguiente resuelve. Funcionan igual que en **Paginación y
-segmentación**: cada opción incorrecta es un error típico con su explicación
-(«1023 es lo que se desperdicia, no la página», «eso sería FIFO», «la TLB guarda
-traducciones, no evita fallos»), y **nunca bloquean**.
+Junta tres recursos que se habían armado por separado y nunca se publicaron:
+
+- **Paginación y segmentación** (`memory-translation`, del fork de Lucho): sus
+  ejemplos de la guía quedaron acá, del 1 al 9. Los de teoría —de página a marco,
+  segmentación paginada, el fallo de página, las tablas grandes— pasaron a
+  **Memoria**.
+- **Sustitución de páginas** (`page-replacement`, del fork de Lucho): sus ejemplos
+  de la guía quedaron acá, del 10 al 16, con el modo Resolver. La anomalía de Belady
+  pasó a **Memoria**, como cierre de FIFO.
+- **Práctica avanzada de memoria** (este mismo recurso, en `main`): siete de sus
+  ocho ejercicios quedaron acá, del 17 al 23. El que salió es «La tabla al revés» de
+  ese recurso, porque los ejemplos 5 y 6 ya resuelven el ejercicio 11 de la guía.
+
+Las carpetas `memory-translation` y `page-replacement` no existen en `main`: fueron
+materia prima.
+
+**Las resoluciones no cambiaron.** Al portar, se comparó cada paso de cada ejemplo
+contra su recurso de origen —lo que da cada traducción, cada panel, cada pregunta,
+cada referencia de sustitución, cada estado de marcos y cada respuesta correcta— y
+no hay ninguna diferencia. Lo único que cambió son las frases de la sección
+siguiente.
+
+### Lo que se ajustó al portar
+
+- **Las definiciones se achicaron a una frase** cuando el concepto lo explica
+  **Memoria**: qué es paginar (ej. 1), qué es un segmento (ej. 3), la
+  fragmentación externa (ej. 6), la memoria virtual (ej. 7), el bit de presencia
+  (ej. 8), cómo se atiende un fallo de página (ej. 9), y cómo elige cada algoritmo
+  en las presentaciones de los ejemplos 10 a 15. Donde hace falta, la frase remite a
+  **Memoria**.
+- **«alcance local» pasó a «sustitución local»**, que es como lo dice el apunte.
+- **«frames» pasó a «marcos»** en el ejemplo 17.
+- **Se sacaron todas las menciones** a «Paginación y segmentación» y a
+  «Sustitución de páginas», y las referencias a ejemplos que ya no están acá.
+- La frase de Clock modificado decía «el bit de uso de el marco»; ahora dice «del».
+
+---
+
+## Dos modos, sólo en los ejemplos 10 a 16
+
+Los ejemplos de sustitución y de TLB tienen **Modo · Resolver / Ver**, en el renglón
+del título, a la derecha. En los demás ejemplos el selector no aparece, y su lugar
+queda reservado: **nada se mueve** cuando aparece o desaparece.
+
+- **Resolver**: el estudiante llena la tabla de marcos referencia por referencia,
+  tocando el marco donde queda la página (o con las teclas `1` a `4`). En el 14 y el
+  15 está además el botón «Dirección inválida»; en el 16 se elige entre acierto en la
+  TLB, fallo de TLB con la página en memoria, y fallo de página. La columna se revela
+  con la respuesta correcta se haya acertado o no, y la narración explica por qué.
+  Los contadores y el panel de estado muestran siempre lo que había **antes** de la
+  referencia abierta.
+- **Ver**: un paso es una referencia, con la tabla revelada hasta ahí.
+
+Cuando un ejemplo de sustitución está resuelto entero, su botón de la escalera
+muestra un ✓. **El lugar del ✓ está reservado en los veintitrés botones**, para
+que la escalera tenga una sola disposición; sólo se llena en los ejemplos con modo
+Resolver.
+
+En el panel de estado de FIFO, Óptimo, LRU y los ejemplos 14 y 16 hay un interruptor
+**Pistas · Mostrar / Ocultar**, sólo en Resolver: ocultarlas saca el dato con el que
+decide el algoritmo, que hay que llevar de memoria.
+
+## Las preguntas
+
+Cuarenta y siete pasos traen una pregunta antes de mostrar el resultado. Cada opción
+incorrecta es un error típico con su explicación, y **nunca bloquean**: se puede
+seguir sin contestar.
 
 **Las respuestas se guardan en el navegador** (`localStorage`, clave
-`ssoo-recursos:memory-practice:v1`). Si el navegador no deja guardar, todo
-funciona igual y sólo se olvidan al recargar.
+`ssoo-recursos:memory-practice:v2`), las de las preguntas y las de las tablas de
+Resolver. La clave cambió de `v1` a `v2` porque cambió el conjunto de ejemplos; lo
+que haya guardado en `v1` se ignora. Si el navegador no deja guardar, todo funciona
+igual y sólo se olvida al recargar.
 
 ---
 
 ## Lo que el recurso verifica solo al abrirse
 
-**No son comentarios: son campos que el código chequea**, y si algo no da lo dice
-la consola del navegador.
+**No son comentarios: son campos que el código chequea**, y si algo no da lo dice la
+consola del navegador.
 
-- **El ejemplo 2 no está escrito a mano: lo traduce el recurso.** Declara la
-  máquina —bits, segmentos con límite, permisos y tabla de páginas— y cada paso
-  dice sólo qué dirección y hasta dónde se tradujo (`phase`: `split`, `limit`,
-  `perm`, `page`, `compose`). Los campos, los controles y la física salen de la
-  cuenta, y `expect` dice qué tiene que dar.
-- **Las sustituciones se simulan.** El campo `facts` de los ejemplos 3, 4 y 6
-  corre FIFO, LRU, Óptimo, Clock o Clock modificado sobre el estado inicial y
-  las referencias, y compara las víctimas, las páginas finales, los bits, el
-  puntero, los fallos y las escrituras con lo que muestra el ejemplo. En el 3,
-  además, comprueba que el Óptimo y Clock modificado —con el puntero en
-  cualquiera de los tres marcos— **no** llegan al estado final.
-- **Las físicas y las páginas se recalculan**: cada `fact` de tipo `physical`
-  hace marco × tamaño + desplazamiento, y cada `page` divide la dirección por el
-  tamaño de página.
-- Que los campos de bits de una dirección, pegados, den la dirección; que cada
-  fila de una tabla tenga tantas celdas como columnas; que dos celdas marcadas
-  no se toquen; que cada pregunta tenga su opción correcta y un `why` en cada
-  opción; que no quede ningún `{dato}` sin completar; que todo globito invocado
-  exista y que todo globito escrito se use.
-
-Cuando se armó, esas verificaciones dieron todo bien, y la resolución de los
-ocho ejercicios coincidió con una segunda resolución hecha por separado.
-
----
+- **Las traducciones las hace el recurso**: los ejemplos 3, 4, 9 y 18 declaran su
+  máquina (paginación, segmentación o segmentación paginada) y cada paso dice sólo
+  qué dirección y hasta dónde se tradujo. Cada `expect` se compara con la cuenta.
+- **Las sustituciones las simula el recurso, con un solo simulador.** Los ejemplos 10
+  a 16 se simulan enteros —fallos, escrituras, víctimas en orden, accesos a TLB,
+  memoria y disco— y se comparan con su `expect`. Los `facts` de los ejemplos 19, 22 y
+  23 corren **el mismo simulador**: el recurso tenía dos y ahora tiene uno.
+- Que cada dirección dé la página y el desplazamiento que dice el dato; que los
+  campos de bits, pegados, den la dirección; que cada fila de una tabla tenga tantas
+  celdas como columnas; que dos celdas marcadas no se toquen; que cada pregunta tenga
+  su opción correcta y un `why` en cada opción; que cada ejemplo tenga `source`,
+  `closing` y `stepUnit`; que no quede ningún `{dato}` sin completar; que todo
+  globito invocado exista y que todo globito escrito se use; que los tramos de la
+  escalera estén contiguos.
 
 ## El chasis se comparte; el canvas se deriva
 
-El chasis —escalera, narración, controles, teclas, preguntas, placa de cierre,
-colores de rol— es el de **Paginación y segmentación**, sin cambios. El canvas
-se derivó ejemplo por ejemplo:
+El chasis es el de **Deadlock**: la escalera de números con los tramos que no se
+parten, los controles y las teclas, el globito en cada título de panel, la placa de
+cierre en cada ejemplo, un solo renglón para las elecciones y el favicon de todo el
+repositorio. Se comparó con Deadlock propiedad por propiedad y no hay diferencias.
 
-| # | Unidad del paso | Lo que muta y hay que mirar | Canvas |
-|---|---|---|---|
-| 1 | una pista | la tabla que se completa | Pistas + Dirección + Tabla de segmentos + Memoria física |
-| 2 | una parte de la traducción | los controles y la página que se busca | Dirección + Tabla de segmentos + Tablas de páginas |
-| 3 | una deducción | las víctimas, y qué algoritmo puede ser | Dirección + Tabla de páginas + Marcos + Resultados |
-| 4 | un acceso, o la búsqueda de una víctima | los bits U y M, el puntero, las tres tablas | Dirección + Marcos + Tablas de páginas |
-| 5 | una cuenta | los bits de la dirección | Dirección + Cuentas |
-| 6 | una referencia | qué hay en cada marco y cuándo se usó | Referencias + Marcos + Cuentas |
-| 7 | una referencia, o una parte de ella | qué tablas están en memoria | Dirección + Cuentas + Tablas de páginas + Referencias |
-| 8 | una parte de la traducción | la TLB, las tablas y el bitmap | Dirección + Bitmap + TLB + Tablas de páginas |
+El canvas de cada ejemplo es el de su recurso de origen, con su derivación; está en
+los README de esos recursos y no se repite acá.
 
-Decisiones de canvas que conviene entender antes de cambiarlas:
-
-- **El 4 no tiene panel de resultados.** No entraba a 1280×720 junto con las tres
-  tablas de A, B y C en una sola fila, y las tablas son la respuesta de la
-  consigna b. Las cuatro físicas las repite la narración del último paso.
-- **En el 4 el puntero es una flecha ◀ al lado del número de marco**, y no una
-  columna aparte: con la columna, las tres tablas no entraban en una fila.
-- **El 6 no tiene panel de dirección.** La página sale de dividir por 8192; los
-  bits no agregan nada.
-- **En el 8, la tabla de 2do nivel «sin número» del enunciado aparece sólo en el
-  paso 3**, que es donde sirve —para decidir que las tablas están en decimal—.
-  En los demás pasos, en su lugar está la de la página 3. La narración lo dice.
-
----
-
-## Decisiones que conviene confirmar con la cátedra
-
-1. **Ejemplo 7, cómo se cuentan los accesos a tablas.** El recurso cuenta una
-   consulta por tabla y por referencia: 2 por referencia, 8 en total. Si la
-   cátedra cuenta también el recorrido que se repite cuando la instrucción se
-   reejecuta después de cada fallo, la primera referencia da 5 y la tercera 4.
-   Los fallos (3) y los accesos a disco (3) no cambian.
-2. **Ejemplo 8 b, la fila 3 del 1er nivel con P = 0.** El recurso la lee como
-   «la tabla de 2do nivel de la página 3 no está en memoria»: un fallo para
-   traerla (al marco 20) y otro para la página (al marco 25). La física da
-   001910ABh igual si se ignora esa P, pero cambia la cantidad de fallos y qué
-   marcos del bitmap se usan.
-3. **Ejemplo 8, decimal o hexa.** La TLB dice «valores en hexa» y las tablas no.
-   El recurso las lee en decimal porque la tabla «sin número» tiene en su fila 1
-   el marco 12 con P = 1, y la TLB pone la A101h en el marco Ch: cierra si esa
-   tabla es la de la fila A1h.
-4. **Ejemplo 6, accesos a disco.** 7 = 5 lecturas + 2 escrituras de víctimas
-   modificadas. Si la cátedra cuenta sólo los fallos, son 5.
-5. **Ejemplo 4, las filas que salen de memoria.** Quedan con P = 0, U = 0 y M = 0
-   (la C0 se escribió en disco, así que deja de estar modificada); el número de
-   marco queda escrito como estaba. La narración aclara que en esas filas sólo
-   importa la P.
-6. **Ejemplo 3, Clock.** «Puede ser» supone que el puntero recorre los marcos en
-   orden —3, 4, 7— y arranca en el 3. Lo dice la nota del paso.
-7. **Ejemplo 5.** El enunciado del documento está recortado: sólo se ve la
-   consigna a. El recurso resuelve sólo ésa.
-
----
+**El renglón de elecciones comparte línea con el título.** Con veintitrés ejemplos
+la escalera ocupa dos renglones; un renglón más abajo, reservado para que nada se
+mueva, dejaba el área de los paneles 34 px más baja que en Deadlock. En la línea del
+título no cuesta nada.
 
 ## Cambiar un texto
 
 Todos los textos que ve un estudiante están en el bloque `<script id="data">`,
-arriba de todo del archivo. **No hay ni un texto visible escrito en el motor ni en
-el dibujo.**
+arriba de todo del archivo.
 
 1. Abrí `index.html` en cualquier editor.
 2. Buscá el texto tal como aparece en pantalla.
 3. Cambialo, guardá y recargá.
 
-Dentro de los textos hay tres marcas, las mismas de los otros recursos:
-`[[fallo:fallo de página]]` sale con un globito (`TOOLTIPS`), `*así*` sale en
-negrita, y `{fisica}`, `{marco}`, `{desp}` son valores que completa la máquina
-del ejemplo 2 —**no los reemplaces por el número escrito a mano**—.
+Dentro de los textos: `[[fallo:fallo de página]]` sale con un globito (`TOOLTIPS`),
+`*así*` sale en negrita, y `{fisica}`, `{marco}`, `{fallos_12}` son valores que
+completa el recurso —**no los reemplaces por el número escrito a mano**—. La
+narración de cada referencia de los ejemplos 10 a 16 se arma con las plantillas de
+`UI_TEXT.narr`: cambiar una frase ahí la cambia en todas las referencias.
 
-Si cambiás un número de un ejemplo con `facts`, la consola avisa si la
-simulación ya no da lo que muestran las tablas: hay que cambiar las dos cosas.
+Si cambiás un número de un ejemplo con máquina, `expect` o `facts`, la consola avisa
+si la cuenta ya no da: hay que cambiar las dos cosas.
 
 ## Agregar un ejemplo
 
-Un ejemplo es un objeto más en `EXAMPLES`, con `number`, `group`, `source`,
-`title`, `short`, `adds`, `subtitle`, `stepUnit`, `canvas`, `closing` y
-`steps`. Cada paso declara su `narration` y lo que cambia en cada panel
-(`views`); lo que no declara, queda como estaba. Las listas `calc` y `log` se
-acumulan solas. Si el ejemplo tiene números que se pueden recalcular, agregá
-sus `facts`.
+- **De pasos**: un objeto en `EXAMPLES` con `number`, `group`, `source`, `title`,
+  `short`, `adds`, `subtitle`, `stepUnit`, `canvas`, `closing` y `steps`; cada paso
+  declara su `narration` y lo que cambia en cada panel (`views`).
+- **De sustitución**: un objeto con `algorithm` (`fifo`, `optimal`, `lru`, `clock`,
+  `clockModified` o `tlb`), `frames`, `references`, `expect`, `intro` y `closing`. El
+  modo Resolver aparece solo.
 
 ---
 
 ## Hasta dónde llega
 
-Resuelve los ocho ejercicios del documento y no más. No agrega teoría: para eso
-están **Paginación y segmentación** y **Sustitución de páginas**.
+Hace las cuentas de la guía y de los parciales y no más. No re-explica mecanismos:
+para eso está **Memoria**. No se dice nunca qué entra o qué no entra en el parcial.
 
-Tampoco se dice nunca qué entra o qué no entra en el parcial.
+El ejemplo 16 es el ejercicio 10 de la guía y necesita una TLB de 4 entradas que se
+reemplaza con FIFO. El planteo de esta versión pedía que el tamaño y el reemplazo de
+la TLB no aparecieran en ninguno de los dos recursos; acá aparecen porque el
+ejercicio no se puede resolver sin ellos.
+
+### Términos
+
+La forma principal es **«fallo de página»**, como en los tres recursos de origen; el
+globito dice que en inglés es *page fault*. **Memoria**, en cambio, usa «page fault»,
+que es como titula la filmina la atención. Es una de las decisiones de abajo.
 
 ### Colores
 
-El recurso no estrena nada: la tipografía, los colores de rol (página violeta,
-desplazamiento verde azulado, marco ocre, segmento magenta, 1er nivel índigo) y
-la marca de «cambió en este paso» en grafito son los de **Paginación y
-segmentación**. Los fallos y las víctimas se marcan con tinta y `✗`, no con rojo.
+No estrena nada. Los colores de rol son los de los recursos de origen, que ya
+coincidían: página violeta `#6d28d9`, desplazamiento verde azulado `#0b6a62`, marco
+ocre `#9a4507`, segmento magenta `#be185d`, 1er nivel índigo `#4338ca`, y lo que
+cambió en el paso en grafito.
+
+**Los fallos y las víctimas se marcan con tinta, no con rojo**: el rojo es
+`BLOCKED`. En **Sustitución de páginas** el fallo era rojo y se cambió al portar. En
+las tablas de sustitución el fallo sigue siendo la letra **F**, en tinta, y no un
+`✗`: en esas tablas el `✗` ya quiere decir «respuesta incorrecta», en la fila «Tu
+respuesta», y un símbolo no puede decir dos cosas.
+
+---
+
+## Decisiones que conviene confirmar con la cátedra
+
+**Nuevas, de esta versión:**
+
+1. **Re-ejecución.** ¿Los accesos a tablas se cuentan otra vez cuando la instrucción
+   se re-ejecuta después de un fallo? Los ejemplos 16 y 20 cuentan una sola vez.
+2. **Orden de los controles en segmentación**: límite antes que permiso. El ejemplo 4
+   (la 0BEEFh de la guía) depende de eso: da segmentation fault y no error de
+   protección.
+3. **Empates en Óptimo**: si varias páginas no vuelven a usarse, sale la que entró
+   primero. Es la regla que reproduce la tabla de la filmina; reemplaza la de
+   **Sustitución de páginas** («la del marco de más arriba»). Con los datos de la guía
+   no hay empates, y ninguna resolución cambió. Aplicada; falta confirmar.
+4. **Fallos en tinta, no en rojo.** Aplicado; falta confirmar.
+5. **«fallo de página» o «page fault»** como forma principal de cada recurso.
+
+**Que venían de Paginación y segmentación:**
+
+6. **Ejercicio 6 b, «64Kb».** Se leyó como 64 KiB: 128 marcos de 0,5 KiB, 7 bits de
+   marco y 16 bytes de tabla de marcos libres. Si eran kilobits, cambian las tres
+   cuentas (ejemplo 8).
+7. **Ejercicio 6 b, el formato de la fila.** La guía dice «proponga». Se propone
+   presencia + marco, 8 bits; para el 8 b, R, W, X, uso, modificado, presencia y 5 bits
+   de marco: 11 bits (ejemplo 8).
+8. **Ejercicio 11 b.** El código es «posiblemente» el segmento 1, como dice la guía;
+   no se distingue cuál de los otros dos es la pila y cuál los datos (ejemplo 5).
+
+**Que venían de Sustitución de páginas:**
+
+9. **La dirección 172100 del ejercicio 9** cae en la página 21 de un proceso de 20
+   páginas: se trata como dirección inválida, el proceso termina y la última
+   referencia no se ejecuta (ejemplos 14 y 15).
+10. **Cómo se cuentan los accesos del ejercicio 10**: acierto en la TLB, 1 a la TLB y
+    1 a memoria; fallo de TLB con la página en memoria, 1 y 2; fallo de página, 1, 2 y
+    1 a disco. P1 da 13 / 18 / 5 y P2, 9 / 18 / 9 (ejemplo 16).
+11. **Convenciones de Clock**: el bit de uso se pone en 1 al cargar y al referenciar;
+    en un acierto el puntero no se mueve; en un fallo queda en el marco siguiente al
+    reemplazado; cargar en un marco libre también lo avanza (ejemplo 13).
+12. **Clock modificado en vueltas**: (U = 0, M = 0) sin tocar nada, después
+    (U = 0, M = 1) bajando los bits de uso, y se repite (ejemplo 15).
+13. **Con marcos libres, la página va al primero libre** (al del puntero, en Clock).
+14. **LRU del ejercicio 9 decide con los instantes del enunciado** (28, 3 y 15), y
+    toda referencia nueva cuenta como posterior a ellos (ejemplo 14).
+
+**Que venían de la Práctica avanzada:**
+
+15. **Ejemplo 21 b, la fila 3 del 1er nivel con P = 0**: se lee como «la tabla de 2do
+    nivel no está en memoria», con un fallo para traerla y otro para la página.
+16. **Ejemplo 21, decimal o hexa**: las tablas se leen en decimal.
+17. **Ejemplo 19, accesos a disco**: 7 = 5 lecturas + 2 escrituras. Si la cátedra
+    cuenta sólo los fallos, son 5.
+18. **Ejemplo 23, las filas que salen de memoria** quedan con P = 0, U = 0 y M = 0, y
+    el número de marco escrito como estaba.
+19. **Ejemplo 22, Clock**: «puede ser» supone que el puntero recorre los marcos en
+    orden —3, 4, 7— y arranca en el 3.
+20. **Ejemplo 17**: el enunciado está recortado y sólo se ve la consigna a.
 
 ---
 
 ## Verificación antes de publicar un cambio
 
 1. Abrirlo con doble clic, sin servidor y sin internet.
-2. La consola limpia, en los ocho ejemplos.
+2. La consola limpia, en los veintitrés ejemplos, las variantes y los dos modos.
 3. Recorrer cada ejemplo para adelante y para atrás: cada paso igual en los dos
    sentidos.
-4. A 1280×720, nada scrollea: ni la página ni ningún panel.
-5. A 390 px, una columna y nada se va para el costado.
-6. Teclado: flechas, `Inicio`, `Fin`, `Tab` con el foco visible, y las preguntas
-   contestables sin mouse.
-7. Con el almacenamiento bloqueado, las preguntas funcionan igual.
+4. Resolver los ejemplos 10 a 16 enteros, acertando y equivocándose.
+5. A 1280×720, nada scrollea: ni la página ni ningún panel.
+6. A 390 px, una columna y nada se va para el costado; y entre 1001 y 1239 px, nada
+   se va para el costado.
+7. Con el almacenamiento bloqueado, las preguntas y las tablas funcionan igual.
 
-Lo medido al construirlo, con un Chromium automatizado: **89 pasos** a 1280×720
-y a 390 px sin desborde de paneles ni scroll de página, con la consola limpia y
-sin un solo pedido de red; **89 vueltas** ida contra vuelta, todas idénticas; las
-**87 opciones** de las 30 preguntas, contestadas una por una, sin desbordar los
-paneles; las respuestas sobreviven a la recarga y el recurso anda con el
-almacenamiento bloqueado. Con una respuesta incorrecta abierta, la caja de la
-pregunta puede scrollear unos píxeles por dentro, igual que en **Paginación y
-segmentación**.
+Lo medido al armar esta versión, con un Chromium automatizado:
+
+- **Las resoluciones** de los veintitrés ejemplos, paso por paso, idénticas a las de
+  su recurso de origen.
+- **250 pasos** de ida y de vuelta, todos idénticos; consola limpia y ningún pedido
+  de red; lo mismo con el almacenamiento bloqueado.
+- **492 tableros** (todos los pasos, los dos modos, las 92 referencias de Resolver y
+  cada opción de cada pregunta contestada) a 390 px y a seis anchos entre 1001 y
+  1239: nada se va para el costado.
+- **A 1280×720, 42 de esos 492 tableros desbordan un panel** por dentro, entre 2 y
+  43 px, en los ejemplos 5, 15, 18, 19, 20, 21, 22 y 23. Pasa casi siempre con una
+  pregunta contestada o con la placa de cierre a la vista, que agrandan la narración.
+  Los canvas vienen de los recursos de origen, que tenían la escalera en un solo
+  renglón; con veintitrés ejemplos tiene dos. **Está abierto**: o se rehace el canvas
+  de esos ocho ejemplos, o se decide otra cosa para la altura de la escalera.
 
 ---
 
 ## Lo que falta
 
-**Toda la narración la escribió un agente y no la revisó nadie de la cátedra**:
-las 89 narraciones y sus notas, las 30 preguntas con sus 87 explicaciones, las
-ocho frases de cierre y los globitos. Lo que viene dado son los enunciados y sus
-números. Las resoluciones también las hizo el agente —dos veces, por separado, y
-coinciden—, pero las decisiones de arriba son las que hay que mirar primero.
+**Toda la narración la escribió un agente y no la revisó nadie de la cátedra**: la de
+los tres recursos de origen, más los ajustes de esta versión. Es lo primero que hay
+que leer antes de mandar el link.
