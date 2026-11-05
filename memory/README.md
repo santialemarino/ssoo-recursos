@@ -12,9 +12,6 @@ mecanismo una vez. Las cuentas de la guía y de los parciales están en la prác
 
 Se abre haciendo doble clic en `index.html`. No necesita internet ni instalar nada.
 
-**Todavía no está enlazado desde la portada**: figura como «próximamente», y se
-publica junto con la práctica, después de la clase de memoria virtual.
-
 ---
 
 ## Los doce ejemplos
