@@ -243,8 +243,11 @@ La curva del ejemplo 11 va en tinta: no nombra nada que tenga color.
 5. Con el almacenamiento bloqueado, las preguntas funcionan igual.
 
 Lo medido al armarlo, con un Chromium automatizado: **255 tableros** (los 229 pasos,
-y cada opción de cada pregunta contestada) a 1280×720 sin un solo desborde ni scroll
-de página, y a 390 px y seis anchos entre 1001 y 1239 sin nada hacia el costado;
+y cada opción de cada pregunta contestada) a 1280×720 sin un solo panel desbordado ni
+scroll de página, y a 390 px y seis anchos entre 1001 y 1239 sin nada hacia el
+costado. Con una pregunta contestada, la caja de la pregunta puede scrollear 13 px
+por dentro en 4 tableros: mientras hay una pregunta abierta la narración no pasa de
+160 px, igual que en la práctica;
 **229 pasos** de ida y de vuelta, todos idénticos; consola limpia, ningún pedido de
 red, y lo mismo con el almacenamiento bloqueado.
 
