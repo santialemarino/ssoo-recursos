@@ -860,6 +860,47 @@
 
   .strip { min-height: 40px; }
 
+  .strip { gap: 3px; }
+  .block, .block:first-child, .block:last-child { border-width: 1.5px; border-radius: 5px; }
+  .block.focus { box-shadow: none; outline: 0; border-color: var(--marked); border-width: 2px; }
+  .block .marker { border-top: 0; height: 0; }
+  .block .marker::before, .block .marker::after { content: ""; position: absolute; top: -1.5px; width: 9px; border-top: 3px solid var(--ink); }
+  .block .marker::before { left: 0; }
+  .block .marker::after { right: 0; }
+  .block .marker .pin { top: 50%; transform: translate(-50%, -50%); }
+  .block:has(> .marker) { padding-left: 16px; padding-right: 16px; }
+  .block .marker.fail::before, .block .marker.fail::after { border-top-color: var(--fault); }
+
+  .equation.fail { border-left-style: solid; }
+
+  .bitline { --box-h: 26px; }
+  .bitline.values { --box-h: 34px; }
+  .bitline .caption { min-height: var(--box-h); padding-top: 0; display: flex; align-items: center; }
+  .total { padding-top: 0; }
+  .total .equals { min-height: var(--box-h); display: flex; align-items: center; }
+  .bitlines { gap: 16px; }
+  .fields { gap: 10px; }
+  .field { gap: 4px; padding: 3px 4px 4px; margin: -3px -4px -4px; }
+  .fields-scroll { padding: 6px 7px 7px; margin: -6px -7px -7px; }
+  .field .meta { line-height: 1.35; }
+
+  .table-block:only-child { flex: 1 1 auto; }
+  .table-block:only-child > .table-scroll > .grid-table { width: 100%; }
+
+  .frame { height: auto; min-height: 46px; justify-content: center; padding: 15px 3px 5px; }
+  .frame .index { z-index: 1; font-size: 10px; }
+  .frame .label { white-space: normal; text-align: center; line-height: 1.15; font-size: 11.5px; }
+  .frame-grid.tight .frame { height: auto; min-height: 40px; padding-top: 13px; padding-bottom: 4px; }
+  .legend .swatch.partial { position: relative; overflow: hidden; border-color: var(--role-page); background: var(--card); }
+  .legend .swatch.partial::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: var(--role-page-soft); }
+
+  .examples button { position: relative; }
+  .examples button .tick { position: absolute; top: 1px; right: 3px; width: auto; font-size: 9px; }
+
+
+  .grid-table tr.focus td:first-child, .grid-table tr.fault td:first-child { border-radius: 2px 0 0 2px; }
+  .actor { grid-template-columns: 100px minmax(0, 1fr); }
+  .strip-wrap .legend { margin-top: 6px; }
   @media (max-width: 1239px) {
     body { height: auto; overflow: auto; }
     main { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; }
@@ -1094,6 +1135,7 @@ const UI_TEXT = {
     pageLabel: "pág {n}",
     frameIndex: "{n}",
     legendUsed: "página del proceso",
+    legendPartial: "lo pintado es lo que usa la página",
     legendOther: "otro proceso",
     legendFree: "libre",
     legendSeg: "segmento",
@@ -6123,7 +6165,7 @@ function renderBits(snapshot, id) {
       wrap.appendChild(holder);
       return;
     }
-    const row = element("div", "bitline");
+    const row = element("div", "bitline" + (line.fields.every(function (field) { return typeof field.bits !== "number"; }) ? " values" : ""));
     row.appendChild(element("span", "caption", UI_TEXT.captions[line.caption] || line.caption));
     const track = element("div", "track");
     const totalBits = line.fields.reduce(function (sum, field) { return sum + (typeof field.bits === "number" ? field.bits : 0); }, 0);
@@ -6251,7 +6293,7 @@ function memoryLegend(kinds) {
   return legend;
 }
 
-const LEGEND_KEYS = { used: "legendUsed", other: "legendOther", free: "legendFree", seg: "legendSeg", os: "legendOs", unknown: "legendUnknown" };
+const LEGEND_KEYS = { used: "legendUsed", partial: "legendPartial", other: "legendOther", free: "legendFree", seg: "legendSeg", os: "legendOs", unknown: "legendUnknown" };
 
 function renderFrames(body, data) {
   const grid = element("div", "frame-grid" + (data.tight ? " tight" : ""));
@@ -6263,6 +6305,7 @@ function renderFrames(body, data) {
     const frame = element("div", "frame" + (kind === "free" ? "" : " " + kind));
     if ((data.highlight || []).indexOf(index) !== -1) frame.classList.add("focus");
     frame.appendChild(element("span", "index", fill(UI_TEXT.memory.frameIndex, { n: index })));
+    if (cell && kind === "used" && cell.fill !== undefined && cell.fill < 1) kinds.partial = true;
     if (cell && kind === "used") {
       const part = element("span", "used-part");
       part.style.height = Math.max(cell.fill === undefined ? 1 : cell.fill, 0.08) * 100 + "%";
@@ -6273,7 +6316,7 @@ function renderFrames(body, data) {
     grid.appendChild(frame);
   });
   body.appendChild(grid);
-  body.appendChild(memoryLegend(["used", "other", "free"].filter(function (kind) { return kinds[kind]; })));
+  body.appendChild(memoryLegend(["used", "partial", "other", "free"].filter(function (kind) { return kinds[kind]; })));
 }
 
 function stripText(value, data) {
@@ -6285,7 +6328,7 @@ function stripText(value, data) {
 function renderStrip(body, data) {
   const wrap = element("div", "strip-wrap");
   const strip = element("div", "strip");
-  strip.style.minHeight = data.blocks.length * 22 + "px";
+  strip.style.minHeight = data.blocks.length * 25 - 3 + "px";
   const kinds = {};
   data.blocks.forEach(function (block, index) {
     kinds[block.kind] = true;
@@ -6298,7 +6341,7 @@ function renderStrip(body, data) {
     node.title = (block.label ? block.label + ": " : "") + stripText(block.start, data) + " – " + stripText(data.unit === "kib" ? block.start + block.size : last, data);
     if (data.marker && data.marker.address >= block.start && data.marker.address < block.start + block.size) {
       const marker = element("span", "marker" + (data.marker.fail ? " fail" : ""));
-      marker.style.top = Math.min(92, Math.max(8, (data.marker.address - block.start) / block.size * 100)) + "%";
+      marker.style.top = Math.min(70, Math.max(30, (data.marker.address - block.start) / block.size * 100)) + "%";
       marker.appendChild(element("span", "pin", data.marker.label));
       node.appendChild(marker);
     }

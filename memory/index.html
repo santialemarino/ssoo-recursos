@@ -764,6 +764,45 @@
 
   .strip { min-height: 40px; }
 
+  .strip { gap: 3px; }
+  .block, .block:first-child, .block:last-child { border-width: 1.5px; border-radius: 5px; }
+  .block.focus { box-shadow: none; outline: 0; border-color: var(--marked); border-width: 2px; }
+  .block .marker { border-top: 0; height: 0; }
+  .block .marker::before, .block .marker::after { content: ""; position: absolute; top: -1.5px; width: 9px; border-top: 3px solid var(--ink); }
+  .block .marker::before { left: 0; }
+  .block .marker::after { right: 0; }
+  .block .marker .pin { top: 50%; transform: translate(-50%, -50%); }
+  .block:has(> .marker) { padding-left: 16px; padding-right: 16px; }
+  .block .marker.fail::before, .block .marker.fail::after { border-top-color: var(--fault); }
+
+  .equation.fail { border-left-style: solid; }
+
+  .bitline { --box-h: 26px; }
+  .bitline.values { --box-h: 34px; }
+  .bitline .caption { min-height: var(--box-h); padding-top: 0; display: flex; align-items: center; }
+  .total { padding-top: 0; }
+  .total .equals { min-height: var(--box-h); display: flex; align-items: center; }
+  .bitlines { gap: 16px; }
+  .fields { gap: 10px; }
+  .field { gap: 4px; padding: 3px 4px 4px; margin: -3px -4px -4px; }
+  .fields-scroll { padding: 6px 7px 7px; margin: -6px -7px -7px; }
+  .field .meta { line-height: 1.35; }
+
+  .table-block:only-child { flex: 1 1 auto; }
+  .table-block:only-child > .table-scroll > .grid-table { width: 100%; }
+
+  .frame { height: auto; min-height: 46px; justify-content: center; padding: 15px 3px 5px; }
+  .frame .index { z-index: 1; font-size: 10px; }
+  .frame .label { white-space: normal; text-align: center; line-height: 1.15; font-size: 11.5px; }
+  .frame-grid.tight .frame { height: auto; min-height: 40px; padding-top: 13px; padding-bottom: 4px; }
+  .legend .swatch.partial { position: relative; overflow: hidden; border-color: var(--role-page); background: var(--card); }
+  .legend .swatch.partial::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: var(--role-page-soft); }
+
+  .examples button { position: relative; }
+
+  .grid-table tr.focus td:first-child, .grid-table tr.fault td:first-child { border-radius: 2px 0 0 2px; }
+  .actor { grid-template-columns: 100px minmax(0, 1fr); }
+  .strip-wrap .legend { margin-top: 6px; }
   .pointer-chip { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border: 1.5px solid var(--ink-soft); border-radius: 5px; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink-soft); background: var(--card); cursor: help; }
   .pointer-chip:hover { border-color: var(--ink); }
 
@@ -806,6 +845,28 @@
 
   .block.tagged { min-height: 30px; }
 
+  .grid { border-spacing: 6px 5px; margin: -5px -6px; }
+  .cell { height: 36px; min-width: 46px; font-size: 16px; }
+  .grid .col-page { font-size: 16px; min-width: 46px; }
+  .grid .col-index { font-size: 11.5px; }
+  .grid .row-label { font-size: 12px; padding-right: 8px; }
+  .mark-cell { height: 18px; font-size: 13.5px; min-width: 46px; }
+  .board-body { gap: 12px 30px; }
+  .board-legend { max-width: 320px; gap: 7px; }
+  .board-legend .item { font-size: 12px; }
+
+  .curve-wrap { position: relative; flex: 1 1 auto; min-height: 200px; }
+  .curve-wrap .curve { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; }
+  .panel.curve .panel-body { display: flex; flex-direction: column; }
+
+  .grid-table td { font-size: 14.5px; }
+  .grid { border-spacing: 5px 5px; margin: -5px; }
+  .cell, .grid .col-page, .mark-cell { min-width: 42px; }
+  .board-legend { min-width: 150px; max-width: 260px; }
+  .panel.beladyThree .cell, .panel.beladyFour .cell { height: 30px; }
+  .panel.beladyThree .grid, .panel.beladyFour .grid { border-spacing: 4px 3px; margin: -3px -4px; }
+
+  .grid-table.wrap { margin-top: 0; }
   @media (max-width: 1239px) {
     body { height: auto; overflow: auto; }
     main { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; }
@@ -1048,6 +1109,7 @@ const UI_TEXT = {
     pageLabel: "pág {n}",
     frameIndex: "{n}",
     legendUsed: "página del proceso",
+    legendPartial: "lo pintado es lo que usa la página",
     legendOther: "otro proceso",
     legendFree: "libre",
     legendSeg: "proceso o segmento",
@@ -1704,6 +1766,7 @@ const EXAMPLES = [
       {
         phase: "table",
         address: null,
+        canvas: { columns: "minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 1fr)", panels: ["tlb", "pageTable", "accesses"] },
         narration: "Sin nada más, cada acceso a memoria cuesta dos: uno para leer la fila de la tabla de páginas, que está en memoria, y otro para el dato. La [[tlb:TLB]] guarda las traducciones recientes. Cada entrada lleva el identificador del proceso, para no tener que vaciarla en cada cambio de proceso. Empieza vacía."
       },
       {
@@ -1739,11 +1802,12 @@ const EXAMPLES = [
       {
         phase: "totals",
         expect: "10:7",
-        narration: "Sin TLB habrían sido {sin} accesos a memoria, dos por referencia. Con TLB fueron {con}: dos en cada una de las dos que no estaban, y uno en cada una de las tres que sí."
+        canvas: { columns: "minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 1fr)", panels: ["tlb", "pageTable", "accesses"] },
+        narration: "La dirección sale de la pantalla. Sin TLB habrían sido {sin} accesos a memoria, dos por referencia. Con TLB fueron {con}: dos en cada una de las dos que no estaban, y uno en cada una de las tres que sí."
       },
       {
         phase: "totals",
-        canvas: { columns: "minmax(0, 1fr) minmax(0, 0.62fr) minmax(0, 0.55fr) minmax(0, 0.85fr)", panels: [["address", "calc"], "tlb", "pageTable", "accesses"], stackRows: "auto minmax(0, 1fr)" },
+        canvas: { columns: "minmax(0, 1fr) minmax(0, 0.62fr) minmax(0, 0.55fr) minmax(0, 0.85fr)", panels: ["calc", "tlb", "pageTable", "accesses"] },
         narration: "Con un 98 % de aciertos, 20 ns para buscar en la TLB y 100 ns por acceso a memoria, el tiempo promedio de un acceso es de 122 ns, contra 200 ns sin TLB.",
         calc: ["0,98 · (20 ns + 100 ns) + 0,02 · (20 ns + 100 ns + 100 ns) = 122 ns"]
       }
@@ -1787,7 +1851,7 @@ const EXAMPLES = [
       {
         stepUnit: "Un paso = una parte del recorrido",
         stepUnitNote: "Desde acá un paso es una parte del recorrido de una traducción.",
-        canvas: { columns: "minmax(0, 1.3fr) minmax(0, 0.62fr) minmax(0, 0.55fr)", panels: ["address", "outer", "inner"] },
+        canvas: { columns: "minmax(0, 1.55fr) minmax(0, 0.55fr) minmax(0, 0.5fr)", panels: ["address", "outer", "inner"] },
         narration: "La [[jerarquica:paginación jerárquica]] parte el número de página en dos. En el esquema de la filmina las páginas pasan a ser de 4 KiB: 12 bits de desplazamiento y 20 de página, partidos en 10 + 10. Los primeros 10 eligen una fila de la tabla de páginas global; los otros 10, una fila de la tabla de páginas m a la que apunta esa fila.",
         views: {
           address: { lines: [{ caption: "logical", fields: [{ role: "outer", bits: 10 }, { role: "page", bits: 10, label: "tabla m" }, { role: "offset", bits: 12 }] }] },
@@ -2422,7 +2486,7 @@ const EXAMPLES = [
     adds: "Agrega: cinco algoritmos para elegir la víctima, sobre la misma secuencia y los mismos marcos.",
     subtitle: "La secuencia de la filmina, 2 3′ 2 1 5′ 2 4′ 5 3 2′ 5 2, con 3 marcos. La comilla marca una escritura.",
     stepUnit: "Un paso = una referencia",
-    canvas: { columns: "minmax(0, 1fr) minmax(250px, 0.36fr)", panels: ["board", "state"] },
+    canvas: { columns: "minmax(0, 1fr) minmax(230px, 0.27fr)", panels: ["board", "state"] },
     closing: "Misma secuencia, mismos marcos: lo único que cambia es a quién se elige.",
     variants: [
       {
@@ -2880,7 +2944,7 @@ function invertedMachine(example, address, phase, probe) {
   if (has) {
     lines.push({ caption: "logical", fields: [{ role: "pid", bits: null, value: address.pid }, { role: "page", bits: null, value: address.page }, { role: "offset", bits: null, value: address.offset }] });
     if (hashed) lines.push({ kind: "equation", status: "ok", text: fill(UI_TEXT.equations.hash, context) });
-    if (linear && (scanning !== null || composed)) lines.push({ kind: "equation", status: found ? "ok" : "fail", text: fill(UI_TEXT.equations.scan, context) });
+    if (linear && (scanning !== null || composed)) lines.push({ kind: "equation", status: found ? "ok" : null, text: fill(UI_TEXT.equations.scan, context) });
     if (composed) lines.push({ kind: "equation", status: "ok", text: fill(UI_TEXT.equations.framePhysical, context) });
   }
   const visited = [];
@@ -4025,7 +4089,7 @@ function renderBits(snapshot, id) {
       wrap.appendChild(holder);
       return;
     }
-    const row = element("div", "bitline");
+    const row = element("div", "bitline" + (line.fields.every(function (field) { return typeof field.bits !== "number"; }) ? " values" : ""));
     row.appendChild(element("span", "caption", UI_TEXT.captions[line.caption] || line.caption));
     const track = element("div", "track");
     const totalBits = line.fields.reduce(function (sum, field) { return sum + (typeof field.bits === "number" ? field.bits : 0); }, 0);
@@ -4146,7 +4210,7 @@ function memoryLegend(kinds) {
   return legend;
 }
 
-const LEGEND_KEYS = { used: "legendUsed", other: "legendOther", free: "legendFree", seg: "legendSeg", os: "legendOs", unknown: "legendUnknown", waste: "legendWaste" };
+const LEGEND_KEYS = { used: "legendUsed", partial: "legendPartial", other: "legendOther", free: "legendFree", seg: "legendSeg", os: "legendOs", unknown: "legendUnknown", waste: "legendWaste" };
 
 function renderFrames(body, data) {
   const grid = element("div", "frame-grid" + (data.tight ? " tight" : ""));
@@ -4158,6 +4222,7 @@ function renderFrames(body, data) {
     const frame = element("div", "frame" + (kind === "free" ? "" : " " + kind));
     if ((data.highlight || []).indexOf(index) !== -1) frame.classList.add("focus");
     frame.appendChild(element("span", "index", fill(UI_TEXT.memory.frameIndex, { n: index })));
+    if (cell && kind === "used" && cell.fill !== undefined && cell.fill < 1) kinds.partial = true;
     if (cell && kind === "used") {
       const part = element("span", "used-part");
       part.style.height = Math.max(cell.fill === undefined ? 1 : cell.fill, 0.08) * 100 + "%";
@@ -4168,7 +4233,7 @@ function renderFrames(body, data) {
     grid.appendChild(frame);
   });
   body.appendChild(grid);
-  body.appendChild(memoryLegend(["used", "other", "free"].filter(function (kind) { return kinds[kind]; })));
+  body.appendChild(memoryLegend(["used", "partial", "other", "free"].filter(function (kind) { return kinds[kind]; })));
 }
 
 function stripText(value, data) {
@@ -4181,7 +4246,7 @@ function renderStrip(body, data) {
   const wrap = element("div", "strip-wrap");
   if (data.caption) wrap.appendChild(element("p", "mem-caption", data.caption));
   const strip = element("div", "strip");
-  strip.style.minHeight = data.blocks.reduce(function (sum, block) { return sum + (block.tags ? 30 : 22); }, 0) + "px";
+  strip.style.minHeight = data.blocks.reduce(function (sum, block) { return sum + (block.tags ? 33 : 25); }, -3) + "px";
   const kinds = {};
   data.blocks.forEach(function (block, index) {
     kinds[block.kind] = true;
@@ -4197,7 +4262,7 @@ function renderStrip(body, data) {
     node.title = (block.label ? block.label + ": " : "") + range;
     if (data.marker && data.marker.address >= block.start && data.marker.address < block.start + block.size) {
       const marker = element("span", "marker" + (data.marker.fail ? " fail" : ""));
-      marker.style.top = Math.min(92, Math.max(8, (data.marker.address - block.start) / block.size * 100)) + "%";
+      marker.style.top = Math.min(70, Math.max(30, (data.marker.address - block.start) / block.size * 100)) + "%";
       marker.appendChild(element("span", "pin", data.marker.label));
       node.appendChild(marker);
     }
@@ -4321,7 +4386,7 @@ function renderCurve(snapshot) {
   const maxX = data.points[data.points.length - 1][0];
   const x = function (value) { return left + value / maxX * (width - left - 12); };
   const y = function (value) { return height - bottom - value / 100 * (height - bottom - 14); };
-  const svg = svgNode("svg", { viewBox: "0 0 " + width + " " + height, class: "curve", role: "img", "aria-label": UI_TEXT.curve.y + " / " + UI_TEXT.curve.x });
+  const svg = svgNode("svg", { viewBox: "0 0 " + width + " " + height, class: "curve", role: "img", "aria-label": UI_TEXT.curve.y + " / " + UI_TEXT.curve.x, preserveAspectRatio: "xMidYMid meet" });
   svg.appendChild(svgNode("line", { x1: left, y1: y(0), x2: width - 8, y2: y(0), class: "axis" }));
   svg.appendChild(svgNode("line", { x1: left, y1: y(0), x2: left, y2: 8, class: "axis" }));
   svg.appendChild(svgNode("polyline", { points: data.points.map(function (point) { return x(point[0]) + "," + y(point[1]); }).join(" "), class: "line" }));
@@ -4336,7 +4401,9 @@ function renderCurve(snapshot) {
   const yLabel = svgNode("text", { x: left + 6, y: 16, class: "label" });
   yLabel.textContent = UI_TEXT.curve.y;
   svg.appendChild(yLabel);
-  body.appendChild(svg);
+  const wrap = element("div", "curve-wrap");
+  wrap.appendChild(svg);
+  body.appendChild(wrap);
 }
 
 function renderWindow(snapshot) {
