@@ -17,9 +17,6 @@ Este archivo es la documentación del recurso: qué enseña, de dónde salió ca
 ejemplo, cómo editarlo y qué no se puede tocar. Si vas a modificar `index.html`,
 leelo antes.
 
-**Todavía no está enlazado desde la portada**: figura como «próximamente», y se
-publica junto con **Memoria**, después de la clase de memoria virtual.
-
 ---
 
 ## Los veintitrés ejemplos
