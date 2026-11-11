@@ -17,7 +17,7 @@ Se abre haciendo doble clic en `index.html`. No necesita internet ni instalar na
 
 ## Los dieciséis ejemplos
 
-Son **271 pasos** contando todas las variantes, y **9 preguntas**. Ningún ejemplo usa
+Son **270 pasos** contando todas las variantes, y **9 preguntas**. Ningún ejemplo usa
 algo que se explica en uno posterior: del 1 al 10 no aparecen FAT, EXT2, inodos ni
 clusters; la posición de lectura/escritura aparece en el 1 y recién en el 4 se dice
 dónde vive.
@@ -34,7 +34,7 @@ dónde vive.
 | 8 | En el disco | Asignación de bloques | Contigua · Enlazada · Indexada | un evento de asignación o una lectura | 9 + 9 + 13 |
 | 9 | En el disco | Espacio libre | Bit vector · Enlazada · Indexada · Lista de bloques · Lista de contiguos | un paso de la representación o un pedido | 3 × 5 |
 | 10 | En el disco | Journaling | Sin journal · Con journal | una operación o la falla | 6 + 12 |
-| 11 | FAT | La FAT funcionando | — | una búsqueda en la FAT o un evento | 14 |
+| 11 | FAT | La FAT funcionando | — | una búsqueda en la FAT o un evento | 13 |
 | 12 | FAT | Tamaños de la FAT | FAT12 · FAT16 · FAT32 | una cuenta | 12 + 13 + 13 |
 | 13 | EXT2 | El inodo | — | el archivo crece un bloque | 12 |
 | 14 | EXT2 | Las indirecciones | — | un acceso a un bloque | 18 |
@@ -248,7 +248,7 @@ cierre.
 12. **Los largos de registro del ejemplo 15** son inventados (8 + el nombre redondeado a
     4) y el recurso no los explica.
 
-**Que eligió el recurso y conviene mirar:**
+**Lo que eligió el recurso y conviene mirar:**
 
 13. **Ejemplo 8, esquema combinado:** el planteo pide la frase «Lo retomamos en EXT2»,
     pero también pide que del 1 al 10 no se nombre EXT2. Dice «Lo retomamos en el último
@@ -271,11 +271,11 @@ cierre.
    costado; entre 1001 y 1239 px, tampoco.
 5. Con el almacenamiento bloqueado, las preguntas funcionan igual.
 
-Lo medido al armarlo, con un Chromium automatizado: **301 tableros** (los 271 pasos y
+Lo medido al armarlo, con un Chromium automatizado: **300 tableros** (los 270 pasos y
 cada opción de cada pregunta) a 1280×720 sin un solo panel desbordado, sin scroll de
 página y sin que la caja de la pregunta scrollee por dentro; a 320, 390, 768, 1001,
 1100, 1239, 1440 y 1920 px, la página nunca se va para el costado (a 320 y 390, las
-tablas anchas y la terminal se desplazan dentro de su propia caja); **271 pasos** de ida
+tablas anchas y la terminal se desplazan dentro de su propia caja); **270 pasos** de ida
 y de vuelta, idénticos; consola limpia, ningún pedido de red, y lo mismo con el
 almacenamiento bloqueado. Los estilos del chasis, comparados con Memoria: cero
 diferencias. Cada `expect` se probó cambiándolo a propósito y viendo el error en la

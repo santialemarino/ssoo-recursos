@@ -845,6 +845,7 @@ const UI_TEXT = {
   },
   alloc: {
     next: "→ {n}",
+    theBlock: "el {n}",
     end: "fin",
     readDirect: "Directo, bloque {nth} de {name}: {path}. {n} en total.",
     readSeq: "Secuencial, todo {name}: {path}. {n} en total.",
@@ -960,10 +961,10 @@ const PANEL_TIPS = {
   globalTable: { title: "Tabla global de archivos abiertos", body: "Una sola para todo el sistema: por cada archivo abierto, su FCB y cuántas aperturas tiene." },
   procTables: { title: "Tablas por proceso", body: "Una por proceso: por cada archivo que abrió, el file descriptor, el modo, la posición y a qué entrada global apunta." },
   osSteps: { title: "Qué hace el SO", body: "Lo que hace el SO en este paso, en orden." },
-  mode: { title: "Permisos", body: "El tipo y los tres grupos de permisos: dueño, grupo y otros. Está marcado el grupo que se consulta en este paso." },
+  mode: { title: "Permisos", body: "El tipo y las tres partes de los permisos: la del dueño, la del grupo y la de otros. Está marcada la parte que se consulta en este paso." },
   users: { title: "Usuarios", body: "Quién es cada usuario para este archivo." },
   attempts: { title: "Intentos", body: "Qué pudo hacer cada usuario. Está marcado el intento de este paso." },
-  octal: { title: "Octal", body: "Cada grupo de tres permisos como un dígito: r vale 4, w vale 2 y x vale 1." },
+  octal: { title: "Octal", body: "Cada parte de tres permisos como un dígito: r vale 4, w vale 2 y x vale 1." },
   acl: { title: "ACL", body: "La lista de control de acceso del archivo: una entrada por usuario o grupo, con sus permisos." },
   fileBlocks: { title: "Archivo en disco", body: "Los tres bloques del archivo." },
   procMemory: { title: "Memoria del proceso", body: "Dónde ve el proceso los datos del archivo: un buffer propio, o páginas mapeadas." },
@@ -990,7 +991,7 @@ const PANEL_TIPS = {
   pointerBlocks: { title: "Bloques de punteros", body: "Los bloques que no guardan datos sino punteros a otros bloques, con cada entrada numerada." },
   accessLog: { title: "Accesos", body: "Los bloques que se leen en esta lectura, en orden." },
   bitmaps: { title: "Bitmaps", body: "Un bit por inodo y un bit por bloque de datos: 1 si está usado, 0 si está libre." },
-  superblock: { title: "Superbloque", body: "Los datos del file system entero, entre ellos cuántos inodos y cuántos bloques hay, y cuántos quedan libres." },
+  superblock: { title: "Superbloque", body: "Los datos generales del file system, entre ellos cuántos inodos y cuántos bloques hay y cuántos quedan libres. Acá, los del grupo de juguete." },
   inodeTable: { title: "Tabla de inodos", body: "Un inodo por archivo, en orden de número." },
   dataBlocks: { title: "Bloques de datos", body: "Los bloques del grupo. Los de directorio guardan registros; los otros, datos." },
   dirRecords: { title: "Registros de directorio", body: "Lo que guarda cada bloque de directorio: un registro por entrada, de la forma [inodo, largo del registro, largo del nombre, nombre]." },
@@ -1055,7 +1056,7 @@ const LOCK_COMMON = [
   {
     do: { op: "request", p: "P2", type: "shared" },
     expect: { otorgado: "sí", titulares: "P1 y P2" },
-    narration: "P2 pide otro compartido. Varios procesos pueden tener uno a la vez: lo obtiene, y los dos leen al mismo tiempo."
+    narration: "P2 pide otro compartido. Varios procesos pueden tener uno a la vez: lo obtiene, y los dos pueden leer a la vez."
   },
   {
     do: { op: "release", p: "P2" },
@@ -1405,7 +1406,7 @@ const EXAMPLES = [
           {
             do: { op: "write", p: "P2", account: "B", value: 350 },
             expect: { suma: 400 },
-            narration: "P2 escribe B = {b} y los saldos vuelven a sumar {suma}, pero P1 ya se llevó un dato que no era. La integridad queda a cargo del programador, y el SO tampoco verifica si hay deadlock."
+            narration: "P2 escribe B = {b} y los saldos vuelven a sumar {suma}, pero P1 ya se llevó un dato inconsistente. La integridad queda a cargo del programador, y el SO tampoco verifica si hay deadlock."
           }
         ])
       }
@@ -1476,21 +1477,21 @@ const EXAMPLES = [
         variantLabel: "Archivo",
         model: PERMS_FILE,
         steps: [
-          { narration: "`notas.txt` tiene los permisos `{modo}`. El primer carácter es el tipo: `-`, un archivo regular. Después vienen tres grupos de tres —dueño, grupo y otros—, cada uno con `r` (leer), `w` (escribir) y `x` (ejecutar), o un guion si no lo tiene." },
-          { do: { op: "try", user: "ana", action: "read" }, expect: { permitido: "sí" }, narration: "ana intenta leer. Es la dueña, así que cuenta el grupo del dueño, `{bits}`: {veredicto}." },
-          { do: { op: "try", user: "ana", action: "write" }, expect: { permitido: "sí" }, narration: "ana intenta escribir. El mismo grupo, `{bits}`: {veredicto}." },
+          { narration: "`notas.txt` tiene los permisos `{modo}`. El primer carácter es el tipo: `-`, un archivo regular. Después vienen tres partes de tres letras —la del dueño, la del grupo y la de otros—, cada una con `r` (leer), `w` (escribir) y `x` (ejecutar), o un guion si no lo tiene." },
+          { do: { op: "try", user: "ana", action: "read" }, expect: { permitido: "sí" }, narration: "ana intenta leer. Es la dueña, así que cuenta la parte del dueño, `{bits}`: {veredicto}." },
+          { do: { op: "try", user: "ana", action: "write" }, expect: { permitido: "sí" }, narration: "ana intenta escribir. La misma parte, `{bits}`: {veredicto}." },
           { do: { op: "try", user: "ana", action: "exec" }, expect: { permitido: "no" }, narration: "ana intenta ejecutarlo. `{bits}`: {veredicto}. Ser la dueña no da todos los permisos." },
-          { do: { op: "try", user: "beto", action: "read" }, expect: { permitido: "sí" }, narration: "beto intenta leer. No es el dueño pero está en el grupo `alumnos`, así que cuenta el segundo grupo, `{bits}`: {veredicto}." },
+          { do: { op: "try", user: "beto", action: "read" }, expect: { permitido: "sí" }, narration: "beto intenta leer. No es el dueño pero está en el grupo `alumnos`, así que cuenta la parte del grupo, `{bits}`: {veredicto}." },
           { do: { op: "try", user: "beto", action: "write" }, expect: { permitido: "no" }, narration: "beto intenta escribir. `{bits}`: {veredicto}." },
           { do: { op: "try", user: "beto", action: "exec" }, expect: { permitido: "no" }, narration: "beto intenta ejecutarlo. `{bits}`: {veredicto}." },
-          { do: { op: "try", user: "carla", action: "read" }, expect: { permitido: "no" }, narration: "carla intenta leer. No es la dueña ni está en el grupo, así que cuenta el tercero, el de otros: `{bits}`, {veredicto}." },
+          { do: { op: "try", user: "carla", action: "read" }, expect: { permitido: "no" }, narration: "carla intenta leer. No es la dueña ni está en el grupo, así que cuenta la parte de otros: `{bits}`, {veredicto}." },
           { do: { op: "try", user: "carla", action: "write" }, expect: { permitido: "no" }, narration: "carla intenta escribir. `{bits}`: {veredicto}." },
           { do: { op: "try", user: "carla", action: "exec" }, expect: { permitido: "no" }, narration: "carla intenta ejecutarlo. `{bits}`: {veredicto}." },
           {
             do: { op: "octal" },
             canvas: { columns: "minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.55fr)", panels: [["mode", "users"], "attempts", "octal"] },
             expect: { octal: "640" },
-            narration: "Cada grupo se escribe como un dígito: `r` vale 4, `w` vale 2 y `x` vale 1, y se suman. `rw-` = 4 + 2 = 6, `r--` = 4 y `---` = 0: los permisos de `notas.txt` son {octal}."
+            narration: "Cada parte se escribe como un dígito: `r` vale 4, `w` vale 2 y `x` vale 1, y se suman. `rw-` = 4 + 2 = 6, `r--` = 4 y `---` = 0: los permisos de `notas.txt` son {octal}."
           },
           {
             canvas: { columns: "minmax(0, 1.1fr) minmax(0, 0.9fr)", panels: [["mode", "users"], "attempts"] },
@@ -1657,7 +1658,7 @@ const EXAMPLES = [
             canvas: ALLOC_CANVAS,
             do: { op: "create", name: "A", size: 2, file: 1 },
             expect: { bloques: "2–3" },
-            narration: "El esquema del volumen sale de la pantalla. Un disco de {total} bloques, con el {ocupados} ya usados. Asignación *contigua*: cada archivo ocupa bloques seguidos, en el primer tramo libre donde entre. A, de 2 bloques, va al {bloques}."
+            narration: "El esquema del volumen sale de la pantalla. Un disco de {total} bloques, con {ocupados} ya usados. Asignación *contigua*: cada archivo ocupa bloques seguidos, en el primer tramo libre donde entre. A, de 2 bloques, va al {bloques}."
           },
           { do: { op: "create", name: "B", size: 2, file: 2 }, expect: { bloques: "4–5" }, narration: "B, de 2: el primer tramo libre donde entra es el {bloques}." },
           { do: { op: "create", name: "C", size: 2, file: 3 }, expect: { bloques: "6–7" }, narration: "C, de 2: el {bloques}." },
@@ -1857,7 +1858,9 @@ const EXAMPLES = [
       { do: { op: "next" }, expect: { valor: 1 }, narration: "FAT[{n}] = {valor}." },
       { do: { op: "next" }, expect: { valor: "EOF", cadena: "5 → 12 → 1" }, narration: "FAT[{n}] = {valor}: `moo` termina ahí. La cadena entera es {cadena}." },
       {
-        narration: "Ahora, el 4.º cluster de `snow`.",
+        do: { op: "start", name: "snow" },
+        expect: { primero: 30, busquedas: 0 },
+        narration: "Ahora, el 4.º cluster de `snow`. El directorio dice que empieza en el {primero}: ése es el 1.º, y los contadores vuelven a 0.",
         ask: {
           question: "¿Qué tipo de asignación tiene FAT? Pensar qué tiene que hacer para ubicar el enésimo cluster.",
           correct: "linked",
@@ -1868,8 +1871,7 @@ const EXAMPLES = [
           ]
         }
       },
-      { do: { op: "start", name: "snow" }, expect: { primero: 30 }, narration: "Enlazada. El directorio dice que `snow` empieza en el {primero}: ése es el 1.º." },
-      { do: { op: "next" }, expect: { valor: 23, busquedas: 1 }, narration: "FAT[{n}] = {valor}: el 2.º. Búsqueda {busquedas} en la FAT, en memoria." },
+      { do: { op: "next" }, expect: { valor: 23, busquedas: 1 }, narration: "Enlazada. FAT[{n}] = {valor}: el 2.º. Búsqueda {busquedas} en la FAT, en memoria." },
       { do: { op: "next" }, expect: { valor: 7, busquedas: 2 }, narration: "FAT[{n}] = {valor}: el 3.º." },
       { do: { op: "next" }, expect: { valor: 17, busquedas: 3 }, narration: "FAT[{n}] = {valor}: el 4.º es el cluster {cluster}. Fueron {busquedas} búsquedas en la FAT, todas en memoria, sin leer el disco." },
       { do: { op: "read" }, expect: { lecturas: 1, cluster: 17 }, narration: "Recién ahora se lee el disco: el cluster {cluster}, {lecturas} lectura. Con la enlazada del principio habrían sido {enlazada}, porque cada puntero estaba adentro de un cluster." },
@@ -2002,7 +2004,7 @@ const EXAMPLES = [
     title: "Las indirecciones",
     short: "Las indirecciones",
     adds: "Agrega: cómo se llega a un byte desde el inodo, y cuántos bloques cuesta.",
-    subtitle: "El mismo inodo de juguete y el archivo del ejemplo 13, que siguió creciendo hasta 14 bloques: 224 bytes.",
+    subtitle: "El mismo inodo de juguete y el archivo del ejemplo 13, que siguió creciendo hasta 14 bloques (224 bytes) en un disco más grande, hasta el b20.",
     stepUnit: "Un paso = un acceso a un bloque",
     canvas: { columns: "minmax(0, 0.9fr) minmax(0, 0.75fr) minmax(0, 1.05fr) minmax(0, 0.9fr)", panels: ["calc", "inode", "pointerBlocks", "accessLog"] },
     model: { type: "indirect", blockSize: 16, pointerSize: 4, direct: 2, disk: 32, other: [0, 1, 2], fileBlocks: 14, expectData: [3, 4, 6, 7, 8, 9, 12, 13, 14, 15, 17, 18, 19, 20] },
@@ -2197,14 +2199,14 @@ const EXAMPLES = [
           question: "¿Qué pasa después de `rm fileloco`?",
           correct: "right",
           options: [
-            { id: "right", text: "hl_fileloco sigue andando; sl_fileloco queda apuntando a una ruta que no existe", why: "rm borra una entrada del directorio y baja el contador a 1. El symbolic link guarda la ruta «fileloco», y esa ruta ya no está." },
+            { id: "right", text: "hl_fileloco sigue funcionando; sl_fileloco queda apuntando a una ruta que no existe", why: "rm borra una entrada del directorio y baja el contador a 1. El symbolic link guarda la ruta «fileloco», y esa ruta ya no está." },
             { id: "both", text: "Se borra el inodo y los dos links quedan rotos", why: "El inodo se libera recién cuando el contador llega a 0, y todavía queda hl_fileloco." },
-            { id: "fine", text: "Los dos siguen andando", why: "El symbolic link no guarda el inodo, guarda la ruta: si ese nombre desaparece, no tiene adónde ir." },
+            { id: "fine", text: "Los dos siguen funcionando", why: "El symbolic link no guarda el inodo, guarda la ruta: si ese nombre desaparece, no tiene adónde ir." },
             { id: "all", text: "Se borran los tres nombres", why: "Cada nombre es una entrada aparte, y rm borra sólo la que se le pasa." }
           ]
         }
       },
-      { do: { op: "rm", name: "fileloco" }, expect: { links: 1 }, narration: "`rm fileloco` borra esa entrada, y el contador baja a {links}. `hl_fileloco` sigue andando; `sl_fileloco` queda apuntando a «fileloco», una ruta que ya no existe ✗. El inodo {inodoHard} se libera recién cuando el contador llegue a 0." },
+      { do: { op: "rm", name: "fileloco" }, expect: { links: 1 }, narration: "`rm fileloco` borra esa entrada, y el contador baja a {links}. `hl_fileloco` sigue funcionando; `sl_fileloco` queda apuntando a «fileloco», una ruta que ya no existe ✗. El inodo {inodoHard} se libera recién cuando el contador llegue a 0." },
       { narration: "Entre file systems: un hardlink no puede cruzar a otro file system, ni siquiera a otro volumen con el mismo file system, porque cada volumen tiene sus propios inodos y el número no significa nada del otro lado. Un symbolic link sí puede, porque guarda una ruta." },
       {
         canvas: { columns: "minmax(0, 1.2fr) minmax(0, 1fr)", panels: ["terminal", "structures"] },
@@ -2353,7 +2355,7 @@ const filesModel = {
   apply: function (state, op, config, problems) {
     const fs = state.systems[op.fs || state.order[0]];
     const where = { fs: op.fs || state.order[0], dir: op.dir, name: op.name };
-    state.touch = { entries: [], blocks: [] };
+    state.touch = { entries: [], blocks: [], fs: where.fs };
     state.clock += 1;
     const out = {};
     if (op.op === "create") {
@@ -2606,7 +2608,7 @@ function filesDiskView(state, fs) {
     if (block.kind === "other") return otherCell();
     if (block.kind === "free") return freeCell();
     const fcb = state.fcbs[block.fcb];
-    return { kind: "data", file: fcb.file, who: names[block.fcb] || "", txt: visible(block.text), focus: (state.touch.blocks || []).indexOf(index) !== -1 };
+    return { kind: "data", file: fcb.file, who: names[block.fcb] || "", txt: visible(block.text), focus: state.touch.fs === fs.config.id && (state.touch.blocks || []).indexOf(index) !== -1 };
   });
   const files = Object.keys(state.fcbs).filter(function (id) { return state.fcbs[id].fs === fs.config.id; }).map(function (id) { return { file: state.fcbs[id].file, name: names[id] || "" }; });
   return diskView(blocks, Math.min(fs.disk.length, 6), { sub: fill(UI_TEXT.files.diskSub, { size: fs.config.blockSize }), files: files });
@@ -3075,7 +3077,7 @@ const allocModel = {
     const runs = allocRuns(state, config);
     return {
       total: config.blocks,
-      ocupados: joinList(config.other),
+      ocupados: joinList(config.other.map(function (block) { return fill(UI_TEXT.alloc.theBlock, { n: block }); })),
       tamBloque: formatBytes(config.blockBytes),
       sectores: config.blockBytes / config.sectorBytes,
       sector: config.sectorBytes,
@@ -3197,8 +3199,9 @@ const freeModel = {
       repr = { kind: "ixs", boxes: [{ cap: text.indexCaption, slots: state.free.map(function (index) { return { text: String(index) }; }), focus: state.given !== null }] };
     } else if (config.method === "grouping") {
       repr = { kind: "ixs", boxes: state.groups.map(function (group, index) {
-        const slots = group.holds.map(function (block, at) { return { text: String(block), cls: index < state.groups.length - 1 && at === group.holds.length - 1 ? "link" : "" }; });
-        while (slots.length < config.group) slots.push({ text: UI_TEXT.none, cls: "empty" });
+        const continues = index < state.groups.length - 1;
+        const slots = group.holds.map(function (block, at) { return { text: String(block), cls: continues && at === group.holds.length - 1 ? "link" : "" }; });
+        while (slots.length < config.group) slots.splice(continues ? slots.length - 1 : slots.length, 0, { text: UI_TEXT.none, cls: "empty" });
         return { cap: fill(index === 0 ? text.groupHead : text.groupNext, { n: group.block }), slots: slots, focus: index === 0 && state.given !== null };
       }), note: text.groupNote };
     } else {
