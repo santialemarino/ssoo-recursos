@@ -213,7 +213,8 @@
   .table-group { display: flex; flex-wrap: wrap; gap: 14px 16px; align-items: flex-start; }
   .table-block { min-width: 0; }
   .table-block.active h3 { color: var(--ink); }
-  .table-block h3 { font-size: 12.5px; color: var(--ink-soft); font-weight: 750; margin-bottom: 4px; }
+  .table-block h3 { font-size: 12.5px; color: var(--ink-soft); font-weight: 750; margin-bottom: 9px; padding-left: 7px; }
+  .table-block > .empty-list, .table-block > .table-note { padding-left: 7px; }
 
   .grid-table { border-collapse: separate; border-spacing: 0 3px; font-size: 14px; font-variant-numeric: tabular-nums; margin-top: -3px; }
   .grid-table th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); font-weight: 750; padding: 0 11px 3px 7px; white-space: nowrap; border-bottom: 3px solid transparent; }
@@ -231,8 +232,8 @@
   .legend .item { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); }
   .legend .swatch { width: 14px; height: 10px; border-radius: 2px; border: 1px solid; flex: 0 0 auto; }
 
-  .actors { display: flex; flex-direction: column; gap: 7px; }
-  .actor { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 10px; border-radius: 6px; padding: 2px 4px; }
+  .actors { display: flex; flex-direction: column; gap: 9px; }
+  .actor { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 10px; border-radius: 8px; padding: 7px 12px; }
   .actor.fresh { box-shadow: 0 0 0 2px var(--marked); }
   .actor .who { font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 750; color: var(--faint); }
   .actor .what { font-size: 14px; font-weight: 650; color: var(--ink); min-width: 0; }
@@ -428,11 +429,11 @@
   .table-block:only-child > .table-scroll > .grid-table { width: 100%; }
   .table-scroll { overflow-x: auto; max-width: 100%; }
   .counters { display: flex; flex-wrap: wrap; gap: 8px; }
-  .counter { display: inline-flex; align-items: center; gap: 7px; border: 2px solid var(--ink); border-radius: 8px; padding: 3px 9px; }
+  .counter { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--line-strong); border-radius: 8px; padding: 4px 10px; }
   .counter .caption { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 750; color: var(--muted); }
   .counter .value { font-size: 18px; font-weight: 750; line-height: 1.1; font-variant-numeric: tabular-nums; }
 
-  .counter.fresh { box-shadow: 0 0 0 2px var(--marked); }
+  .counter.fresh { border-color: var(--marked); background: var(--marked-soft); }
   .ask-box { position: relative; }
   .ask-result .retry { position: absolute; top: 5px; right: 9px; padding: 2px 9px; }
   .narration-body.with-extras.asking { grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1.34fr); max-height: 176px; }
@@ -450,7 +451,9 @@
   .ask-box { padding-bottom: 6px; }
   .ask-box .question { line-height: 1.3; }
   .grid-table.wrap td:last-child { white-space: normal; }
-  .table-note { font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 0; max-width: 340px; }
+  .grid-table.even { table-layout: fixed; }
+  .grid-table.even th:not(:first-child), .grid-table.even td:not(:first-child) { text-align: center; padding-left: 4px; padding-right: 4px; }
+  .table-note { font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 0; }
   .narration-text code, .narration-note code, .takeaway code, .ask-box code, .list code { font-family: var(--mono); font-size: 0.9em; font-weight: 650; background: var(--page); border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
   .takeaway .extra { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); margin-top: 4px; }
   .grid-table td { font-size: 14.5px; }
@@ -519,11 +522,11 @@
     align-items: center;
     justify-content: center;
     gap: 1px;
-    padding: 15px 3px 5px;
+    padding: 13px 4px;
     text-align: center;
   }
 
-  .dblock .idx { position: absolute; top: 2px; left: 5px; font-size: 10px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .dblock .idx { position: absolute; top: 1px; left: 5px; font-size: 10px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
   .dblock .who { font-size: 11.5px; font-weight: 750; line-height: 1.15; white-space: nowrap; }
   .dblock .txt { font-family: var(--mono); font-size: 12px; font-weight: 650; line-height: 1.2; white-space: pre; color: var(--ink-soft); }
   .dblock.free { border-style: dashed; color: var(--muted); }
@@ -532,11 +535,11 @@
   .dblock.other .who { font-weight: 600; font-size: 10.5px; }
   .dblock.meta { background: var(--line); border-color: var(--ink-soft); color: var(--ink-soft); }
   .dblock.data { border-color: currentColor; background: var(--soft); }
-  .dblock.pointer { border: 4px double currentColor; padding-top: 13px; padding-bottom: 3px; }
-  .dblock.dir { border-color: var(--ink-soft); border-left-width: 6px; color: var(--ink); }
-  .dblock.focus { border-color: var(--marked); border-width: 2.5px; padding-top: 14px; padding-bottom: 4px; }
-  .dblock.pointer.focus { border-width: 4px; padding-top: 13px; padding-bottom: 3px; }
-  .dblock.dir.focus { border-left-width: 6px; }
+  .dblock.pointer { border: 4px double currentColor; padding: 10.5px 1.5px; }
+  .dblock.dir { border-color: var(--ink-soft); border-left-width: 6px; padding-right: 8.5px; color: var(--ink); }
+  .dblock.focus { border-color: var(--marked); border-width: 2.5px; padding: 12px 3px; }
+  .dblock.pointer.focus { border-width: 4px; padding: 10.5px 1.5px; }
+  .dblock.dir.focus { border-left-width: 6px; padding-right: 6.5px; }
   .dblock .mark { position: absolute; top: 1px; right: 5px; font-size: 11px; font-weight: 800; color: var(--ink); }
 
   .file-1 { color: var(--file-1); --soft: var(--file-1-soft); }
@@ -578,16 +581,15 @@
   .bitrow-cap { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); font-weight: 750; }
   .bitrow-group + .bitrow-group { margin-top: 10px; }
 
-  .bytes { display: flex; flex-wrap: wrap; gap: 14px 12px; align-items: flex-end; padding-top: 4px; }
+  .bytes { display: flex; flex-wrap: wrap; gap: 14px 12px; align-items: flex-end; padding-top: 2px; }
   .byte-block { display: flex; flex-direction: column; gap: 4px; }
   .byte-block .cap { font-size: 12px; font-weight: 750; color: var(--ink-soft); text-align: center; }
   .byte-cells { display: flex; gap: 3px; }
   .byte { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; }
   .byte .ch { width: 26px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1.5px solid currentColor; border-radius: 4px; background: var(--soft); font-family: var(--mono); font-size: 15px; font-weight: 750; }
   .byte .n { font-size: 10px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .byte.caret::before { content: ""; position: absolute; left: -3px; top: -4px; height: 40px; border-left: 3px solid var(--ink); }
-  .byte.caret-end::after { content: ""; position: absolute; right: -3px; top: -4px; height: 40px; border-right: 3px solid var(--ink); }
-  .caret-label { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .caret-bar { flex: 0 0 auto; align-self: flex-start; width: 3px; height: 36px; margin-top: -3px; border-radius: 2px; background: var(--ink); }
+  .caret-label { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--ink); }
   .caret-label .bar { display: inline-block; width: 3px; height: 15px; background: var(--ink); }
 
   .term { margin: 0; padding: 9px 11px; border-radius: 7px; background: var(--region-fill-alt); border: 1px solid var(--line-strong); font-family: var(--mono); font-size: 14px; line-height: 1.65; color: var(--ink-soft); overflow-x: auto; }
@@ -595,19 +597,20 @@
   .term .line.cmd { color: var(--ink); font-weight: 700; }
   .term .line.focus { background: var(--marked-soft); color: var(--ink); }
 
-  .ixs { display: flex; flex-wrap: wrap; gap: 12px 14px; align-items: flex-start; }
-  .ix { border: 4px double var(--ink-soft); border-radius: 7px; padding: 4px 7px 7px; min-width: 0; }
+  .ixs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--box-min, 260px), 100%), 1fr)); gap: 10px 14px; align-items: start; }
+  .ix { border: 4px double var(--ink-soft); border-radius: 8px; padding: 5px 8px 8px; min-width: 0; }
   .ix.inode { border: 1.5px solid var(--ink-soft); border-left-width: 6px; }
   .ix.focus { border-color: var(--marked); }
   .ix .cap { display: block; font-size: 12px; font-weight: 750; color: var(--ink-soft); margin-bottom: 4px; }
-  .ix .slots { display: grid; grid-template-columns: repeat(var(--slots, 4), minmax(58px, auto)); gap: 4px; }
-  .ix .slot { border: 1px solid var(--line-strong); border-radius: 4px; padding: 3px 6px; font-size: 12px; font-weight: 700; color: var(--ink-soft); text-align: center; white-space: nowrap; }
+  .ix .slots { display: grid; grid-template-columns: repeat(var(--slots, 4), minmax(0, 1fr)); gap: 5px; }
+  .ix .slot { border: 1px solid var(--line-strong); border-radius: 5px; padding: 3px 6px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); text-align: center; white-space: nowrap; }
   .ix .slot.link { color: var(--ink); border-color: var(--ink-soft); }
   .ix .slot.empty { border-style: dashed; color: var(--muted); font-weight: 500; }
   .ix .slot.over { border-color: var(--ink); border-style: dashed; color: var(--ink); }
-  .ix .slot.focus { border-color: var(--marked); border-width: 2px; padding: 2px 5px; color: var(--ink); }
+  .ix .slot.focus { border-color: var(--marked); border-width: 2px; padding: 2px 5px; color: var(--ink); background: var(--marked-soft); }
 
   .counter.na .value { color: var(--muted); }
+  .multi-part + .multi-part { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 
   @media (max-width: 420px) {
     .dblock .txt { font-size: 10.5px; }
@@ -871,14 +874,14 @@ const UI_TEXT = {
     opLine: "Op{tx}{n}",
     commitLine: "Commit {tx}",
     lost: "Se perdió: lo que había sólo en RAM no llegó al disco.",
-    orphan: "El bloque {block} figura ocupado y ningún archivo lo referencia ✗",
-    bitmapCaption: "Bitmap de bloques libres (1 = ocupado)",
+    orphan: "El bloque {block} figura ocupado y ningún archivo lo referencia\u00a0✗",
+    bitmapCaption: "Bitmap de bloques libres · 1 = ocupado",
     dirCaption: "Directorio {dir}",
     fcbCaption: "FCB",
     columns: { name: "Nombre", fcb: "FCB", tx: "Transacción", ops: "Operaciones", status: "Estado" },
     emptyDir: "vacío",
     noFcb: "ninguno",
-    status: { open: "sin commit", committed: "con commit", rolledBack: "deshecha (rollback) ✗" },
+    status: { open: "sin commit", committed: "con commit", rolledBack: "deshecha (rollback)\u00a0✗" },
     undone: " · deshecha",
     emptyLog: "El journal está vacío.",
     emptyTx: "Todavía no hay transacciones."
@@ -922,6 +925,8 @@ const UI_TEXT = {
     inodeName: "i{n}",
     blockName: "b{n}",
     freeInodes: "libres",
+    dirBlock: "directorio",
+    dataBlock: "datos",
     record: "[{inode}, {length}, {nameLength}, «{name}»]",
     dirCaption: "{path}, en {block}",
     columns: { inode: "Inodo", recLength: "Largo del registro", nameLength: "Largo del nombre", name: "Nombre", what: "Dato", total: "Total", free: "Libres", type: "Tipo", size: "Tamaño", links: "Links", blocks: "Bloques" },
@@ -1401,7 +1406,7 @@ const EXAMPLES = [
           {
             do: { op: "read", p: "P1" },
             expect: { vioSuma: 350 },
-            narration: "P1 lee mientras P2 escribe: ve A = {vioA} y B = {vioB}, que suman {vioSuma} en vez de {total} ✗. Leyó información a medio escribir."
+            narration: "P1 lee mientras P2 escribe: ve A = {vioA} y B = {vioB}, que suman {vioSuma} en vez de {total}\u00a0✗. Leyó información a medio escribir."
           },
           {
             do: { op: "write", p: "P2", account: "B", value: 350 },
@@ -1663,7 +1668,7 @@ const EXAMPLES = [
           { do: { op: "create", name: "B", size: 2, file: 2 }, expect: { bloques: "4–5" }, narration: "B, de 2: el primer tramo libre donde entra es el {bloques}." },
           { do: { op: "create", name: "C", size: 2, file: 3 }, expect: { bloques: "6–7" }, narration: "C, de 2: el {bloques}." },
           { do: { op: "grow", name: "A" }, expect: { siguiente: 4, duenioSiguiente: "B", bloques: "11–13" }, narration: "A crece un bloque. Necesitaría el {siguiente}, que es de {duenioSiguiente}: no puede crecer en el lugar. Hay que moverlo entero a un tramo libre de 3, el {bloques}, y el {viejos} queda libre." },
-          { do: { op: "create", name: "D", size: 3, file: 4 }, expect: { entra: "no", cantLibres: 7, tramo: 2 }, narration: "Llega D, de 3 bloques. Libres hay {cantLibres}, el {libres}, pero el tramo más largo es de {tramo}: D no entra ✗. Eso es [[fragExterna:fragmentación externa]]." },
+          { do: { op: "create", name: "D", size: 3, file: 4 }, expect: { entra: "no", cantLibres: 7, tramo: 2 }, narration: "Llega D, de 3 bloques. Libres hay {cantLibres}, el {libres}, pero el tramo más largo es de {tramo}: D no entra\u00a0✗. Eso es [[fragExterna:fragmentación externa]]." },
           { do: { op: "readDirect", name: "A", nth: 3 }, expect: { lecturas: 1, bloque: 13 }, narration: "Lectura directa del 3.er bloque de A: alcanza una cuenta, inicio + 2 = {inicio} + 2 = {bloque}. {lecturas} lectura. Es el acceso directo del ejemplo 7, y acá cuesta lo mínimo." },
           { do: { op: "readSeq", name: "A" }, expect: { lecturas: 3 }, narration: "Lectura secuencial de todo A: {lecturas} lecturas, una por bloque, y seguidas en el disco." }
         ])
@@ -1704,19 +1709,19 @@ const EXAMPLES = [
           { do: { op: "readSeq", name: "A" }, expect: { lecturas: 4 }, narration: "Lectura secuencial de todo A: {lecturas}, el índice una vez y los tres bloques." },
           {
             canvas: { columns: "minmax(0, 1fr)", panels: ["indexLimit"] },
-            views: { indexLimit: { kind: "ixs", boxes: [{ cap: "Bloque índice", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "datos 4" }] }, { cap: "No entran", cols: 2, slots: [{ text: "datos 5", cls: "over" }, { text: "datos 6", cls: "over" }] }] } },
+            views: { indexLimit: { kind: "ixs", boxMin: "380px", boxes: [{ cap: "Bloque índice", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "datos 4" }] }, { cap: "No entran", cols: 2, slots: [{ text: "datos 5", cls: "over" }, { text: "datos 6", cls: "over" }] }] } },
             narration: "Los bloques del disco salen de la pantalla. ¿Y si un archivo necesita más punteros de los que entran en un bloque índice? Acá entran {punteros}, y un archivo de 6 bloques no cabe."
           },
           {
-            views: { indexLimit: { kind: "ixs", boxes: [{ cap: "Índice 1", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "→ índice 2", cls: "link" }] }, { cap: "Índice 2", slots: [{ text: "datos 4" }, { text: "datos 5" }, { text: "datos 6" }, { text: "—", cls: "empty" }] }] } },
+            views: { indexLimit: { kind: "ixs", boxMin: "380px", boxes: [{ cap: "Índice 1", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "→ índice 2", cls: "link" }] }, { cap: "Índice 2", slots: [{ text: "datos 4" }, { text: "datos 5" }, { text: "datos 6" }, { text: "—", cls: "empty" }] }] } },
             narration: "Esquema *enlazado*: el último puntero de un índice apunta al índice siguiente."
           },
           {
-            views: { indexLimit: { kind: "ixs", boxes: [{ cap: "Índice de primer nivel", slots: [{ text: "→ índice A", cls: "link" }, { text: "→ índice B", cls: "link" }, { text: "—", cls: "empty" }, { text: "—", cls: "empty" }] }, { cap: "Índice A", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "datos 4" }] }, { cap: "Índice B", slots: [{ text: "datos 5" }, { text: "datos 6" }, { text: "—", cls: "empty" }, { text: "—", cls: "empty" }] }] } },
+            views: { indexLimit: { kind: "ixs", boxMin: "380px", boxes: [{ cap: "Índice de primer nivel", slots: [{ text: "→ índice A", cls: "link" }, { text: "→ índice B", cls: "link" }, { text: "—", cls: "empty" }, { text: "—", cls: "empty" }] }, { cap: "Índice A", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "datos 4" }] }, { cap: "Índice B", slots: [{ text: "datos 5" }, { text: "datos 6" }, { text: "—", cls: "empty" }, { text: "—", cls: "empty" }] }] } },
             narration: "Esquema *multinivel*: un índice de primer nivel apunta a índices de segundo nivel, como en la paginación jerárquica."
           },
           {
-            views: { indexLimit: { kind: "ixs", boxes: [{ cap: "Estructura de control del archivo", inode: true, cols: 3, slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "→ índice", cls: "link" }] }, { cap: "Índice", slots: [{ text: "datos 3" }, { text: "datos 4" }, { text: "datos 5" }, { text: "datos 6" }] }] } },
+            views: { indexLimit: { kind: "ixs", boxMin: "380px", boxes: [{ cap: "Estructura de control del archivo", inode: true, cols: 3, slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "→ índice", cls: "link" }] }, { cap: "Índice", slots: [{ text: "datos 3" }, { text: "datos 4" }, { text: "datos 5" }, { text: "datos 6" }] }] } },
             narration: "Esquema *combinado*: los primeros punteros viven en la estructura de control del propio archivo; unos apuntan directo a datos y otros a índices. Lo retomamos en el último tramo."
           }
         ])
@@ -1801,7 +1806,7 @@ const EXAMPLES = [
           { do: { op: "flush", what: "bitmap" }, narration: "La operación 1 llega al disco: ahí también el bloque {bloque} figura ocupado." },
           { do: { op: "ram", what: "dir" }, narration: "Operación 2: agregar la entrada de `nuevo.txt` al directorio /docs. Sólo en RAM." },
           { do: { op: "ram", what: "fcb" }, narration: "Operación 3: escribir el FCB de `nuevo.txt`, que dice que usa el bloque {bloque}. También sólo en RAM." },
-          { do: { op: "fail" }, narration: "Falla el sistema: lo que estaba sólo en RAM se pierde. En el disco quedó el bloque {bloque} marcado como ocupado, y ningún archivo lo referencia ✗." }
+          { do: { op: "fail" }, narration: "Falla el sistema: lo que estaba sólo en RAM se pierde. En el disco quedó el bloque {bloque} marcado como ocupado, y ningún archivo lo referencia\u00a0✗." }
         ]
       },
       {
@@ -2006,7 +2011,7 @@ const EXAMPLES = [
     adds: "Agrega: cómo se llega a un byte desde el inodo, y cuántos bloques cuesta.",
     subtitle: "El mismo inodo de juguete y el archivo del ejemplo 13, que siguió creciendo hasta 14 bloques (224 bytes) en un disco más grande, hasta el b20.",
     stepUnit: "Un paso = un acceso a un bloque",
-    canvas: { columns: "minmax(0, 0.9fr) minmax(0, 0.75fr) minmax(0, 1.05fr) minmax(0, 0.9fr)", panels: ["calc", "inode", "pointerBlocks", "accessLog"] },
+    canvas: { columns: "minmax(0, 1.3fr) minmax(0, 0.95fr) minmax(0, 1.1fr)", panels: [["calc", "inode"], "pointerBlocks", "accessLog"], stackRows: ["minmax(0, 1fr) auto"] },
     model: { type: "indirect", blockSize: 16, pointerSize: 4, direct: 2, disk: 32, other: [0, 1, 2], fileBlocks: 14, expectData: [3, 4, 6, 7, 8, 9, 12, 13, 14, 15, 17, 18, 19, 20] },
     closing: "En EXT2 el camino se calcula; en FAT se recorre.",
     steps: [
@@ -2206,7 +2211,7 @@ const EXAMPLES = [
           ]
         }
       },
-      { do: { op: "rm", name: "fileloco" }, expect: { links: 1 }, narration: "`rm fileloco` borra esa entrada, y el contador baja a {links}. `hl_fileloco` sigue funcionando; `sl_fileloco` queda apuntando a «fileloco», una ruta que ya no existe ✗. El inodo {inodoHard} se libera recién cuando el contador llegue a 0." },
+      { do: { op: "rm", name: "fileloco" }, expect: { links: 1 }, narration: "`rm fileloco` borra esa entrada, y el contador baja a {links}. `hl_fileloco` sigue funcionando; `sl_fileloco` queda apuntando a «fileloco», una ruta que ya no existe\u00a0✗. El inodo {inodoHard} se libera recién cuando el contador llegue a 0." },
       { narration: "Entre file systems: un hardlink no puede cruzar a otro file system, ni siquiera a otro volumen con el mismo file system, porque cada volumen tiene sus propios inodos y el número no significa nada del otro lado. Un symbolic link sí puede, porque guarda una ruta." },
       {
         canvas: { columns: "minmax(0, 1.2fr) minmax(0, 1fr)", panels: ["terminal", "structures"] },
@@ -2686,7 +2691,7 @@ const locksModel = {
     if (state.seen) {
       const seenRows = Object.keys(state.seen).map(function (key) { return [fill(text.account, { name: key }), String(state.seen[key])]; });
       const wrong = locksSum(state.seen) !== state.total;
-      seenRows.push([text.sum, String(locksSum(state.seen)) + (wrong ? " " + UI_TEXT.fail : "")]);
+      seenRows.push([text.sum, String(locksSum(state.seen)) + (wrong ? "\u00a0" + UI_TEXT.fail : "")]);
       tables.push(table(text.seenBy, [text.columns.item, text.columns.value], seenRows, { faultRows: wrong ? [seenRows.length - 1] : [], track: true }));
     }
     return {
@@ -2825,9 +2830,9 @@ const permsModel = {
     if (state.current) attemptMarks.push([config.users.findIndex(function (one) { return one.name === state.current.user; }), 1 + config.ops.findIndex(function (one) { return one.key === state.current.action; })]);
     const used = groups.map(permsDigit);
     return {
-      mode: tablesView([table(config.target, ["", text.columns.type, text.columns.owner, text.columns.group, text.columns.other], rows, { marks: marks, track: true })], { track: true }),
+      mode: tablesView([table(config.target, ["", text.columns.type, text.columns.owner, text.columns.group, text.columns.other], rows, { marks: marks, track: true, even: { first: "26%" } })], { track: true }),
       users: tablesView([table(null, [text.columns.user, text.columns.cls], config.users.map(function (user) { return [user.name, text.classes[user.cls]]; }), { highlight: state.current ? [config.users.findIndex(function (one) { return one.name === state.current.user; })] : [] })]),
-      attempts: tablesView([table(null, [text.columns.user].concat(config.ops.map(function (action) { return action.label; })), attemptRows, { marks: attemptMarks })]),
+      attempts: tablesView([table(null, [text.columns.user].concat(config.ops.map(function (action) { return action.label; })), attemptRows, { marks: attemptMarks, even: { first: "28%" } })]),
       octal: tablesView([table(null, [text.columns.digit, text.columns.letters], range(8).map(function (digit) { return [String(digit), permsLetters(digit)]; }), { highlight: used.filter(function (digit, index) { return used.indexOf(digit) === index; }) })]),
       acl: tablesView([table(config.target, [text.columns.entry, text.columns.letters], state.acl ? config.users.filter(function (user) { return user.cls !== "other"; }).map(function (user) { return [fill(text.aclEntry[user.cls], { name: user.cls === "group" ? config.group : user.name }), groups[["owner", "group"].indexOf(user.cls)]]; }).concat([[fill(text.aclEntry.user, { name: state.acl.user }), state.acl.perms], [text.aclEntry.other, groups[2]]]) : [], { highlight: state.acl ? [2] : [], empty: text.noAcl })])
     };
@@ -3296,13 +3301,15 @@ const journalModel = {
   views: function (state, config) {
     const text = UI_TEXT.journal;
     const side = function (where, lost) {
-      if (lost) return tablesView([], { empty: text.lost });
+      if (lost) return { kind: "multi", parts: [], empty: text.lost };
       const orphan = where === state.disk && state.lost && where.bitmap[state.block] === "1" && where.fcbs.length === 0;
-      return tablesView([
-        table(text.bitmapCaption, where.bitmap.map(function (bit, index) { return String(index); }), [where.bitmap.slice()], { marks: orphan ? [[0, state.block]] : [], track: true, note: orphan ? fill(text.orphan, { block: state.block }) : null }),
-        table(fill(text.dirCaption, { dir: config.dir }), [text.columns.name], where.dir.map(function (name) { return [name]; }), { track: true, empty: text.emptyDir }),
-        table(text.fcbCaption, [text.columns.fcb], where.fcbs.map(function (one) { return [one]; }), { track: true, empty: text.noFcb })
-      ], { track: true });
+      return { kind: "multi", parts: [
+        { kind: "bits", groups: [{ caption: text.bitmapCaption, bits: where.bitmap.map(function (bit, index) { return { v: bit, n: String(index), focus: orphan && index === state.block }; }) }], note: orphan ? fill(text.orphan, { block: state.block }) : null },
+        tablesView([
+          table(fill(text.dirCaption, { dir: config.dir }), [text.columns.name], where.dir.map(function (name) { return [name]; }), { track: true, empty: text.emptyDir }),
+          table(text.fcbCaption, [text.columns.fcb], where.fcbs.map(function (one) { return [one]; }), { track: true, empty: text.noFcb })
+        ], { track: true })
+      ] };
     };
     const statusText = function (name) { return text.status[state.tx[name].status]; };
     return {
@@ -3872,8 +3879,8 @@ const extModel = {
       inodeTable: tablesView([table(null, [text.columns.inode, text.columns.type, text.columns.size, text.columns.links, text.columns.blocks], inodeRows, { highlight: inodeHighlight })]),
       dataBlocks: diskView(state.blocks.map(function (block, index) {
         if (!block) return freeCell();
-        if (block.kind === "dir") return { kind: "dir", focus: has(touch.blocks, index), idx: extBlockName(index) };
-        return { kind: "data", file: 1, focus: has(touch.blocks, index), idx: extBlockName(index) };
+        if (block.kind === "dir") return { kind: "dir", who: text.dirBlock, focus: has(touch.blocks, index), idx: extBlockName(index) };
+        return { kind: "data", file: 1, who: text.dataBlock, focus: has(touch.blocks, index), idx: extBlockName(index) };
       }).map(function (cell, index) { if (!cell.idx) cell.idx = extBlockName(index); if (cell.kind === "free") delete cell.who; return cell; }), 4, { sub: fill(text.blocksSub, { size: config.blockSize }), files: config.files }),
       dirRecords: tablesView(dirTables)
     };
@@ -3965,7 +3972,7 @@ const linksModel = {
       inodeTable: tablesView([table(null, [text.columns.inode, text.columns.type, text.columns.links, text.columns.size, text.columns.content], Object.keys(state.inodes).map(function (key) {
         const inode = state.inodes[key];
         const broken = inode.type === "l" && !state.entries.some(function (entry) { return entry.name === inode.target; });
-        return [key, text.types[inode.type], String(inode.links), String(inode.size), inode.type === "l" ? fill(text.pathValue, { path: inode.target }) + (broken ? " " + UI_TEXT.fail : "") : text.dataValue];
+        return [key, text.types[inode.type], String(inode.links), String(inode.size), inode.type === "l" ? fill(text.pathValue, { path: inode.target }) + (broken ? "\u00a0" + UI_TEXT.fail : "") : text.dataValue];
       }), { track: true, faultRows: Object.keys(state.inodes).map(function (key, index) { const inode = state.inodes[key]; return inode.type === "l" && !state.entries.some(function (entry) { return entry.name === inode.target; }) ? index : -1; }).filter(function (index) { return index !== -1; }) })], { track: true })
     };
   }
@@ -4009,10 +4016,12 @@ function markTables(view, before) {
 
 function markChanges(views, previous) {
   if (!previous) return;
-  Object.keys(views).forEach(function (id) {
-    const view = views[id];
-    const before = previous[id];
+  Object.keys(views).forEach(function (id) { markView(views[id], previous[id]); });
+}
+
+function markView(view, before) {
     if (!view || !before || view.kind !== before.kind) return;
+    if (view.kind === "multi") view.parts.forEach(function (part, index) { markView(part, before.parts[index]); });
     if (view.kind === "tables") markTables(view, before);
     if (view.kind === "disk") {
       view.blocks.forEach(function (block, index) {
@@ -4036,7 +4045,6 @@ function markChanges(views, previous) {
         group.bits.forEach(function (bit, index) { if (old.bits[index] && old.bits[index].v !== bit.v) bit.focus = true; });
       });
     }
-  });
 }
 
 function snapshotsOf(example, steps, problems) {
@@ -4109,6 +4117,8 @@ function viewTexts(view) {
   if (view.kind === "list") view.lines.forEach(function (line) { texts.push(line.text); });
   if (view.kind === "tables") view.tables.forEach(function (block) { if (block.note) texts.push(block.note); block.rows.forEach(function (row) { row.forEach(function (cell) { texts.push(cell); }); }); });
   if (view.kind === "layout" && view.note) texts.push(view.note);
+  if (view.kind === "bits" && view.note) texts.push(view.note);
+  if (view.kind === "multi") view.parts.forEach(function (part) { viewTexts(part).forEach(function (text) { texts.push(text); }); });
   if (view.kind === "ixs" && view.note) texts.push(view.note);
   return texts;
 }
@@ -4263,6 +4273,7 @@ const DISK_ROW_MAX = 86;
 const STORE_KEY = "ssoo-recursos:file-system:v1";
 
 const RENDERERS = {
+  multi: renderMulti,
   tables: renderTables,
   disk: renderDisk,
   list: renderList,
@@ -4448,7 +4459,16 @@ function renderTables(body, data) {
       return;
     }
     const scroll = element("div", "table-scroll");
-    const grid = element("table", "grid-table" + (block.wrap ? " wrap" : ""));
+    const grid = element("table", "grid-table" + (block.wrap ? " wrap" : "") + (block.even ? " even" : ""));
+    if (block.even) {
+      const group = element("colgroup");
+      block.columns.forEach(function (label, column) {
+        const col = element("col");
+        if (column === 0 && block.even.first) col.style.width = block.even.first;
+        group.appendChild(col);
+      });
+      grid.appendChild(group);
+    }
     if (!block.noHead) {
       const head = element("tr");
       block.columns.forEach(function (label) { head.appendChild(element("th", null, label)); });
@@ -4524,7 +4544,7 @@ function renderDisk(body, data) {
     grid.appendChild(cell);
   });
   body.appendChild(grid);
-  Array.prototype.forEach.call(grid.querySelectorAll(".dblock[class*='file-'] .who"), function (who) {
+  Array.prototype.forEach.call(grid.querySelectorAll(".dblock .who"), function (who) {
     if (who.scrollWidth > who.parentNode.clientWidth - 4) who.remove();
   });
   body.appendChild(diskLegend(data.blocks, data.files));
@@ -4620,12 +4640,12 @@ function renderBytes(body, data) {
       holder.appendChild(element("span", "cap", block.cap));
       const cells = element("div", "byte-cells");
       block.bytes.forEach(function (byte, byteIndex) {
+        if (byte.n === data.caret) cells.appendChild(element("span", "caret-bar"));
         const cell = element("div", "byte");
-        if (byte.n === data.caret) cell.classList.add("caret");
-        if (data.caret === data.size && blockIndex === lastBlock && byteIndex === block.bytes.length - 1) cell.classList.add("caret-end");
         cell.appendChild(element("span", "ch", byte.ch));
         cell.appendChild(element("span", "n", String(byte.n)));
         cells.appendChild(cell);
+        if (data.caret === data.size && blockIndex === lastBlock && byteIndex === block.bytes.length - 1) cells.appendChild(element("span", "caret-bar"));
       });
       holder.appendChild(cells);
       wrap.appendChild(holder);
@@ -4651,6 +4671,7 @@ function renderTerm(body, data) {
 
 function renderIndexes(body, data) {
   const wrap = element("div", "ixs");
+  if (data.boxMin) wrap.style.setProperty("--box-min", data.boxMin);
   data.boxes.forEach(function (box) {
     const holder = element("div", "ix" + (box.inode ? " inode" : "") + (box.focus ? " focus" : ""));
     holder.appendChild(element("span", "cap", box.cap));
@@ -4662,6 +4683,15 @@ function renderIndexes(body, data) {
   });
   body.appendChild(wrap);
   if (data.note) renderRich(body.appendChild(element("p", "layout-note")), data.note);
+}
+
+function renderMulti(body, data) {
+  if (data.parts.length === 0) { emptyNote(body, data.empty); return; }
+  data.parts.forEach(function (part) {
+    const holder = element("div", "multi-part");
+    RENDERERS[part.kind](holder, part);
+    body.appendChild(holder);
+  });
 }
 
 function renderPanel(id, data) {
