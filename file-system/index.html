@@ -192,17 +192,6 @@
   .panel > h2 .tip { border-bottom-color: var(--line); color: inherit; letter-spacing: inherit; text-transform: inherit; white-space: nowrap; }
   .panel > h2 .tip:hover { border-bottom-color: var(--faint); }
 
-  .panel > h2 .panel-note {
-    margin-left: auto;
-    min-width: 0;
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 10.5px;
-    font-weight: 400;
-    color: var(--faint);
-    text-align: right;
-  }
-
   .panel-body {
     padding: 8px 11px;
     overflow: auto;
@@ -815,7 +804,8 @@ const UI_TEXT = {
     columns: { type: "Tipo", owner: "Dueño", group: "Grupo", other: "Otros", user: "Usuario", cls: "Para el archivo es", digit: "Dígito", letters: "Permisos", entry: "Entrada" },
     classes: { owner: "dueño", group: "grupo alumnos", other: "otros" },
     aclEntry: { owner: "dueño: {name}", group: "grupo: {name}", user: "usuario: {name}", other: "otros" },
-    noAcl: "Todavía no hay ninguna entrada."
+    noAcl: "Todavía no hay ninguna entrada.",
+    sum: "`{group}` = {value}"
   },
   mmap: {
     howRead: "read: syscall",
@@ -877,10 +867,10 @@ const UI_TEXT = {
     orphan: "El bloque {block} figura ocupado y ningún archivo lo referencia\u00a0✗",
     bitmapCaption: "Bitmap de bloques libres · 1 = ocupado",
     dirCaption: "Directorio {dir}",
-    fcbCaption: "FCB",
+    fcbCaption: "FCB de {name}",
     columns: { name: "Nombre", fcb: "FCB", tx: "Transacción", ops: "Operaciones", status: "Estado" },
     emptyDir: "vacío",
-    noFcb: "ninguno",
+    noFcb: "todavía no existe",
     status: { open: "sin commit", committed: "con commit", rolledBack: "deshecha (rollback)\u00a0✗" },
     undone: " · deshecha",
     emptyLog: "El journal está vacío.",
@@ -929,7 +919,7 @@ const UI_TEXT = {
     dataBlock: "datos",
     record: "[{inode}, {length}, {nameLength}, «{name}»]",
     dirCaption: "{path}, en {block}",
-    columns: { inode: "Inodo", recLength: "Largo del registro", nameLength: "Largo del nombre", name: "Nombre", what: "Dato", total: "Total", free: "Libres", type: "Tipo", size: "Tamaño", links: "Links", blocks: "Bloques" },
+    columns: { inode: "Inodo", what: "Dato", total: "Total", free: "Libres", type: "Tipo", size: "Tamaño", links: "Links", blocks: "Bloques" },
     emptyDir: "vacío",
     inodeBitmap: "Bitmap de inodos",
     blockBitmap: "Bitmap de bloques de datos",
@@ -1046,7 +1036,7 @@ const NOTAS_FS = {
 const NOTAS = { fs: "uno", dir: "/docs", name: "notas.txt" };
 
 const COPY_INTRO = {
-  narration: "`notas.txt` está en /docs, con `HOLA MUNDO` en los bloques 2, 5 y 6. Copiar no es una operación básica: se arma con cuatro, y el panel de bloques de datos tocados va contando cada uno."
+  narration: "`notas.txt` está en /docs, con `HOLA MUNDO` en los bloques {bloquesArchivo}. Copiar no es una operación básica: se arma con cuatro, y el panel de bloques de datos tocados va contando cada uno."
 };
 
 const LOCK_COMMON = [
@@ -1157,7 +1147,7 @@ function fatRealSteps(expected, first, askTheoretical, askCopy) {
       calcReset: true,
       calc: ["Entrada de {nombre}: {bitsEntrada} bits = {bytesEntrada}", "Direcciona {potencia} = {direccionables} clusters"],
       expect: { bytesEntrada: expected.entry, direccionables: expected.addressable },
-      narration: "La FAT4 sale de la pantalla. Ahora una FAT real, sobre un disco de {disco} con clusters de {cluster}. " + first
+      narration: "La FAT4, su directorio y sus bloques salen de la pantalla. Ahora una FAT real, sobre un disco de {disco} con clusters de {cluster}. " + first
     },
     ask("Con eso ya se puede calcular el tamaño máximo teórico.", askTheoretical),
     {
@@ -1291,7 +1281,7 @@ const EXAMPLES = [
       {
         variantLabel: "Renombrar",
         steps: [
-          { narration: "`notas.txt` está en /docs, con `HOLA MUNDO` en los bloques 2, 5 y 6. Se le cambia el nombre a `apuntes.txt`." },
+          { narration: "`notas.txt` está en /docs, con `HOLA MUNDO` en los bloques {bloquesArchivo}. Se le cambia el nombre a `apuntes.txt`." },
           {
             do: Object.assign({ op: "rename", newName: "apuntes.txt" }, NOTAS),
             expect: { totalTocados: 0 },
@@ -1368,7 +1358,7 @@ const EXAMPLES = [
             do: { op: "request", p: "P2", type: "exclusive" },
             expect: { otorgado: "no" },
             narration: "P2 quiere escribir y pide el lock *exclusivo*. Con locks *obligatorios*, el SO no se lo da mientras P1 tenga el compartido: P2 queda en BLOCKED, esperando.",
-            note: "El costo: cuanto más tiempo está lockeado un archivo, más esperan los demás."
+            note: "El costo: cuanto más tiempo dura un lock, más esperan los demás."
           },
           {
             do: { op: "release", p: "P1" },
@@ -1496,7 +1486,7 @@ const EXAMPLES = [
             do: { op: "octal" },
             canvas: { columns: "minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.55fr)", panels: [["mode", "users"], "attempts", "octal"] },
             expect: { octal: "640" },
-            narration: "Cada parte se escribe como un dígito: `r` vale 4, `w` vale 2 y `x` vale 1, y se suman. `rw-` = 4 + 2 = 6, `r--` = 4 y `---` = 0: los permisos de `notas.txt` son {octal}."
+            narration: "Cada parte se escribe como un dígito: `r` vale 4, `w` vale 2 y `x` vale 1, y se suman: {sumas}. Los permisos de `notas.txt` son {octal}."
           },
           {
             canvas: { columns: "minmax(0, 1.1fr) minmax(0, 0.9fr)", panels: [["mode", "users"], "attempts"] },
@@ -1532,7 +1522,7 @@ const EXAMPLES = [
             do: { op: "octal" },
             canvas: { columns: "minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.55fr)", panels: [["mode", "users"], "attempts", "octal"] },
             expect: { octal: "751" },
-            narration: "En octal: `rwx` = 4 + 2 + 1 = 7, `r-x` = 4 + 1 = 5 y `--x` = 1. Los permisos de `docs` son {octal}."
+            narration: "En octal: {sumas}. Los permisos de `docs` son {octal}."
           }
         ]
       }
@@ -1568,15 +1558,15 @@ const EXAMPLES = [
         variantLabel: "Mapeado",
         model: { type: "mmap", blocks: 3, mode: "mapped" },
         steps: [
-          { narration: "El mismo archivo y las mismas seis lecturas, pero mapeado a memoria. El bloque mide lo mismo que una página (conviene que sea un múltiplo), así que cada bloque del archivo es una página del proceso." },
+          { narration: "El mismo archivo y las mismas seis lecturas, pero mapeado a memoria. El bloque mide lo mismo que una página (conviene que la página sea un múltiplo del bloque), así que cada bloque del archivo es una página del proceso." },
           { do: { op: "mmap" }, expect: { syscalls: 1 }, narration: "Una sola syscall, `mmap`: el archivo queda asociado a tres páginas del proceso. Todavía no se cargó ninguna." }
         ].concat(MMAP_READS.map(function (block, index) {
           const texts = [
-            "Lectura {n}: bloque {bloque}, es decir, la página 0. No está cargada: [[pageFault:page fault]], y el SO la trae del disco.",
+            "Lectura {n}: bloque {bloque}, es decir, la página {bloque}. No está cargada: [[pageFault:page fault]], y el SO la trae del disco.",
             "Lectura {n}: bloque {bloque} otra vez. La página ya está: es un acceso a memoria común, sin syscall ni page fault.",
-            "Lectura {n}: bloque {bloque}. La página 1 no está cargada: page fault.",
+            "Lectura {n}: bloque {bloque}. La página {bloque} no está cargada: page fault.",
             "Lectura {n}: bloque {bloque}. Acceso a memoria común.",
-            "Lectura {n}: bloque {bloque}. Page fault: la página 2 es la última que faltaba.",
+            "Lectura {n}: bloque {bloque}. Page fault: la página {bloque} es la última que faltaba.",
             "Lectura {n}: bloque {bloque}. Acceso a memoria común. En total: {syscalls} syscall, {faults} page faults —el primer toque de cada página— y {plain} accesos comunes."
           ];
           return { do: { op: "read", block: block }, expect: index === 5 ? { syscalls: 1, faults: 3, plain: 3 } : {}, narration: texts[index] };
@@ -1611,7 +1601,7 @@ const EXAMPLES = [
           { do: { op: "read", pos: 1 }, expect: { es: "no" }, narration: "Registro {pos}: legajo {legajo}. No es." },
           { do: { op: "read", pos: 2 }, expect: { es: "no" }, narration: "Registro {pos}: legajo {legajo}. No es." },
           { do: { op: "read", pos: 3 }, expect: { es: "no" }, narration: "Registro {pos}: legajo {legajo}. No es." },
-          { do: { op: "read", pos: 4 }, expect: { es: "sí", accesos: 5 }, narration: "Registro {pos}: legajo {legajo}. Es este: hicieron falta {accesos} lecturas, todas las de antes y la suya." }
+          { do: { op: "read", pos: 4 }, expect: { es: "sí", accesos: 5 }, narration: "Registro {pos}: legajo {legajo}. Es éste: hicieron falta {accesos} lecturas, todas las de antes y la suya." }
         ]
       },
       {
@@ -1634,6 +1624,7 @@ const EXAMPLES = [
       },
       {
         variantLabel: "Hashed",
+        subtitle: "Los mismos ocho legajos, ubicados en el archivo por legajo mod 8. Se busca el 166.",
         model: Object.assign({ method: "hashed" }, ACCESS_MODEL),
         canvas: { columns: "minmax(0, 0.8fr) minmax(0, 2fr) minmax(0, 0.7fr)", panels: ["calc", "records", "accesses"] },
         steps: [
@@ -1663,7 +1654,7 @@ const EXAMPLES = [
             canvas: ALLOC_CANVAS,
             do: { op: "create", name: "A", size: 2, file: 1 },
             expect: { bloques: "2–3" },
-            narration: "El esquema del volumen sale de la pantalla. Un disco de {total} bloques, con {ocupados} ya usados. Asignación *contigua*: cada archivo ocupa bloques seguidos, en el primer tramo libre donde entre. A, de 2 bloques, va al {bloques}."
+            narration: "Los bloques lógicos salen de la pantalla. Un disco de {total} bloques, con {ocupados} ya usados. Asignación *contigua*: cada archivo ocupa bloques seguidos, en el primer tramo libre donde entre. A, de 2 bloques, va al {bloques}."
           },
           { do: { op: "create", name: "B", size: 2, file: 2 }, expect: { bloques: "4–5" }, narration: "B, de 2: el primer tramo libre donde entra es el {bloques}." },
           { do: { op: "create", name: "C", size: 2, file: 3 }, expect: { bloques: "6–7" }, narration: "C, de 2: el {bloques}." },
@@ -1681,7 +1672,7 @@ const EXAMPLES = [
             canvas: ALLOC_CANVAS,
             do: { op: "create", name: "A", size: 2, file: 1 },
             expect: { bloques: "0 y 2" },
-            narration: "El esquema del volumen sale de la pantalla. El mismo disco. Asignación *enlazada*: cada bloque guarda, al final, el número del siguiente, y el directorio anota el primero. Se toman los primeros libres, uno por uno, aunque no estén seguidos: A va al {bloques}."
+            narration: "Los bloques lógicos salen de la pantalla. El mismo disco. Asignación *enlazada*: cada bloque guarda, al final, el número del siguiente, y el directorio anota el primero. Se toman los primeros libres, uno por uno, aunque no estén seguidos: A va al {bloques}."
           },
           { do: { op: "create", name: "B", size: 2, file: 2 }, expect: { bloques: "3 y 4" }, narration: "B: el {bloques}." },
           { do: { op: "create", name: "C", size: 2, file: 3 }, expect: { bloques: "5 y 6" }, narration: "C: el {bloques}." },
@@ -1699,7 +1690,7 @@ const EXAMPLES = [
             canvas: ALLOC_CANVAS,
             do: { op: "create", name: "A", size: 2, file: 1 },
             expect: { indice: 0, bloques: "2 y 3" },
-            narration: "El esquema del volumen sale de la pantalla. El mismo disco. Asignación *indexada*: cada archivo tiene un [[bloqueIndice:bloque índice]] con los punteros a sus bloques de datos. Primero se toma el índice y después los datos, siempre los primeros libres. A: índice {indice}, datos {bloques}."
+            narration: "Los bloques lógicos salen de la pantalla. El mismo disco. Asignación *indexada*: cada archivo tiene un [[bloqueIndice:bloque índice]] con los punteros a sus bloques de datos. Primero se toma el índice y después los datos, siempre los primeros libres. A: índice {indice}, datos {bloques}."
           },
           { do: { op: "create", name: "B", size: 2, file: 2 }, expect: { indice: 4, bloques: "5 y 6" }, narration: "B: índice {indice}, datos {bloques}." },
           { do: { op: "create", name: "C", size: 2, file: 3 }, expect: { indice: 7, bloques: "8 y 9" }, narration: "C: índice {indice}, datos {bloques}." },
@@ -1710,7 +1701,7 @@ const EXAMPLES = [
           {
             canvas: { columns: "minmax(0, 1fr)", panels: ["indexLimit"] },
             views: { indexLimit: { kind: "ixs", boxMin: "380px", boxes: [{ cap: "Bloque índice", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "datos 4" }] }, { cap: "No entran", cols: 2, slots: [{ text: "datos 5", cls: "over" }, { text: "datos 6", cls: "over" }] }] } },
-            narration: "Los bloques del disco salen de la pantalla. ¿Y si un archivo necesita más punteros de los que entran en un bloque índice? Acá entran {punteros}, y un archivo de 6 bloques no cabe."
+            narration: "El disco, el directorio y las lecturas salen de la pantalla. ¿Y si un archivo necesita más punteros de los que entran en un bloque índice? Acá entran {punteros}, y un archivo de 6 bloques no cabe."
           },
           {
             views: { indexLimit: { kind: "ixs", boxMin: "380px", boxes: [{ cap: "Índice 1", slots: [{ text: "datos 1" }, { text: "datos 2" }, { text: "datos 3" }, { text: "→ índice 2", cls: "link" }] }, { cap: "Índice 2", slots: [{ text: "datos 4" }, { text: "datos 5" }, { text: "datos 6" }, { text: "—", cls: "empty" }] }] } },
@@ -1811,6 +1802,7 @@ const EXAMPLES = [
       },
       {
         variantLabel: "Con journal",
+        subtitle: "El journal de la filmina: tres transacciones, A, B y F, y una falla antes del commit de F.",
         canvas: { columns: "minmax(0, 1fr) minmax(0, 1fr)", panels: ["journalLog", "transactions"] },
         stepUnit: "Un paso = una operación o la falla; al final, el reinicio",
         model: { type: "journal", bitmap: "11000000", entries: [], dir: "/docs", newFile: "nuevo.txt" },
@@ -1880,7 +1872,7 @@ const EXAMPLES = [
       { do: { op: "next" }, expect: { valor: 7, busquedas: 2 }, narration: "FAT[{n}] = {valor}: el 3.º." },
       { do: { op: "next" }, expect: { valor: 17, busquedas: 3 }, narration: "FAT[{n}] = {valor}: el 4.º es el cluster {cluster}. Fueron {busquedas} búsquedas en la FAT, todas en memoria, sin leer el disco." },
       { do: { op: "read" }, expect: { lecturas: 1, cluster: 17 }, narration: "Recién ahora se lee el disco: el cluster {cluster}, {lecturas} lectura. Con la enlazada del principio habrían sido {enlazada}, porque cada puntero estaba adentro de un cluster." },
-      { do: { op: "freeSearch" }, expect: { libre: 2 }, narration: "Para un cluster libre se recorre la FAT buscando la primera entrada libre. La 0 y la 1 están usadas: la primera libre es la {libre}." },
+      { do: { op: "freeSearch" }, expect: { libre: 2 }, narration: "Para un cluster libre se recorre la FAT buscando la primera entrada libre. Las entradas {usadas} están usadas: la primera libre es la {libre}." },
       {
         do: { op: "attrs" },
         canvas: { columns: "minmax(0, 0.9fr) minmax(0, 1.4fr)", panels: ["directory", "volume"] },
@@ -1897,7 +1889,7 @@ const EXAMPLES = [
             note: "El directorio raíz tiene una cantidad fija de entradas, todas del mismo tamaño."
           }
         },
-        narration: "La FAT, los clusters y el costo salen de la pantalla. En FAT no hay FCB: los atributos del archivo están en su entrada de directorio. El volumen tiene el sector de arranque, la FAT y su copia, el directorio raíz —con una cantidad fija de entradas de tamaño fijo— y los datos."
+        narration: "La FAT, el disco y el costo salen de la pantalla. En FAT no hay FCB: los atributos del archivo están en su entrada de directorio. El volumen tiene el sector de arranque, la FAT y su copia, el directorio raíz —con una cantidad fija de entradas de tamaño fijo— y los datos."
       }
     ]
   },
@@ -2092,7 +2084,7 @@ const EXAMPLES = [
       { do: { op: "access" }, narration: "b{bloque}: datos." },
       { do: { op: "access" }, narration: "b{bloque}: datos." },
       { do: { op: "access" }, narration: "b{bloque}: datos." },
-      { do: { op: "access" }, expect: { accesos: 7 }, narration: "b{bloque}: datos. {accesos} accesos: 6 de datos y 1 de punteros." }
+      { do: { op: "access" }, expect: { accesos: 7 }, narration: "b{bloque}: datos. {accesos} accesos: {leidosDatos} de datos y {leidosPunteros} de punteros." }
     ]
   },
   {
@@ -2131,11 +2123,11 @@ const EXAMPLES = [
       },
       {
         canvas: { columns: "minmax(0, 0.85fr) minmax(0, 1.15fr) minmax(0, 0.9fr)", panels: [["bitmaps", "superblock"], ["inodeTable", "dirRecords"], "dataBlocks"], stackRows: ["auto minmax(0, 1fr)", "auto minmax(0, 1fr)"] },
-        narration: "El esquema sale de la pantalla, y entra un grupo entero, de juguete: {inodos} inodos y {bloquesGrupo} bloques de datos. Usados: i1 es `/`, i2 `/docs` e i3 `/fotos`, y b0, b1 y b2 guardan sus registros. Cada registro de directorio tiene el inodo, el largo del registro, el largo del nombre y el nombre."
+        narration: "La estructura del volumen sale de la pantalla, y entra un grupo entero, de juguete: {inodos} inodos y {bloquesGrupo} bloques de datos. Usados: i1 es `/`, i2 `/docs` e i3 `/fotos`, y b0, b1 y b2 guardan sus registros. Cada registro de directorio tiene el inodo, el largo del registro, el largo del nombre y el nombre."
       },
       { do: { op: "findInode" }, expect: { inodo: "i4" }, narration: "Crear `/docs/notas.txt`, de 20 bytes. Primero, un inodo: el primer 0 del bitmap de inodos es el de {inodo}." },
       { do: { op: "findBlocks", bytes: 20 }, expect: { bloques: "b3 y b4" }, narration: "Con bloques de {tam} bytes, 20 bytes son {cantidad} bloques: los primeros 0 del bitmap de bloques, {bloques}." },
-      { do: { op: "writeInode" }, expect: { inodo: "i4", tamanio: 20 }, narration: "Se escribe el inodo {inodo}: modo, dueño, tamaño {tamanio}, contador de links {links}, y los punteros a {bloques}." },
+      { do: { op: "writeInode" }, expect: { inodo: "i4", tamanio: 20 }, narration: "Se escribe el inodo {inodo}: modo, dueño, tamaño {tamanio}, contador de links {links}, y los punteros a {bloques}, que pasan a ser sus bloques de datos." },
       { do: { op: "addRecord", block: 1, name: "notas.txt" }, expect: { largo: 20, largoNombre: 9 }, narration: "Se agrega el registro [{inodo}, {largo}, {largoNombre}, «{nombre}»] a `/docs`, en el {bloque}." },
       { do: { op: "updateMaps" }, expect: { inodosLibres: 4, bloquesLibres: 11 }, narration: "Se actualizan los dos bitmaps, y el superbloque: inodos libres de {inodosAntes} a {inodosLibres}, bloques libres de {bloquesAntes} a {bloquesLibres}." },
       {
@@ -2150,7 +2142,7 @@ const EXAMPLES = [
             ]
           }
         },
-        narration: "Los bitmaps, los inodos y los bloques salen de la pantalla un momento. El superbloque y los descriptores de grupo se repiten en todos los grupos: si se pierde una copia, hay otra."
+        narration: "Los bitmaps, la tabla de inodos, los registros y los bloques de datos salen de la pantalla, y vuelve la estructura del volumen. El superbloque y los descriptores de grupo se repiten en todos los grupos: si se pierde una copia, hay otra."
       },
       {
         do: { op: "resolve", from: 1, name: "docs" },
@@ -2158,7 +2150,7 @@ const EXAMPLES = [
         stepUnit: "Un paso = un paso de la resolución",
         stepUnitNote: "Desde acá, un paso es un nivel de la ruta.",
         expect: { inodo: "i2" },
-        narration: "El esquema y el superbloque salen de la pantalla. Ahora, encontrar `/docs/notas.txt`, un nivel por vez. Se empieza por el inodo de `/`, {desde}: dice que sus registros están en {bloque}. Se lee {bloque} y se busca «{nombre}»: está, con el inodo {inodo}."
+        narration: "La estructura del volumen y el superbloque salen de la pantalla; vuelven la tabla de inodos, los registros y los bloques de datos. Ahora, encontrar `/docs/notas.txt`, un nivel por vez. Se empieza por el inodo de `/`, {desde}: dice que sus registros están en {bloque}. Se lee {bloque} y se busca «{nombre}»: está, con el inodo {inodo}."
       },
       { do: { op: "resolve", from: 2, name: "notas.txt" }, expect: { inodo: "i4" }, narration: "El inodo {desde} dice {bloque}. Se lee {bloque} y se busca «{nombre}»: inodo {inodo}." },
       {
@@ -2216,7 +2208,7 @@ const EXAMPLES = [
       {
         canvas: { columns: "minmax(0, 1.2fr) minmax(0, 1fr)", panels: ["terminal", "structures"] },
         views: { structures: { kind: "list", lines: [{ text: "Un nivel" }, { text: "Dos niveles" }, { text: "Árbol" }, { text: "*Grafo acíclico*", fresh: true }, { text: "Grafo general" }] } },
-        narration: "El directorio y los inodos salen de la pantalla. Con links, el mismo archivo se alcanza desde dos lugares, y el árbol de directorios pasa a ser un [[grafoAciclico:grafo acíclico]], que es lo que usa la mayoría de los file systems. Si los links pudieran formar ciclos, sería un grafo general."
+        narration: "El directorio y la tabla de inodos salen de la pantalla. Con links, el mismo archivo se alcanza desde dos lugares, y el árbol de directorios pasa a ser un [[grafoAciclico:grafo acíclico]], que es lo que usa la mayoría de los file systems. Si los links pudieran formar ciclos, sería un grafo general."
       }
     ]
   }
@@ -2491,7 +2483,8 @@ const filesModel = {
       totalLeidos: state.counters.read,
       totalEscritos: state.counters.written,
       totalLiberados: state.counters.freed,
-      totalTocados: state.counters.read + state.counters.written
+      totalTocados: state.counters.read + state.counters.written,
+      bloquesArchivo: state.fcbs[config.fcbStart] ? joinList(state.fcbs[config.fcbStart].blocks) : UI_TEXT.none
     };
   },
   views: function (state, config) {
@@ -2515,7 +2508,7 @@ const filesModel = {
         [text.fields.dates, fill(text.datesValue, { created: clock(fcb.created), modified: clock(fcb.modified) })],
         [text.fields.size, fill(text.bytes, { n: fcb.size })],
         [text.fields.blocks, fcb.blocks.length ? joinList(fcb.blocks) : UI_TEXT.none]
-      ], { track: true });
+      ], { track: true, wrap: true });
     });
     const views = {
       directory: tablesView(dirTables, { track: true }),
@@ -2812,7 +2805,7 @@ const permsModel = {
     return out;
   },
   context: function (state, config) {
-    return { modo: config.mode, octal: permsOctal(config.mode) };
+    return { modo: config.mode, octal: permsOctal(config.mode), sumas: joinList([config.mode.slice(1, 4), config.mode.slice(4, 7), config.mode.slice(7, 10)].map(permsSum)) };
   },
   views: function (state, config) {
     const text = UI_TEXT.perms;
@@ -2845,6 +2838,13 @@ function permsDigit(group) {
 
 function permsLetters(digit) {
   return (digit & 4 ? "r" : "-") + (digit & 2 ? "w" : "-") + (digit & 1 ? "x" : "-");
+}
+
+function permsSum(group) {
+  const terms = [[0, 4], [1, 2], [2, 1]].filter(function (pair) { return group[pair[0]] !== "-"; }).map(function (pair) { return pair[1]; });
+  const total = permsDigit(group);
+  const value = terms.length > 1 ? terms.join(" + ") + " = " + total : String(total);
+  return fill(UI_TEXT.perms.sum, { group: group, value: value });
 }
 
 function permsOctal(mode) {
@@ -3307,7 +3307,7 @@ const journalModel = {
         { kind: "bits", groups: [{ caption: text.bitmapCaption, bits: where.bitmap.map(function (bit, index) { return { v: bit, n: String(index), focus: orphan && index === state.block }; }) }], note: orphan ? fill(text.orphan, { block: state.block }) : null },
         tablesView([
           table(fill(text.dirCaption, { dir: config.dir }), [text.columns.name], where.dir.map(function (name) { return [name]; }), { track: true, empty: text.emptyDir }),
-          table(text.fcbCaption, [text.columns.fcb], where.fcbs.map(function (one) { return [one]; }), { track: true, empty: text.noFcb })
+          table(fill(text.fcbCaption, { name: config.newFile }), [text.columns.fcb], where.fcbs.map(function (one) { return [one]; }), { track: true, empty: text.noFcb })
         ], { track: true })
       ] };
     };
@@ -3381,6 +3381,7 @@ const fatModel = {
       state.touchFat = range(found + 1);
       state.freeFound = found;
       out.libre = found;
+      out.usadas = joinList(range(found));
       out.revisadas = found + 1;
       return out;
     }
@@ -3398,12 +3399,12 @@ const fatModel = {
       directory: tablesView([table(null, columns, rows, { highlight: state.touchDir ? [config.files.findIndex(function (one) { return one.name === state.touchDir; })] : [], track: true })], { track: true }),
       fat: diskView(state.entries.map(function (value, index) {
         const owner = state.owner[index];
-        if (value === null) return { kind: "free", who: text.freeEntry, focus: state.touchFat.length > 1 && index === state.freeFound };
+        if (value === null || !owner) return { kind: "free", who: text.freeEntry, focus: state.touchFat.length > 1 && index === state.freeFound };
         return { kind: "data", file: owner.file, who: String(value), focus: state.touchFat.length === 1 && state.touchFat[0] === index };
       }), 8, { sub: text.fatSub, files: config.files }),
       clusters: diskView(state.entries.map(function (value, index) {
         const owner = state.owner[index];
-        if (value === null) return freeCell();
+        if (value === null || !owner) return freeCell();
         return { kind: "data", file: owner.file, who: owner.name, txt: state.pointers ? (value === "EOF" ? UI_TEXT.alloc.end : fill(UI_TEXT.alloc.next, { n: value })) : "", focus: state.touchDisk.indexOf(index) !== -1 };
       }), 8, { sub: state.pointers ? text.linkedSub : text.clustersSub, files: config.files }),
       costs: counterView([{ caption: text.lookups, value: state.lookups }, { caption: text.reads, value: state.reads }])
@@ -3693,6 +3694,8 @@ const indirectModel = {
       out.siguiente = hop.next;
       out.slot = hop.slot;
       out.accesos = state.log.length;
+      out.leidosDatos = state.log.filter(function (one) { return one.kind === "data"; }).length;
+      out.leidosPunteros = state.log.filter(function (one) { return one.kind === "pointer"; }).length;
       return out;
     }
     problems.push("una operación de indirecciones que el recurso no conoce: " + op.op);
@@ -4177,6 +4180,10 @@ function verifyStructure(example, steps, snapshots, problems) {
       const before = canvasPanels(snapshots[index - 1].canvas);
       const gone = before.filter(function (id) { return canvasPanels(snapshot.canvas).indexOf(id) === -1; });
       if (gone.length > 0 && !snapshot.stepUnitNote && !/salen? de la pantalla/.test(snapshot.narration)) problems.push("en el paso " + (index + 1) + " sale un panel y la narración no lo dice");
+      gone.forEach(function (id) {
+        const word = UI_TEXT.panels[id].split(" ")[0].toLowerCase();
+        if (snapshot.narration.toLowerCase().indexOf(word) === -1) problems.push("en el paso " + (index + 1) + " sale el panel " + id + " y la narración no lo nombra");
+      });
     }
   });
 }

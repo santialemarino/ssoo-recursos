@@ -33,7 +33,7 @@ dónde vive.
 | 7 | En el disco | Métodos de acceso | Secuencial · Directo · Indexado · Hashed | un registro o una búsqueda en el índice | 6 + 2 + 3 + 3 |
 | 8 | En el disco | Asignación de bloques | Contigua · Enlazada · Indexada | un evento de asignación o una lectura | 9 + 9 + 13 |
 | 9 | En el disco | Espacio libre | Bit vector · Enlazada · Indexada · Lista de bloques · Lista de contiguos | un paso de la representación o un pedido | 3 × 5 |
-| 10 | En el disco | Journaling | Sin journal · Con journal | una operación o la falla | 6 + 12 |
+| 10 | En el disco | Journaling | Sin journal · Con journal | una operación o la falla; al final, el reinicio | 6 + 12 |
 | 11 | FAT | La FAT funcionando | — | una búsqueda en la FAT o un evento | 13 |
 | 12 | FAT | Tamaños de la FAT | FAT12 · FAT16 · FAT32 | una cuenta | 12 + 13 + 13 |
 | 13 | EXT2 | El inodo | — | el archivo crece un bloque | 12 |
@@ -122,7 +122,7 @@ compara lo que da el modelo contra eso.
 Además: que cada pregunta tenga su opción correcta y un `why` en cada opción; que no
 quede ningún `{dato}` sin completar; que todo globito invocado exista y que todo globito
 escrito se use; que cada panel tenga nombre, globito y algo que mostrar en cada paso; y
-que **cuando un panel sale de la pantalla, la narración lo diga**.
+que **cuando un panel sale de la pantalla, la narración lo diga y lo nombre**.
 
 ### Datos inventados
 
@@ -151,7 +151,7 @@ del título, los controles, las teclas, el globito en cada título de panel y la
 cierre. **Cero diferencias.**
 
 El canvas se derivó ejemplo por ejemplo: un panel está cuando es el tema o cuando
-cambia. Cuando uno sale, la narración lo dice.
+cambia. Cuando uno sale, la narración lo nombra.
 
 | # | Lo que muta | Canvas |
 |---|---|---|
@@ -168,7 +168,7 @@ cambia. Cuando uno sale, la narración lo dice.
 | 11 | la cadena, en los clusters y en la FAT | Directorio + Costo · (FAT) · Disco; al final, el volumen |
 | 12 | las cuentas | Cuentas · Directorio + FAT · Bloques; después Cuentas · Datos |
 | 13 | el inodo y el disco | Inodo · Disco; al final, las cuentas |
-| 14 | el camino de cada lectura | Cuentas · Inodo · Bloques de punteros · Accesos |
+| 14 | el camino de cada lectura | Cuentas + Inodo · Bloques de punteros · Accesos |
 | 15 | bitmaps, superbloque, inodos, registros | Estructura del volumen; después Bitmaps + Superbloque · Inodos + Registros · Bloques |
 | 16 | la terminal, el directorio y los inodos | Terminal · Directorio + Inodos; al final, la estructura de directorios |
 
