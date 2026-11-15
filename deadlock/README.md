@@ -22,8 +22,6 @@ sección crítica, y espera activa contra bloqueo.
 Este archivo es la documentación del recurso: qué enseña, cómo editarlo y qué no
 se puede tocar. Si vas a modificar `index.html`, leelo antes.
 
-**No está enlazado desde la portada.**
-
 ---
 
 ## Los dieciséis ejemplos
