@@ -842,7 +842,7 @@ const UI_TEXT = {
   pause: "Pausar",
   none: "—",
   takeawayTag: "Para llevarse",
-  spinChip: "busy-wait",
+  spinChip: "espera activa",
   criticalTag: "sección crítica",
   definitionTag: "definición",
   queueLabel: "cola de bloqueados:",
@@ -858,13 +858,13 @@ const UI_TEXT = {
   pendingBadge: "interrupción de reloj pendiente · IF = {flag}",
   lanes: {
     cpuLane: "CPU",
-    kinds: { busy: "{who} ejecuta", spin: "{who} en busy-wait", overhead: "cambio de contexto" },
-    shortKinds: { busy: "{who}", spin: "{who} busy-wait", overhead: "cambio" },
-    stateKinds: { RUNNING: "ejecuta", READY: "espera su turno", BLOCKED: "bloqueado", spinning: "en busy-wait" },
-    shortStateKinds: { spinning: "busy-wait" },
+    kinds: { busy: "{who} ejecuta", spin: "{who} en espera activa", overhead: "cambio de contexto" },
+    shortKinds: { busy: "{who}", spin: "{who} espera activa", overhead: "cambio" },
+    stateKinds: { RUNNING: "ejecuta", READY: "espera su turno", BLOCKED: "bloqueado", spinning: "en espera activa" },
+    shortStateKinds: { spinning: "espera activa" },
     legend: [
       { kind: "busy", text: "un proceso ejecutando" },
-      { kind: "spin", text: "en busy-wait: ocupa la CPU sin avanzar" },
+      { kind: "spin", text: "en espera activa: ocupa la CPU sin avanzar" },
       { kind: "overhead", text: "cambio de contexto: no ejecuta nadie" },
       { kind: "READY", text: "listo, esperando la CPU" },
       { kind: "BLOCKED", text: "bloqueado, esperando el semáforo" },
@@ -963,7 +963,7 @@ const TOOLTIPS = {
     body: "Un lock que no bloquea al proceso que espera: lo deja con la CPU, preguntando en un while hasta que puede entrar."
   },
   busyWait: {
-    title: "Busy-wait",
+    title: "Espera activa",
     body: "Esperar ejecutando. El proceso tiene la CPU y la ocupa preguntando una y otra vez si ya puede entrar."
   },
   testAndSet: {
@@ -2001,7 +2001,7 @@ const EXAMPLES = [
         actor: "P2",
         line: 3,
         narration: "P2 está adentro. Exclusión mutua, progreso, y para cualquier cantidad de procesos: alcanzó con que un paso no se pueda partir.",
-        note: "Lo que sigue estando es el busy-wait: P2 ejecutó la línea del while tres veces y sólo la tercera lo dejó entrar. El ejemplo 12 mide cuánto cuesta eso."
+        note: "Lo que sigue estando es la espera activa: P2 ejecutó la línea del while tres veces y sólo la tercera lo dejó entrar. El ejemplo 12 mide cuánto cuesta eso."
       }
     ],
     closing: "Un solo paso indivisible es lo que les faltaba a las soluciones por software.",
@@ -2172,8 +2172,8 @@ const EXAMPLES = [
   {
     number: 12,
     group: "semaforos",
-    title: "Busy-wait o bloqueo",
-    short: "Busy-wait",
+    title: "Espera activa o bloqueo",
+    short: "Espera activa",
     adds: "Agrega: cuánta CPU cuesta cada una de las dos esperas.",
     subtitle: "La misma situación esperada de las dos maneras, medida en unidades de tiempo.",
     stepUnit: "Un paso = una unidad de tiempo",
@@ -2182,12 +2182,12 @@ const EXAMPLES = [
     panelNotes: { lanes: "P1 está adentro de su sección crítica y necesita 4 unidades. P2 quiere entrar." },
     laneProcesses: [{ id: "P1", label: "P1" }, { id: "P2", label: "P2" }],
     boards: [
-      { id: "spin", label: "Busy-wait", gloss: "el que espera se queda con la CPU", counter: "CPU en busy-wait: {spin} de {units}" },
+      { id: "spin", label: "Espera activa", gloss: "el que espera se queda con la CPU", counter: "CPU en espera activa: {spin} de {units}" },
       { id: "block", label: "Con bloqueo", gloss: "el que espera deja la CPU", counter: "CPU sin ejecutar a nadie: {overhead} de {units}" }
     ],
     steps: [
       {
-        narration: "Primer caso: [[busyWait:busy-wait]], la espera del ejemplo 9. P2 pide entrar, no puede, y se queda en el while. Tiene la CPU y la ocupa sin avanzar.",
+        narration: "Primer caso: [[busyWait:espera activa]], como en el ejemplo 9. P2 pide entrar, no puede, y se queda en el while. Tiene la CPU y la ocupa sin avanzar.",
         note: "El bloque rayado es eso: un proceso ejecutando, pero sin avanzar. No es rojo, porque está ejecutando.",
         ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "spin", who: "P2" }, spin: ["P2"], states: { P1: "READY", P2: "RUNNING" } }]
       },
@@ -2196,7 +2196,7 @@ const EXAMPLES = [
         ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P1" }, states: { P1: "RUNNING", P2: "READY" } }]
       },
       {
-        narration: "Le toca a P2 otra vez, y vuelve a preguntar. Van {spin_spin} unidades de CPU en busy-wait.",
+        narration: "Le toca a P2 otra vez, y vuelve a preguntar. Van {spin_spin} unidades de CPU en espera activa.",
         ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "spin", who: "P2" }, spin: ["P2"], states: { P1: "READY", P2: "RUNNING" } }]
       },
       {
@@ -2224,7 +2224,7 @@ const EXAMPLES = [
         ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
       },
       {
-        narration: "P2 termina. El caso tardó {spin_units} unidades, y {spin_spin} de ellas se fueron en busy-wait.",
+        narration: "P2 termina. El caso tardó {spin_units} unidades, y {spin_spin} de ellas se fueron en espera activa.",
         ops: [{ op: "time.advance", board: "spin", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
       },
       {
@@ -2258,7 +2258,7 @@ const EXAMPLES = [
       },
       {
         narration: "P2 termina. Este caso tardó {block_units} unidades, con {block_overhead} de cambio de contexto.",
-        note: "El busy-wait ocupó {spin_spin} unidades, y esa cuenta crece con lo que dure la sección crítica. Los cambios de contexto son {block_overhead}, y son {block_overhead} sea la sección larga o corta.",
+        note: "La espera activa ocupó {spin_spin} unidades, y esa cuenta crece con lo que dure la sección crítica. Los cambios de contexto son {block_overhead}, y son {block_overhead} sea la sección larga o corta.",
         ops: [{ op: "time.advance", board: "block", units: 1, cpu: { kind: "busy", who: "P2" }, states: { P1: "READY", P2: "RUNNING" } }]
       }
     ],
@@ -2270,7 +2270,7 @@ const EXAMPLES = [
         ["La carrera es poco probable", "casi siempre se entra sin esperar"]
       ]
     },
-    closing: "El curso prefiere bloquear: el busy-wait ocupa la CPU sin avanzar.",
+    closing: "El curso prefiere bloquear: la espera activa ocupa la CPU sin avanzar.",
     expectedFinalState: {
       boards: {
         spin: { units: 10, spin: 4, overhead: 0 },
@@ -3379,7 +3379,7 @@ function verifyOp(op, label, example, names, problems, step) {
     if (!op.states[item.id]) problems.push(label + ": la operación no dice en qué estado queda " + item.id);
   });
   (op.spin || []).forEach(function (id) {
-    if (!op.states[id]) problems.push(label + ": la operación dice que " + id + " está en busy-wait y no le da estado");
+    if (!op.states[id]) problems.push(label + ": la operación dice que " + id + " está en espera activa y no le da estado");
   });
 }
 
@@ -3427,7 +3427,7 @@ function verifyContextKeys(example, problems) {
     claim(board.id + "_overhead", "el tablero " + board.id);
   });
   if (example.mode) { claim("mode", "el panel de modo"); claim("flag", "el panel de modo"); claim("switches", "el panel de modo"); }
-  claim("spins", "el contador de busy-wait");
+  claim("spins", "el contador de espera activa");
 }
 
 function collectTexts(example, snapshots) {
@@ -3592,13 +3592,13 @@ function verifySnapshots(example, snapshots, problems) {
     if (!step.actor || !step.line) return;
     const later = example.steps.slice(index + 1).filter(function (other) { return other.actor === step.actor; })[0];
     if (snapshots[index].spinning && later && later.line !== step.line) {
-      problems.push("paso " + (index + 1) + ": " + step.actor + " está en busy-wait y su próximo paso cambia de línea");
+      problems.push("paso " + (index + 1) + ": " + step.actor + " está en espera activa y su próximo paso cambia de línea");
     }
     if (snapshots[index].spinning || !later || later.line !== step.line) return;
     const item = processById(example, step.actor);
     const line = item ? programLines(item.program)[step.line - 1] : null;
     if (!line || line.role !== "section") {
-      problems.push("paso " + (index + 1) + ": " + step.actor + " repite la línea " + step.line + " sin estar en busy-wait y sin que sea una sección");
+      problems.push("paso " + (index + 1) + ": " + step.actor + " repite la línea " + step.line + " sin estar en espera activa y sin que sea una sección");
     }
   });
 
@@ -3655,7 +3655,7 @@ function verifyFinalState(example, snapshots, problems) {
     });
   }
   if (expected.spins !== undefined && last.spins !== expected.spins) {
-    problems.push("al final hubo " + last.spins + " pasos en busy-wait y se esperaban " + expected.spins);
+    problems.push("al final hubo " + last.spins + " pasos en espera activa y se esperaban " + expected.spins);
   }
   Object.keys(expected.boards || {}).forEach(function (id) {
     if (!last.boards[id]) { problems.push("se espera un total para el tablero " + id + ", que no existe"); return; }

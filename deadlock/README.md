@@ -17,7 +17,7 @@ interrupciones**, **Procesos e hilos**, **Planificación de procesos** y
 **Sincronización**, y da por sabido todo lo de esas cuatro clases: estados de
 proceso y sus colores, `BLOCKED` y qué lo provoca, el planificador de corto plazo,
 el cambio de contexto, `wait` y `signal` con el valor y la cola del semáforo, la
-sección crítica, y busy-wait contra bloqueo.
+sección crítica, y espera activa contra bloqueo.
 
 Este archivo es la documentación del recurso: qué enseña, cómo editarlo y qué no
 se puede tocar. Si vas a modificar `index.html`, leelo antes.
